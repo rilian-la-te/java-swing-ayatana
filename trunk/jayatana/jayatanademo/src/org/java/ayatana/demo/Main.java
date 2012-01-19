@@ -36,7 +36,7 @@ import javax.swing.UIManager;
  */
 public class Main {
 	public static void main(String args[]) throws Exception {		
-		UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		BasicTextEditor textEditor = new BasicTextEditor();
 		textEditor.loadDefaultText();
 		textEditor.setVisible(true);
