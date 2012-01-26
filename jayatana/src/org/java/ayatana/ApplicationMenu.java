@@ -26,10 +26,7 @@
 
 package org.java.ayatana;
 
-import java.awt.AWTEvent;
-import java.awt.Component;
-import java.awt.Toolkit;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -48,6 +45,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	native private static void initialize();
 	native private static void uninitialize();
 	
+	private static Robot robot = null;
+	private static boolean useingappmenu = false;
 	private static boolean initializedApplicationMenu = false;
 	private static void initializeApplicationMenu() {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -55,6 +54,11 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 			public void run() { ApplicationMenu.uninitialize(); }
 		});
 		ApplicationMenu.initialize();
+		try {
+			robot = new Robot();
+		} catch (AWTException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	private JFrame frame;
@@ -103,7 +107,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		}
 		xid = this.getWindowXID(frame);
 		this.registerWatcher(xid);
-		Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.KEY_EVENT_MASK);
+		Toolkit.getDefaultToolkit().addAWTEventListener(this,
+				AWTEvent.KEY_EVENT_MASK + AWTEvent.MOUSE_EVENT_MASK);
 		tryinstalled = true;
 	}
 	private void tryUninstall() {
@@ -130,15 +135,19 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		menubar.setVisible(true);
 	}
 	private void itemActivated(long xid) {
-		Object menu = menusmap.get(xid);
-		if (menu instanceof JMenuItem) {
-			((JMenuItem)menu).doClick();
+		Object obj = menusmap.get(xid);
+		if (obj instanceof JMenuItem) {
+			JMenuItem menuitem = (JMenuItem)obj;
+			menuitem.doClick();
+			useingappmenu = true;
 		}
 	}
 	private void itemAboutToShow(long xid) {
-		Object menu = menusmap.get(xid);
-		if (menu instanceof JMenu) {
-			((JMenu)menu).doClick();
+		Object obj = menusmap.get(xid);
+		if (obj instanceof JMenu) {
+			JMenu menu = (JMenu)obj;
+			menu.doClick();
+			useingappmenu = true;
 		}
 	}
 	
@@ -179,7 +188,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 			menusaceleratormap.put(
 					KeyEvent.getKeyModifiersText(acelerator.getModifiers())
 					+KeyEvent.getKeyText(acelerator.getKeyCode()), menu);
-			this.setMenuItemAccelerator(xid, mid, acelerator.getModifiers(), acelerator.getKeyCode());
+			this.setMenuItemAccelerator(xid, mid,
+					acelerator.getModifiers(), acelerator.getKeyCode());
 		}
 		if (menu instanceof JRadioButtonMenuItem) {
 			this.setMenuItemToggleType(xid, mid, TOGGLE_TYPE_RADIO);
@@ -244,8 +254,78 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		
+		if ("accelerator".equals(evt.getPropertyName())) {
+			KeyStroke aceleratorold = (KeyStroke)evt.getNewValue();
+			KeyStroke aceleratornew = (KeyStroke)evt.getNewValue();
+			if (aceleratorold != null) {
+				menusaceleratormap.remove(
+					KeyEvent.getKeyModifiersText(aceleratorold.getModifiers())
+					+KeyEvent.getKeyText(aceleratorold.getKeyCode()));
+			}
+			if (aceleratornew != null) {
+				menusaceleratormap.put(
+					KeyEvent.getKeyModifiersText(aceleratornew.getModifiers())
+					+KeyEvent.getKeyText(aceleratornew.getKeyCode()), evt.getSource());
+			}
+		}
 	}
+	
+	private JFrame getFrame(Component comp) {
+		if (comp == null)
+			return null;
+		else if (comp instanceof JFrame)
+			return (JFrame)comp;
+		else
+			return getFrame(comp.getParent());
+	}
+	@Override
+	public void eventDispatched(AWTEvent event) {
+		if (event.getID() == KeyEvent.KEY_RELEASED) {
+			JFrame eventframe;
+			if (event.getSource() instanceof Component)
+				eventframe = this.getFrame((Component)event.getSource());
+			else if (event.getSource() instanceof JFrame)
+				eventframe = (JFrame)event.getSource();
+			else 
+				eventframe = null;
+			KeyEvent e = (KeyEvent)event;
+			if (frame.equals(eventframe) && frame.isActive()) {
+				if (e.getKeyCode() != KeyEvent.VK_ALT &&
+						e.getKeyCode() != KeyEvent.VK_SHIFT &&
+						e.getKeyCode() != KeyEvent.VK_CONTROL &&
+						e.getKeyCode() != KeyEvent.VK_META &&
+						e.getKeyCode() != KeyEvent.VK_ALT_GRAPH) {
+					String aceleratorkey = KeyEvent.getKeyModifiersText(e.getModifiers())
+							+ KeyEvent.getKeyText(e.getKeyCode());
+					Object menu = menusaceleratormap.get(aceleratorkey);
+					if (menu != null) {
+						if (menu instanceof JMenuItem) {
+							((JMenuItem)menu).doClick();
+						}
+					}
+				}
+			}
+		} else if (event.getID() == MouseEvent.MOUSE_RELEASED && useingappmenu) {
+			useingappmenu = false;
+			if ("com.sun.java.swing.plaf.gtk.GTKLookAndFeel".equals(
+					UIManager.getLookAndFeel().getClass().getName())) {
+				MouseEvent e = (MouseEvent)event;
+				new Thread() {
+					@Override
+					public void run() {
+						robot.mousePress(InputEvent.BUTTON1_MASK);
+						try {
+							Thread.sleep(50);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						robot.mouseRelease(InputEvent.BUTTON1_MASK);
+					}
+				}.start();
+			}
+		}
+	}
+	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() instanceof JRadioButtonMenuItem ||
@@ -276,42 +356,6 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 			this.unattachMenuItem((JMenuItem)e.getChild());
 	}
 	
-	private JFrame getFrame(Component comp) {
-		if (comp == null)
-			return null;
-		else if (comp instanceof JFrame)
-			return (JFrame)comp;
-		else
-			return getFrame(comp.getParent());
-	}
-	@Override
-	public void eventDispatched(AWTEvent event) {
-		KeyEvent e = (KeyEvent)event;
-		JFrame eventframe;
-		if (e.getSource() instanceof Component)
-			eventframe = this.getFrame((Component)e.getSource());
-		else if (e.getSource() instanceof JFrame)
-			eventframe = (JFrame)e.getSource();
-		else 
-			eventframe = null;
-		if (frame.equals(eventframe)) {
-			if (e.getID() == KeyEvent.KEY_RELEASED &&
-					e.getKeyCode() != KeyEvent.VK_ALT &&
-					e.getKeyCode() != KeyEvent.VK_SHIFT &&
-					e.getKeyCode() != KeyEvent.VK_CONTROL &&
-					e.getKeyCode() != KeyEvent.VK_META &&
-					e.getKeyCode() != KeyEvent.VK_ALT_GRAPH) {
-				String aceleratorkey = KeyEvent.getKeyModifiersText(e.getModifiers())
-						+ KeyEvent.getKeyText(e.getKeyCode());
-				Object menu = menusaceleratormap.get(aceleratorkey);
-				if (menu != null) {
-					if (menu instanceof JMenuItem) {
-						((JMenuItem)menu).doClick();
-					}
-				}
-			}
-		}
-	}
 	@Override
 	public void componentHidden(ComponentEvent e) {}
 	@Override
