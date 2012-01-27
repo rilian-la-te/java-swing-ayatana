@@ -75,6 +75,7 @@ void *thread_g_main_loop_run(void *ptr) {
 /* control global de integración appmenu */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_initialize
   (JNIEnv *env, jclass thatclass) {
+	XInitThreads();
 	g_type_init();
 	loop = g_main_loop_new(NULL, FALSE);
 	pthread_t thread_g_main_loop_run_ptr;
@@ -286,9 +287,6 @@ void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
 	(*env)->CallVoidMethod(env, javamenuevent->javawindow->that, mid, javamenuevent->mid);
 	(*javamenuevent->javawindow->jvm)->DetachCurrentThread(javamenuevent->javawindow->jvm);
 }
-void item_released(gpointer user_data) {
-	g_warning("released");
-}
 
 
 
@@ -310,8 +308,6 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 			G_CALLBACK(item_activated), javamenuevent, (GClosureNotify)item_destroy_data, 0);
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW,
 			G_CALLBACK(item_about_to_show), javamenuevent);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_REALIZED,
-			G_CALLBACK(item_released), javamenuevent);
 	dbusmenu_menuitem_child_append(parent, item);
 	collection_list_index_add(javawindow->menus, mid, item);
 }

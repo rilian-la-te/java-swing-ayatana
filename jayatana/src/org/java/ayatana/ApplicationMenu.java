@@ -26,7 +26,10 @@
 
 package org.java.ayatana;
 
-import java.awt.*;
+import java.awt.AWTEvent;
+import java.awt.Component;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -45,8 +48,6 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	native private static void initialize();
 	native private static void uninitialize();
 	
-	private static Robot robot = null;
-	private static boolean useingappmenu = false;
 	private static boolean initializedApplicationMenu = false;
 	private static void initializeApplicationMenu() {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -54,24 +55,18 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 			public void run() { ApplicationMenu.uninitialize(); }
 		});
 		ApplicationMenu.initialize();
-		try {
-			robot = new Robot();
-		} catch (AWTException e) {
-			throw new RuntimeException(e);
-		}
 	}
 	
 	private JFrame frame;
 	private JMenuBar menubar;
-	private long menugeneratorid = 0;
-	private Map<Long, Object> menusmap;
+	private long menugenid = 0;
+	private Map<Long, Object> menuobjectmap;
 	private Map<String, Object> menusaceleratormap;
 	private boolean tryinstalled = false;
 	private long xid = -1;
 	
 	private static final int TOGGLE_TYPE_RADIO = 0;
 	private static final int TOGGLE_TYPE_CHECK = 1;
-	
 	private static final int TOGGLE_STATE_CHECKED = 0;
 	private static final int TOGGLE_STATE_UNCHECKED = 1;
 	
@@ -89,7 +84,7 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	ApplicationMenu(JFrame frame, JMenuBar menubar) {
 		this.frame = frame;
 		this.menubar = menubar;
-		this.menusmap = new TreeMap<Long, Object>();
+		this.menuobjectmap = new TreeMap<Long, Object>();
 		this.menusaceleratormap = new TreeMap<String, Object>();
 		this.frame.addWindowListener(this);
 	}
@@ -107,20 +102,18 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		}
 		xid = this.getWindowXID(frame);
 		this.registerWatcher(xid);
-		Toolkit.getDefaultToolkit().addAWTEventListener(this,
-				AWTEvent.KEY_EVENT_MASK + AWTEvent.MOUSE_EVENT_MASK);
 		tryinstalled = true;
 	}
 	private void tryUninstall() {
 		if (!tryinstalled)
 			return;
-		Toolkit.getDefaultToolkit().removeAWTEventListener(this);
 		frame.removeWindowListener(this);
 		this.unregisterWatcher(xid);
 		tryinstalled = false;
 	}
 	
 	private void install() {
+		Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.KEY_EVENT_MASK);
 		for (Component comp : menubar.getComponents())
 			if (comp instanceof JMenu) {
 				attachMenu(-1, (JMenu)comp);
@@ -128,6 +121,7 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		menubar.setVisible(false);
 	}
 	private void uninstall() {
+		Toolkit.getDefaultToolkit().removeAWTEventListener(this);
 		for (Component comp : menubar.getComponents())
 			if (comp instanceof JMenu) {
 				unattachMenu((JMenu)comp);
@@ -135,19 +129,25 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		menubar.setVisible(true);
 	}
 	private void itemActivated(long xid) {
-		Object obj = menusmap.get(xid);
+		Object obj = menuobjectmap.get(xid);
 		if (obj instanceof JMenuItem) {
 			JMenuItem menuitem = (JMenuItem)obj;
-			menuitem.doClick();
-			useingappmenu = true;
+			menuitem.getModel().setArmed(true);
+			menuitem.getModel().setPressed(true);
+			try {Thread.sleep(68);} catch (Exception e) {}
+			menuitem.getModel().setPressed(false);
+			menuitem.getModel().setArmed(false);
 		}
 	}
 	private void itemAboutToShow(long xid) {
-		Object obj = menusmap.get(xid);
+		Object obj = menuobjectmap.get(xid);
 		if (obj instanceof JMenu) {
 			JMenu menu = (JMenu)obj;
-			menu.doClick();
-			useingappmenu = true;
+			menu.getModel().setArmed(true);
+			menu.getModel().setPressed(true);
+			try {Thread.sleep(68);} catch (Exception e) {}
+			menu.getModel().setPressed(false);
+			menu.getModel().setArmed(false);
 		}
 	}
 	
@@ -155,7 +155,7 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	 * Control de integracion de menus
 	 */
 	private long getIndexOfObject(Object object) {
-		for (Map.Entry<Long, Object> entry : menusmap.entrySet())
+		for (Map.Entry<Long, Object> entry : menuobjectmap.entrySet())
 			if (object.equals(entry.getValue())) {
 				return entry.getKey();
 			}
@@ -163,8 +163,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	}
 	
 	private void attachMenu(long pid, JMenu menu) {
-		long mid = ++menugeneratorid;
-		menusmap.put(mid, menu);
+		long mid = ++menugenid;
+		menuobjectmap.put(mid, menu);
 		this.addMenu(xid, pid, mid);
 		this.setMenuItemLabel(xid, mid, menu.getText());
 		menu.addContainerListener(this);
@@ -179,8 +179,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		}
 	}
 	private void attachMenuItem(long pid, JMenuItem menu) {
-		long mid = ++menugeneratorid;
-		menusmap.put(mid, menu);
+		long mid = ++menugenid;
+		menuobjectmap.put(mid, menu);
 		this.addMenu(xid, pid, mid);
 		this.setMenuItemLabel(xid, mid, menu.getText());
 		if (menu.getAccelerator() != null) {
@@ -205,8 +205,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		menu.addPropertyChangeListener(this);
 	}
 	private void attachSeparator(long pid, JSeparator sep) {
-		long mid = ++menugeneratorid;
-		menusmap.put(mid, sep);
+		long mid = ++menugenid;
+		menuobjectmap.put(mid, sep);
 		this.addSeparator(xid, pid, mid);
 		sep.addPropertyChangeListener(this);
 	}
@@ -216,7 +216,7 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		menu.removeContainerListener(this);
 		menu.removePropertyChangeListener(this);
 		long mid = this.getIndexOfObject(menu);
-		menusmap.remove(mid);
+		menuobjectmap.remove(mid);
 		this.removeMenuItem(xid, mid);
 		for (Component comp : menu.getMenuComponents()) {
 			if (comp instanceof JMenu)
@@ -233,7 +233,7 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 			menu.removePropertyChangeListener(this);
 		menu.removeItemListener(this);
 		long mid = this.getIndexOfObject(menu);
-		menusmap.remove(mid);
+		menuobjectmap.remove(mid);
 		if (menu.getAccelerator() != null) {
 			KeyStroke acelerator = menu.getAccelerator();
 			menusaceleratormap.remove(
@@ -245,7 +245,7 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	private void unattachSeparator(JSeparator sep) {
 		sep.removePropertyChangeListener(this);
 		long mid = this.getIndexOfObject(sep);
-		menusmap.remove(mid);
+		menuobjectmap.remove(mid);
 		this.removeMenuItem(xid, mid);
 	}
 	
@@ -278,23 +278,24 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		else
 			return getFrame(comp.getParent());
 	}
+	
 	@Override
 	public void eventDispatched(AWTEvent event) {
 		if (event.getID() == KeyEvent.KEY_RELEASED) {
-			JFrame eventframe;
-			if (event.getSource() instanceof Component)
-				eventframe = this.getFrame((Component)event.getSource());
-			else if (event.getSource() instanceof JFrame)
-				eventframe = (JFrame)event.getSource();
-			else 
-				eventframe = null;
 			KeyEvent e = (KeyEvent)event;
-			if (frame.equals(eventframe) && frame.isActive()) {
-				if (e.getKeyCode() != KeyEvent.VK_ALT &&
+			if (e.getKeyCode() != KeyEvent.VK_ALT &&
 						e.getKeyCode() != KeyEvent.VK_SHIFT &&
 						e.getKeyCode() != KeyEvent.VK_CONTROL &&
 						e.getKeyCode() != KeyEvent.VK_META &&
 						e.getKeyCode() != KeyEvent.VK_ALT_GRAPH) {
+				JFrame eventframe;
+				if (event.getSource() instanceof Component)
+					eventframe = this.getFrame((Component)event.getSource());
+				else if (event.getSource() instanceof JFrame)
+					eventframe = (JFrame)event.getSource();
+				else 
+					eventframe = null;
+				if (frame.equals(eventframe) && frame.isActive()) {
 					String aceleratorkey = KeyEvent.getKeyModifiersText(e.getModifiers())
 							+ KeyEvent.getKeyText(e.getKeyCode());
 					Object menu = menusaceleratormap.get(aceleratorkey);
@@ -304,24 +305,6 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 						}
 					}
 				}
-			}
-		} else if (event.getID() == MouseEvent.MOUSE_RELEASED && useingappmenu) {
-			useingappmenu = false;
-			if ("com.sun.java.swing.plaf.gtk.GTKLookAndFeel".equals(
-					UIManager.getLookAndFeel().getClass().getName())) {
-				MouseEvent e = (MouseEvent)event;
-				new Thread() {
-					@Override
-					public void run() {
-						robot.mousePress(InputEvent.BUTTON1_MASK);
-						try {
-							Thread.sleep(50);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						robot.mouseRelease(InputEvent.BUTTON1_MASK);
-					}
-				}.start();
 			}
 		}
 	}

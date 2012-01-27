@@ -72,12 +72,7 @@ public class Ayatana {
 			return false;
 		
 		if (isApplicationMenuPresent()) {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					new ApplicationMenu(frame, menubar);
-				}
-			});
+			new ApplicationMenu(frame, menubar);
 			return true;
 		}
 		return false;
