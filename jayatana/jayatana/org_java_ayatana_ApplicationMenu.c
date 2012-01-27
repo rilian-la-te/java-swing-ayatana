@@ -380,6 +380,20 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemToggleSt
 		dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE, DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
 }
 
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemVisible
+  (JNIEnv *env, jobject that, jlong xid, jlong mid, jboolean visible) {
+	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
+	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
+	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_VISIBLE, visible);
+}
+
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemEnable
+  (JNIEnv *env, jobject that, jlong xid, jlong mid, jboolean enable) {
+	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
+	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
+	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, enable);
+}
+
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeMenuItem
   (JNIEnv *env, jobject that, jlong xid, jlong mid) {
 	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);

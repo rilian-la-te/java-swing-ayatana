@@ -160,6 +160,7 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 		menuundo.setAccelerator(KeyStroke.getKeyStroke(bundle.getString("menu_undo_ac")));
 		menuundo.setActionCommand("undo");
 		menuundo.addActionListener(this);
+		menuundo.setEnabled(false);
 		JMenuItem menuredo = new JMenuItem(bundle.getString("menu_redo"));
 		menuredo.setAccelerator(KeyStroke.getKeyStroke(bundle.getString("menu_redo_ac")));
 		menuredo.setActionCommand("redo");

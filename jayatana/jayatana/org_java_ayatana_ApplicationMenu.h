@@ -105,6 +105,22 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemToggleSt
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
+ * Method:    setMenuItemVisible
+ * Signature: (JJZ)V
+ */
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemVisible
+  (JNIEnv *, jobject, jlong, jlong, jboolean);
+
+/*
+ * Class:     org_java_ayatana_ApplicationMenu
+ * Method:    setMenuItemEnable
+ * Signature: (JJZ)V
+ */
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemEnable
+  (JNIEnv *, jobject, jlong, jlong, jboolean);
+
+/*
+ * Class:     org_java_ayatana_ApplicationMenu
  * Method:    removeMenuItem
  * Signature: (JJ)V
  */

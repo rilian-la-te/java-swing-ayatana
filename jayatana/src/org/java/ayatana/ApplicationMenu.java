@@ -79,6 +79,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	native private void setMenuItemAccelerator(long xid, long mid, int modifiers, int keycode);
 	native private void setMenuItemToggleType(long xid, long mid, int type);
 	native private void setMenuItemToggleState(long xid, long mid, int state);
+	native private void setMenuItemVisible(long xid, long mid, boolean visible);
+	native private void setMenuItemEnable(long xid, long mid, boolean enable);
 	native private void removeMenuItem(long xid, long mid);
 	
 	ApplicationMenu(JFrame frame, JMenuBar menubar) {
@@ -167,8 +169,8 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		menuobjectmap.put(mid, menu);
 		this.addMenu(xid, pid, mid);
 		this.setMenuItemLabel(xid, mid, menu.getText());
-		menu.addContainerListener(this);
-		menu.addPropertyChangeListener(this);
+		this.setMenuItemVisible(xid, mid, menu.isVisible());
+		this.setMenuItemEnable(xid, mid, menu.isEnabled());
 		for (Component comp : menu.getMenuComponents()) {
 			if (comp instanceof JMenu)
 				attachMenu(mid, (JMenu)comp);
@@ -177,12 +179,17 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 			else if (comp instanceof JMenuItem)
 				attachMenuItem(mid, (JMenuItem)comp);
 		}
+		menu.addContainerListener(this);
+		menu.addPropertyChangeListener(this);
+		menu.addComponentListener(this);
 	}
 	private void attachMenuItem(long pid, JMenuItem menu) {
 		long mid = ++menugenid;
 		menuobjectmap.put(mid, menu);
 		this.addMenu(xid, pid, mid);
 		this.setMenuItemLabel(xid, mid, menu.getText());
+		this.setMenuItemVisible(xid, mid, menu.isVisible());
+		this.setMenuItemEnable(xid, mid, menu.isEnabled());
 		if (menu.getAccelerator() != null) {
 			KeyStroke acelerator = menu.getAccelerator();
 			menusaceleratormap.put(
@@ -203,16 +210,19 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 			menu.addItemListener(this);
 		}
 		menu.addPropertyChangeListener(this);
+		menu.addComponentListener(this);
 	}
-	private void attachSeparator(long pid, JSeparator sep) {
+	private void attachSeparator(long pid, JSeparator separator) {
 		long mid = ++menugenid;
-		menuobjectmap.put(mid, sep);
+		menuobjectmap.put(mid, separator);
 		this.addSeparator(xid, pid, mid);
-		sep.addPropertyChangeListener(this);
+		separator.addPropertyChangeListener(this);
+		separator.addComponentListener(this);
 	}
 	
 	
 	private void unattachMenu(JMenu menu) {
+		menu.removeComponentListener(this);
 		menu.removeContainerListener(this);
 		menu.removePropertyChangeListener(this);
 		long mid = this.getIndexOfObject(menu);
@@ -231,6 +241,7 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		if (menu instanceof JRadioButtonMenuItem ||
 				menu instanceof JCheckBoxMenuItem)
 			menu.removePropertyChangeListener(this);
+		menu.removeComponentListener(this);
 		menu.removeItemListener(this);
 		long mid = this.getIndexOfObject(menu);
 		menuobjectmap.remove(mid);
@@ -242,9 +253,10 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 		}
 		this.removeMenuItem(xid, mid);
 	}
-	private void unattachSeparator(JSeparator sep) {
-		sep.removePropertyChangeListener(this);
-		long mid = this.getIndexOfObject(sep);
+	private void unattachSeparator(JSeparator separator) {
+		separator.removeComponentListener(this);
+		separator.removePropertyChangeListener(this);
+		long mid = this.getIndexOfObject(separator);
 		menuobjectmap.remove(mid);
 		this.removeMenuItem(xid, mid);
 	}
@@ -254,7 +266,13 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if ("accelerator".equals(evt.getPropertyName())) {
+		if ("enabled".equals(evt.getPropertyName())) {
+			this.setMenuItemEnable(xid, getIndexOfObject(evt.getSource()),
+					Boolean.TRUE.equals(evt.getNewValue()));
+		} else if ("visible".equals(evt.getPropertyName())) {
+			this.setMenuItemVisible(xid, getIndexOfObject(evt.getSource()),
+					Boolean.TRUE.equals(evt.getNewValue()));
+		} else if ("accelerator".equals(evt.getPropertyName())) {
 			KeyStroke aceleratorold = (KeyStroke)evt.getNewValue();
 			KeyStroke aceleratornew = (KeyStroke)evt.getNewValue();
 			if (aceleratorold != null) {
@@ -340,13 +358,17 @@ class ApplicationMenu implements WindowListener, ComponentListener, ContainerLis
 	}
 	
 	@Override
-	public void componentHidden(ComponentEvent e) {}
+	public void componentHidden(ComponentEvent e) {
+		this.setMenuItemVisible(xid, getIndexOfObject(e.getSource()), false);
+	}
 	@Override
 	public void componentMoved(ComponentEvent e) {}
 	@Override
 	public void componentResized(ComponentEvent e) {}
 	@Override
-	public void componentShown(ComponentEvent e) {}
+	public void componentShown(ComponentEvent e) {
+		this.setMenuItemVisible(xid, getIndexOfObject(e.getSource()), true);
+	}
 	
 	@Override
 	public void windowOpened(WindowEvent e) {
