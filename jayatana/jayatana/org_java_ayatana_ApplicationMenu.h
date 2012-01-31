@@ -7,29 +7,29 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef org_java_ayatana_ApplicationMenu_TOGGLE_TYPE_RADIO
-#define org_java_ayatana_ApplicationMenu_TOGGLE_TYPE_RADIO 0L
-#undef org_java_ayatana_ApplicationMenu_TOGGLE_TYPE_CHECK
-#define org_java_ayatana_ApplicationMenu_TOGGLE_TYPE_CHECK 1L
-#undef org_java_ayatana_ApplicationMenu_TOGGLE_STATE_CHECKED
-#define org_java_ayatana_ApplicationMenu_TOGGLE_STATE_CHECKED 0L
-#undef org_java_ayatana_ApplicationMenu_TOGGLE_STATE_UNCHECKED
-#define org_java_ayatana_ApplicationMenu_TOGGLE_STATE_UNCHECKED 1L
 /*
  * Class:     org_java_ayatana_ApplicationMenu
- * Method:    initialize
+ * Method:    nativeInitialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_initialize
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_nativeInitialize
   (JNIEnv *, jclass);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
- * Method:    uninitialize
+ * Method:    nativeUninitialize
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_uninitialize
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_nativeUninitialize
   (JNIEnv *, jclass);
+
+/*
+ * Class:     org_java_ayatana_ApplicationMenu
+ * Method:    getWindowXID
+ * Signature: (Ljava/awt/Window;)J
+ */
+JNIEXPORT jlong JNICALL Java_org_java_ayatana_ApplicationMenu_getWindowXID
+  (JNIEnv *, jobject, jobject);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
@@ -49,83 +49,43 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_unregisterWatcher
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
- * Method:    getWindowXID
- * Signature: (Ljava/awt/Window;)J
- */
-JNIEXPORT jlong JNICALL Java_org_java_ayatana_ApplicationMenu_getWindowXID
-  (JNIEnv *, jobject, jobject);
-
-/*
- * Class:     org_java_ayatana_ApplicationMenu
  * Method:    addMenu
- * Signature: (JJJ)V
+ * Signature: (JILjava/lang/String;Z)V
  */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jint, jstring, jboolean);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
- * Method:    addSeparator
- * Signature: (JJJ)V
+ * Method:    addMenuItem
+ * Signature: (JILjava/lang/String;ZII)V
  */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addSeparator
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
+  (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jint, jint);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
- * Method:    setMenuItemLabel
- * Signature: (JJLjava/lang/String;)V
+ * Method:    addMenuItemRadio
+ * Signature: (JILjava/lang/String;ZIIZ)V
  */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemLabel
-  (JNIEnv *, jobject, jlong, jlong, jstring);
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
+  (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jint, jint, jboolean);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
- * Method:    setMenuItemAccelerator
- * Signature: (JJII)V
+ * Method:    addMenuItemCheck
+ * Signature: (JILjava/lang/String;ZIIZ)V
  */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemAccelerator
-  (JNIEnv *, jobject, jlong, jlong, jint, jint);
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
+  (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jint, jint, jboolean);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
- * Method:    setMenuItemToggleType
- * Signature: (JJI)V
+ * Method:    addMenuItemSeparator
+ * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemToggleType
-  (JNIEnv *, jobject, jlong, jlong, jint);
-
-/*
- * Class:     org_java_ayatana_ApplicationMenu
- * Method:    setMenuItemToggleState
- * Signature: (JJI)V
- */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemToggleState
-  (JNIEnv *, jobject, jlong, jlong, jint);
-
-/*
- * Class:     org_java_ayatana_ApplicationMenu
- * Method:    setMenuItemVisible
- * Signature: (JJZ)V
- */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemVisible
-  (JNIEnv *, jobject, jlong, jlong, jboolean);
-
-/*
- * Class:     org_java_ayatana_ApplicationMenu
- * Method:    setMenuItemEnable
- * Signature: (JJZ)V
- */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemEnable
-  (JNIEnv *, jobject, jlong, jlong, jboolean);
-
-/*
- * Class:     org_java_ayatana_ApplicationMenu
- * Method:    removeMenuItem
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeMenuItem
-  (JNIEnv *, jobject, jlong, jlong);
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemSeparator
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

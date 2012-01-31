@@ -60,17 +60,20 @@ else
 AVA_ARCH=i386
 endif
 
+# Entorno de JAYATANA
+VERSION=0.1.0
+
 # build
 build: .build-post
 
 .build-pre:
-# Add your pre 'build' code here...
 	export JAVA_HOME=${JAVA_HOME}
 	export LD_LIBRARY_PATH=${JAVA_HOME}/jre/lib/${JAVA_ARCH}
 	export PATH=${JAVA_HOME}/bin
 
 .build-post: .build-impl
-# Add your post 'build' code here...
+	mkdir -p ../build/classes/native/${VERSION}/${JAVA_ARCH}
+	cp ${CND_DISTDIR}/${CONF}/${CND_PLATFORM_${CONF}}/libjayatana.so ../build/classes/native/${VERSION}/${JAVA_ARCH}
 
 
 # clean

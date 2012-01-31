@@ -40,7 +40,7 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=`pkg-config --cflags glib-2.0 dbusmenu-glib-0.4` 
+CFLAGS=`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt` 
 
 # CC Compiler Flags
 CCFLAGS=
@@ -53,7 +53,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L${JAVA_HOME}/jre/lib/${JAVA_ARCH} -ljawt `pkg-config --libs glib-2.0 dbusmenu-glib-0.4`  
+LDLIBSOPTIONS=-L${JAVA_HOME}/jre/lib/${JAVA_ARCH} -ljawt `pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -66,17 +66,17 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so: ${OBJECTFILES}
 ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o: org_java_ayatana_ApplicationMenu.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.c) -O2 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 dbusmenu-glib-0.4`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o org_java_ayatana_ApplicationMenu.c
+	$(COMPILE.c) -O2 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o org_java_ayatana_ApplicationMenu.c
 
 ${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o: org_java_ayatana_JKeyToXKey.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.c) -O2 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 dbusmenu-glib-0.4`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o org_java_ayatana_JKeyToXKey.c
+	$(COMPILE.c) -O2 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o org_java_ayatana_JKeyToXKey.c
 
 ${OBJECTDIR}/org_java_ayatana_Collections.o: org_java_ayatana_Collections.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.c) -O2 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 dbusmenu-glib-0.4`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_Collections.o org_java_ayatana_Collections.c
+	$(COMPILE.c) -O2 -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_Collections.o org_java_ayatana_Collections.c
 
 # Subprojects
 .build-subprojects:
