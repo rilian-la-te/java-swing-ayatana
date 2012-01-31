@@ -27,6 +27,7 @@
 package org.java.ayatana.demo;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,7 +36,9 @@ import java.awt.event.ItemListener;
 import java.io.*;
 import java.util.ResourceBundle;
 import javax.swing.*;
-import org.java.ayatana.Ayatana;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import org.java.ayatana.ApplicationMenu;
 
 /**
  * Clase de un editor simple de texto
@@ -47,6 +50,8 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 			"org.java.ayatana.demo.Bundle");
 	
 	private JMenuBar menubar;
+	private JMenuItem menucut;
+	private JMenuItem menucopy;
 	private File file;
 	private JTextArea textarea;
 	
@@ -72,8 +77,23 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 		menubar.add(getMenuHelp());
 		
 		textarea = new JTextArea();
+		textarea.setFont(new Font("DialogInput",
+				textarea.getFont().getStyle(),
+				textarea.getFont().getSize()));
 		textarea.setTabSize(4);
 		textarea.setLineWrap(true);
+		textarea.addCaretListener(new CaretListener() {
+			@Override
+			public void caretUpdate(CaretEvent e) {
+				if (textarea.getSelectedText() == null) {
+					menucut.setEnabled(false);
+					menucopy.setEnabled(false);
+				} else {
+					menucut.setEnabled(true);
+					menucopy.setEnabled(true);
+				}
+			}
+		});
 		
 		JPanel contentPane = new JPanel(new BorderLayout());
 		contentPane.add(getToolBar(), BorderLayout.PAGE_START);
@@ -85,7 +105,7 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 		this.setContentPane(contentPane);
 		this.setSize(500, 350);
 		
-		Ayatana.tryInstallApplicationMenu(this);
+		ApplicationMenu.tryInstall(this);
 	}
 	
 	/**
@@ -165,18 +185,22 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 		menuredo.setAccelerator(KeyStroke.getKeyStroke(bundle.getString("menu_redo_ac")));
 		menuredo.setActionCommand("redo");
 		menuredo.addActionListener(this);
-		JMenuItem menucut = new JMenuItem(bundle.getString("menu_cut"));
+		menuredo.setEnabled(false);
+		menucut = new JMenuItem(bundle.getString("menu_cut"));
 		menucut.setAccelerator(KeyStroke.getKeyStroke(bundle.getString("menu_cut_ac")));
 		menucut.setActionCommand("cut");
 		menucut.addActionListener(this);
-		JMenuItem menucopy = new JMenuItem(bundle.getString("menu_copy"));
+		menucut.setEnabled(false);
+		menucopy = new JMenuItem(bundle.getString("menu_copy"));
 		menucopy.setAccelerator(KeyStroke.getKeyStroke(bundle.getString("menu_copy_ac")));
 		menucopy.setActionCommand("copy");
 		menucopy.addActionListener(this);
+		menucopy.setEnabled(false);
 		JMenuItem menupaste = new JMenuItem(bundle.getString("menu_paste"));
 		menupaste.setAccelerator(KeyStroke.getKeyStroke(bundle.getString("menu_paste_ac")));
 		menupaste.setActionCommand("paste");
 		menupaste.addActionListener(this);
+		menupaste.setEnabled(false);
 		JMenuItem menuselall = new JMenuItem(bundle.getString("menu_selall"));
 		menuselall.setAccelerator(KeyStroke.getKeyStroke(bundle.getString("menu_selall_ac")));
 		menuselall.setActionCommand("selall");
@@ -197,6 +221,11 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 		return menuedit;
 	}
 	
+	/**
+	 * Crea el menu de cambio de apariencia
+	 * 
+	 * @return menu
+	 */
 	private JMenu getMenuLaF() {
 		JMenu menulaf = new JMenu(bundle.getString("menu_laf"));
 		menulaf.setMnemonic(bundle.getString("menu_laf_mn").charAt(0));
@@ -235,13 +264,13 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 	 * @return barra de herramientas
 	 */
 	private JToolBar getToolBar() {
-		JButton btnnew = createToolBarButton("Add16.gif", null);
+		JButton btnnew = createToolBarButton("Add24.gif", null);
 		btnnew.setActionCommand("new");
 		btnnew.addActionListener(this);
-		JButton btnopen = createToolBarButton("Open16.gif", null);
+		JButton btnopen = createToolBarButton("Open24.gif", null);
 		btnopen.setActionCommand("open");
 		btnopen.addActionListener(this);
-		JButton btnsave = createToolBarButton("Save16.gif", null);
+		JButton btnsave = createToolBarButton("Save24.gif", null);
 		btnsave.setActionCommand("save");
 		btnsave.addActionListener(this);
 		
@@ -268,6 +297,9 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 		return btn;
 	}
 
+	/*
+	 * Gestion de eventos centrales
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if ("new".equals(e.getActionCommand())) {
@@ -296,6 +328,9 @@ public class BasicTextEditor extends JFrame implements ActionListener, ItemListe
 		}
 	}
 	
+	/*
+	 * Eventos de cambio de apariencia
+	 */
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() instanceof AbstractButton) {
