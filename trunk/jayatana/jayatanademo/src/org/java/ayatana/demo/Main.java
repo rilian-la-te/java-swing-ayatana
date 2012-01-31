@@ -37,6 +37,8 @@ import javax.swing.UIManager;
 public class Main {
 	public static void main(String args[]) throws Exception {		
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		UIManager.put("FileChooserUI", "javax.swing.plaf.metal.MetalFileChooserUI");
+		
 		BasicTextEditor textEditor = new BasicTextEditor();
 		textEditor.loadDefaultText();
 		textEditor.setVisible(true);
