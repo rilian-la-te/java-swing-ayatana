@@ -39,203 +39,47 @@
 #include "org_java_ayatana_Collections.h"
 #include "org_java_ayatana_JKeyToXKey.h"
 
+
+
+//estrucutra de instancia
 typedef struct {
-	// variables de control
-	long xid;
-	gboolean installed;
-	// servicios
-	guint watcher;
-	GDBusProxy *proxy;
-	// variables java
+	jlong windowxid;
 	JavaVM *jvm;
 	jobject that;
-	// variables de menu
-	DbusmenuServer *server;
-	DbusmenuMenuitem *root;
-	ListIndex *menus;
-} JavaWindow;
+	guint watcher;
+	gboolean installed;
+	DbusmenuServer *menuserver;
+	DbusmenuMenuitem *menuroot;
+	DbusmenuMenuitem *menucurrent;
+} JavaInstance;
+ListIndex *jinstances;
 
-typedef struct {
-	JavaWindow *javawindow;
-	long mid;
-} JavaMenuEvent;
 
 
 // variables gobales
 GMainLoop *loop;
-ListIndex *javawindows;
 
 
 
-/* inicio de g_main_loop en un hilo independiente */
-void *thread_g_main_loop_run(void *ptr) {
-	g_main_loop_run(loop);
-	return NULL;
-}
 /* control global de integración appmenu */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_initialize
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_nativeInitialize
   (JNIEnv *env, jclass thatclass) {
 	XInitThreads();
 	g_type_init();
+	jinstances = collection_list_index_new();
 	loop = g_main_loop_new(NULL, FALSE);
-	pthread_t thread_g_main_loop_run_ptr;
-	pthread_create(&thread_g_main_loop_run_ptr, NULL, thread_g_main_loop_run, NULL);
-	javawindows = collection_list_index_new();
+	g_main_loop_run(loop);
 }
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_uninitialize
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_nativeUninitialize
   (JNIEnv *env, jclass thatclass) {
+	collection_list_index_destory(jinstances);
 	g_main_loop_quit(loop);
 	g_main_loop_unref(loop);
-	collection_list_index_destory(javawindows);
 }
 
 
 
-/* Creacion del identificador de menu*/
-char *get_xid_path(long xid) {
-	char *xid_path;
-	xid_path = (char *)malloc(sizeof(char *)*35);
-	sprintf(xid_path, "/com/canonical/menu/%lx", xid);
-	return xid_path;
-}
-
-
-
-/* invokar metodo install del objeto */
-void java_install_with_env(JNIEnv *env, jobject that) {
-	jclass thatclass = (*env)->GetObjectClass(env, that);
-	jmethodID mid = (*env)->GetMethodID(env, thatclass, "install", "()V");
-	(*env)->CallVoidMethod(env, that, mid);
-}
-void java_install(JavaWindow *javawindow) {
-	JNIEnv *env = NULL;
-	(*javawindow->jvm)->AttachCurrentThread(javawindow->jvm, (void**)&env, NULL);
-	java_install_with_env(env, javawindow->that);
-	(*javawindow->jvm)->DetachCurrentThread(javawindow->jvm);
-}
-/* invokar metodo uninstall del objeto*/
-void java_uninstall_with_env(JNIEnv *env, jobject that) {
-	jclass thatclass = (*env)->GetObjectClass(env, that);
-	jmethodID mid = (*env)->GetMethodID(env, thatclass, "uninstall", "()V");
-	(*env)->CallVoidMethod(env, that, mid);
-}
-void java_uninstall(JavaWindow *javawindow) {
-	JNIEnv *env = NULL;
-	(*javawindow->jvm)->AttachCurrentThread(javawindow->jvm, (void**)&env, NULL);
-	java_uninstall_with_env(env, javawindow->that);
-	(*javawindow->jvm)->DetachCurrentThread(javawindow->jvm);
-}
-
-
-
-/* control para menuitems */
-void destroy_menuitem(DbusmenuMenuitem *parent) {
-	if (parent != NULL) {
-		GList *items = dbusmenu_menuitem_get_children(parent);
-		if (items != NULL) {
-			guint nitems = g_list_length(items);
-			if (nitems > 0) {
-				int i;
-				DbusmenuMenuitem *item;
-				for (i=0;i<nitems;i++) {
-					item = (DbusmenuMenuitem *)items->data;
-					destroy_menuitem(item);
-					items = items->next;
-				}
-			}
-		}
-		if (dbusmenu_menuitem_get_parent(parent) != NULL)
-			dbusmenu_menuitem_unparent(parent);
-		g_object_unref(parent);
-	}
-}
-
-
-
-/* eventos de existencia del application menu */
-void on_registrar_available(GDBusConnection *connection, const gchar *name, const gchar *name_owner, gpointer user_data) {
-	JavaWindow *javawindow = (JavaWindow *)user_data;
-	
-	GDBusProxy *proxy = g_dbus_proxy_new_for_bus_sync (
-			G_BUS_TYPE_SESSION,
-			G_DBUS_PROXY_FLAGS_NONE,
-			NULL,
-			"com.canonical.AppMenu.Registrar",
-			"/com/canonical/AppMenu/Registrar",
-			"com.canonical.AppMenu.Registrar",
-			NULL, NULL);
-	
-	char *xid_path = get_xid_path(javawindow->xid);
-	g_dbus_proxy_call_sync (
-			proxy, "RegisterWindow",
-			g_variant_new ("(uo)", javawindow->xid, xid_path),
-			G_DBUS_CALL_FLAGS_NONE,
-			-1, NULL, NULL);
-	free(xid_path);
-	
-	javawindow->proxy = proxy;
-	java_install(javawindow);
-	javawindow->installed = TRUE;
-}
-void on_registrar_unavailable(GDBusConnection *connection, const gchar *name, gpointer user_data) {
-	JavaWindow *javawindow = (JavaWindow *)user_data;
-	if (javawindow->installed) {
-		java_uninstall(javawindow);
-		destroy_menuitem(javawindow->root);
-		g_object_unref(javawindow->server);
-	}
-	javawindow->installed = FALSE;
-}
-
-
-
-/* control de existencia del application menu */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_registerWatcher
-  (JNIEnv *env, jobject that, jlong xid) {
-	JavaWindow *javawindow = (JavaWindow *)malloc(sizeof(JavaWindow));
-	javawindow->menus = collection_list_index_new();
-	(*env)->GetJavaVM(env, &javawindow->jvm);
-	javawindow->that = (*env)->NewGlobalRef(env, that);
-	javawindow->xid = xid;
-	javawindow->installed = FALSE;
-	
-	char *xid_path = get_xid_path(javawindow->xid);
-	DbusmenuServer *server = dbusmenu_server_new(xid_path);
-	DbusmenuMenuitem *root = dbusmenu_menuitem_new();
-	dbusmenu_server_set_root(server, root);
-	javawindow->server = server;
-	javawindow->root = root;
-	free(xid_path);
-	
-	guint watcher = g_bus_watch_name(
-			G_BUS_TYPE_SESSION,
-			"com.canonical.AppMenu.Registrar",
-			G_BUS_NAME_WATCHER_FLAGS_NONE,
-	        on_registrar_available,
-			on_registrar_unavailable,
-			javawindow, NULL);
-	
-	javawindow->watcher = watcher;
-	collection_list_index_add(javawindows, xid, javawindow);
-}
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_unregisterWatcher
-  (JNIEnv *env, jobject that, jlong xid) { 
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_remove(javawindows, xid);
-	g_bus_unwatch_name(javawindow->watcher);
-	if (javawindow->installed) {
-		java_uninstall_with_env(env, that);
-		g_object_unref(javawindow->proxy);
-	}
-	(*env)->DeleteGlobalRef(env, javawindow->that);
-	destroy_menuitem(javawindow->root);
-	g_object_unref(javawindow->server);
-	collection_list_index_destory(javawindow->menus);
-	free(javawindow);
-}
-
-
-
-/* obtener identificador XID de ventan */
+/* obtención del windowxid de una ventana Java */
 JNIEXPORT jlong JNICALL Java_org_java_ayatana_ApplicationMenu_getWindowXID
   (JNIEnv *env, jobject that, jobject window) {
 	JAWT awt;
@@ -264,141 +108,282 @@ JNIEXPORT jlong JNICALL Java_org_java_ayatana_ApplicationMenu_getWindowXID
 
 
 
-/* Control de eventos de menus */
-void item_destroy_data(gpointer user_data) {
-	JavaMenuEvent *javamenuevent = (JavaMenuEvent *)user_data;
-	free(javamenuevent);
+/* Creacion del identificador de menu*/
+char *get_windowxid_path(long xid) {
+	char *xid_path;
+	xid_path = (char *)malloc(sizeof(char *)*35);
+	sprintf(xid_path, "/com/canonical/menu/%lx", xid);
+	return xid_path;
 }
-void item_activated(DbusmenuMenuitem *item, guint timestamp, gpointer user_data) {
-	JavaMenuEvent *javamenuevent = (JavaMenuEvent *)user_data;
+/* control para eliminar menus */
+void destroy_menu(DbusmenuMenuitem *parent) {
+	if (parent != NULL) {
+		GList *items = dbusmenu_menuitem_take_children(parent);
+		if (items != NULL) {
+			do {
+				DbusmenuMenuitem *item = (DbusmenuMenuitem *)items->data;
+				destroy_menu(item);
+				items = items->next;
+			} while (items != NULL);
+		}
+		if (dbusmenu_menuitem_get_parent(parent) != NULL)
+			dbusmenu_menuitem_unparent(parent);
+		g_object_unref(parent);
+	}
+}
+/* control para eliminar menus */
+void destroy_menu_items(DbusmenuMenuitem *parent) {
+	if (parent != NULL) {
+		GList *items = dbusmenu_menuitem_take_children(parent);
+		if (items != NULL) {
+			do {
+				DbusmenuMenuitem *item = (DbusmenuMenuitem *)items->data;
+				destroy_menu(item);
+				items = items->next;
+			} while (items != NULL);
+		}
+	}
+}
+/* eventos de existencia del application menu */
+void on_registrar_available(GDBusConnection *connection, const gchar *name, const gchar *name_owner, gpointer user_data) {
+	JavaInstance *jinstance = (JavaInstance *)user_data;
+	if (!jinstance->installed) {
+		// generar base de menu
+		char *windowxid_path = get_windowxid_path(jinstance->windowxid);
+		DbusmenuServer *menuserver = dbusmenu_server_new(windowxid_path);
+		DbusmenuMenuitem *menuroot = dbusmenu_menuitem_new();
+		dbusmenu_server_set_root(menuserver, menuroot);
+		jinstance->menuserver = menuserver;
+		jinstance->menuroot = menuroot;
+		jinstance->menucurrent = menuroot;
+		// registar menu de aplicaciones
+		GDBusProxy *proxy = g_dbus_proxy_new_for_bus_sync (
+				G_BUS_TYPE_SESSION,
+				G_DBUS_PROXY_FLAGS_NONE,
+				NULL,
+				"com.canonical.AppMenu.Registrar",
+				"/com/canonical/AppMenu/Registrar",
+				"com.canonical.AppMenu.Registrar",
+				NULL, NULL);
+		g_dbus_proxy_call_sync(
+				proxy, "RegisterWindow",
+				g_variant_new("(uo)", jinstance->windowxid, windowxid_path),
+				G_DBUS_CALL_FLAGS_NONE,
+				-1, NULL, NULL);
+		free(windowxid_path);
+		// instalar java
+		JNIEnv *env = NULL;
+		(*jinstance->jvm)->AttachCurrentThread(jinstance->jvm, (void**)&env, NULL);
+		jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
+		jmethodID mid = (*env)->GetMethodID(env, thatclass, "install", "()V");
+		(*env)->CallVoidMethod(env, jinstance->that, mid);
+		(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
+		// marcar como instalado
+		jinstance->installed = TRUE;
+	}
+}
+/* eventos de existencia del application menu */
+void on_registrar_unavailable(GDBusConnection *connection, const gchar *name, gpointer user_data) {
+	JavaInstance *jinstance = (JavaInstance *)user_data;
+	if (jinstance->installed) {
+		// eliminar menus
+		destroy_menu(jinstance->menuroot);
+		g_object_unref(jinstance->menuserver);
+		// desinstalar java
+		JNIEnv *env = NULL;
+		(*jinstance->jvm)->AttachCurrentThread(jinstance->jvm, (void**)&env, NULL);
+		jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
+		jmethodID mid = (*env)->GetMethodID(env, thatclass, "uninstall", "()V");
+		(*env)->CallVoidMethod(env, jinstance->that, mid);
+		(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
+		// marcar como desinstalado
+		jinstance->installed = FALSE;
+	}
+}
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_registerWatcher
+  (JNIEnv *env, jobject that, jlong windowxid) { 
+	JavaInstance *jinstance = (JavaInstance *)malloc(sizeof(JavaInstance));
+	jinstance->windowxid = windowxid;
+	jinstance->installed = FALSE;
+	// registro de variables java
+	(*env)->GetJavaVM(env, &jinstance->jvm);
+	jinstance->that = (*env)->NewGlobalRef(env, that);
+	// revisor de menu de aplicaciones
+	guint watcher = g_bus_watch_name(
+			G_BUS_TYPE_SESSION,
+			"com.canonical.AppMenu.Registrar",
+			G_BUS_NAME_WATCHER_FLAGS_NONE,
+	        on_registrar_available,
+			on_registrar_unavailable,
+			jinstance, NULL);
+	jinstance->watcher = watcher;
+	// agregar instancia
+	collection_list_index_add(jinstances, windowxid, jinstance);
+}
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_unregisterWatcher
+  (JNIEnv *env, jobject that, jlong windowxid) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_remove(jinstances, windowxid);
+	g_bus_unwatch_name(jinstance->watcher);
+	if (jinstance->installed) {
+		// eliminar menus
+		destroy_menu(jinstance->menuroot);
+		g_object_unref(jinstance->menuserver);
+		// desinstalar
+		jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
+		jmethodID mid = (*env)->GetMethodID(env, thatclass, "uninstall", "()V");
+		(*env)->CallVoidMethod(env, jinstance->that, mid);
+	}
+	// deregistro de variables java
+	(*env)->DeleteGlobalRef(env, jinstance->that);
+	//eliminar instancia
+	free(jinstance);
+}
+
+
+
+/* evento de actviar el menu*/
+void item_activated (DbusmenuMenuitem *item, guint timestamp, gpointer user_data) {
+	JavaInstance *jinstance = (JavaInstance *)user_data;
+	// invocar event de menu
 	JNIEnv *env = NULL;
-	(*javamenuevent->javawindow->jvm)->AttachCurrentThread(javamenuevent->javawindow->jvm, (void**)&env, NULL);
-	jclass thatclass = (*env)->GetObjectClass(env, javamenuevent->javawindow->that);
-	jmethodID mid = (*env)->GetMethodID(env, thatclass, "itemActivated", "(J)V");
-	(*env)->CallVoidMethod(env, javamenuevent->javawindow->that, mid, javamenuevent->mid);
-	(*javamenuevent->javawindow->jvm)->DetachCurrentThread(javamenuevent->javawindow->jvm);
+	(*jinstance->jvm)->AttachCurrentThread(jinstance->jvm, (void**)&env, NULL);
+	jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
+	jmethodID mid = (*env)->GetMethodID(env, thatclass, "itemActivated", "(I)V");
+	(*env)->CallVoidMethod(env, jinstance->that, mid,
+			dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode"));
+	(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
 }
+/* evento antes de mostrar el menu*/
 void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
-	JavaMenuEvent *javamenuevent = (JavaMenuEvent *)user_data;
+	JavaInstance *jinstance = (JavaInstance *)user_data;
+	//inicializar menu
+	jinstance->menucurrent = item;
+	destroy_menu_items(item);
+	// invocar generacion de menus
 	JNIEnv *env = NULL;
-	(*javamenuevent->javawindow->jvm)->AttachCurrentThread(javamenuevent->javawindow->jvm, (void**)&env, NULL);
-	jclass thatclass = (*env)->GetObjectClass(env, javamenuevent->javawindow->that);
-	jmethodID mid = (*env)->GetMethodID(env, thatclass, "itemAboutToShow", "(J)V");
-	(*env)->CallVoidMethod(env, javamenuevent->javawindow->that, mid, javamenuevent->mid);
-	(*javamenuevent->javawindow->jvm)->DetachCurrentThread(javamenuevent->javawindow->jvm);
+	(*jinstance->jvm)->AttachCurrentThread(jinstance->jvm, (void**)&env, NULL);
+	jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
+	jmethodID mid = (*env)->GetMethodID(env, thatclass, "itemAboutToShow", "(I)V");
+	(*env)->CallVoidMethod(env, jinstance->that, mid,
+			dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode"));
+	(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
 }
-
-
-
-/* gestion de menus */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
-  (JNIEnv *env, jobject that, jlong xid, jlong pid, jlong mid) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *parent;
-	if (pid == -1l) {
-		parent = javawindow->root;
-	} else {
-		parent = collection_list_index_get(javawindow->menus, pid);
-	}
+  (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
+			
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-	JavaMenuEvent *javamenuevent = (JavaMenuEvent *)malloc(sizeof(JavaMenuEvent));
-	javamenuevent->javawindow = javawindow;
-	javamenuevent->mid = mid;
-	g_signal_connect_data(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-			G_CALLBACK(item_activated), javamenuevent, (GClosureNotify)item_destroy_data, 0);
+	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW,
-			G_CALLBACK(item_about_to_show), javamenuevent);
-	dbusmenu_menuitem_child_append(parent, item);
-	collection_list_index_add(javawindow->menus, mid, item);
+			G_CALLBACK(item_about_to_show), jinstance);
+	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
+	
+	DbusmenuMenuitem *foo = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_child_append(item, foo);
+}
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
+  (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
+	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
+	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+			G_CALLBACK(item_activated), jinstance);
+	if (modifiers > -1 && keycode > -1) {
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		if ((modifiers & JK_SHIFT) == JK_SHIFT)
+			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
+		else if ((modifiers & JK_CTRL) == JK_CTRL)
+			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
+		else if ((modifiers & JK_ALT) == JK_ALT)
+			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
+		const char *keystring = jkeycode_to_xkey(keycode);
+		g_variant_builder_add(&builder, "s", keystring);
+		GVariant *inside = g_variant_builder_end(&builder);
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		g_variant_builder_add_value(&builder, inside);
+		GVariant *outsidevariant = g_variant_builder_end(&builder);
+		dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
+	}
+	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 }
 
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addSeparator
-  (JNIEnv *env, jobject that, jlong xid, jlong pid, jlong mid) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *parent;
-	if (pid == -1l) {
-		parent = javawindow->root;
-	} else {
-		parent = collection_list_index_get(javawindow->menus, pid);
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
+  (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
+	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
+	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+			G_CALLBACK(item_activated), jinstance);
+	if (modifiers > -1 && keycode > -1) {
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		if ((modifiers & JK_SHIFT) == JK_SHIFT)
+			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
+		else if ((modifiers & JK_CTRL) == JK_CTRL)
+			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
+		else if ((modifiers & JK_ALT) == JK_ALT)
+			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
+		const char *keystring = jkeycode_to_xkey(keycode);
+		g_variant_builder_add(&builder, "s", keystring);
+		GVariant *inside = g_variant_builder_end(&builder);
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		g_variant_builder_add_value(&builder, inside);
+		GVariant *outsidevariant = g_variant_builder_end(&builder);
+		dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
 	}
+	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_RADIO);
+	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
+			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
+	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
+}
+
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
+  (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
+	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
+	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+			G_CALLBACK(item_activated), jinstance);
+	if (modifiers > -1 && keycode > -1) {
+		GVariantBuilder builder;
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		if ((modifiers & JK_SHIFT) == JK_SHIFT)
+			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
+		else if ((modifiers & JK_CTRL) == JK_CTRL)
+			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
+		else if ((modifiers & JK_ALT) == JK_ALT)
+			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
+		const char *keystring = jkeycode_to_xkey(keycode);
+		g_variant_builder_add(&builder, "s", keystring);
+		GVariant *inside = g_variant_builder_end(&builder);
+		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+		g_variant_builder_add_value(&builder, inside);
+		GVariant *outsidevariant = g_variant_builder_end(&builder);
+		dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
+	}
+	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_CHECK);
+	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
+			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
+	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
+}
+
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemSeparator
+  (JNIEnv *env, jobject that, jlong windowxid) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-	dbusmenu_menuitem_child_append(parent, item);
-	collection_list_index_add(javawindow->menus, mid, item);
-}
-
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemLabel
-  (JNIEnv *env, jobject that, jlong xid, jlong mid, jstring label) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
-	const char *clabel = (*env)->GetStringUTFChars(env, label, 0);
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, clabel);
-}
-
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemAccelerator
-  (JNIEnv *env, jobject that, jlong xid, jlong mid, jint modifiers, jint keycode) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
-	
-	GVariantBuilder builder;
-	g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-	if ((modifiers & JK_SHIFT) == JK_SHIFT)
-		g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
-	else if ((modifiers & JK_CTRL) == JK_CTRL)
-		g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
-	else if ((modifiers & JK_ALT) == JK_ALT)
-		g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
-		
-	const char *keystring = jkeycode_to_xkey(keycode);
-	g_variant_builder_add(&builder, "s", keystring);
-
-	GVariant *inside = g_variant_builder_end(&builder);
-	g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-	g_variant_builder_add_value(&builder, inside);
-	
-	GVariant *outsidevariant = g_variant_builder_end(&builder);
-	dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
-}
-
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemToggleType
-  (JNIEnv *env, jobject that, jlong xid, jlong mid, jint type) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
-	if (type == org_java_ayatana_ApplicationMenu_TOGGLE_TYPE_RADIO)
-		dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_RADIO);
-	else
-		dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_CHECK);
-}
-
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemToggleState
-  (JNIEnv *env, jobject that, jlong xid, jlong mid, jint state) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
-	if (state == org_java_ayatana_ApplicationMenu_TOGGLE_STATE_CHECKED)
-		dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE, DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED);
-	else
-		dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE, DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
-}
-
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemVisible
-  (JNIEnv *env, jobject that, jlong xid, jlong mid, jboolean visible) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
-	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_VISIBLE, visible);
-}
-
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setMenuItemEnable
-  (JNIEnv *env, jobject that, jlong xid, jlong mid, jboolean enable) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	DbusmenuMenuitem *item = collection_list_index_get(javawindow->menus, mid);
-	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, enable);
-}
-
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeMenuItem
-  (JNIEnv *env, jobject that, jlong xid, jlong mid) {
-	JavaWindow *javawindow = (JavaWindow *)collection_list_index_get(javawindows, xid);
-	if (javawindow != NULL) {
-		DbusmenuMenuitem *item = collection_list_index_remove(javawindow->menus, mid);
-		destroy_menuitem(item);
-	}
+	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 }

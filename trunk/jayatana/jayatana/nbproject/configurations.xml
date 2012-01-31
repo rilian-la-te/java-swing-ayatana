@@ -31,9 +31,6 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
-  <sourceRootList>
-    <Elem>.</Elem>
-  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="2">
@@ -47,8 +44,7 @@
             <pElem>${JAVA_HOME}/include</pElem>
             <pElem>${JAVA_HOME}/include/linux</pElem>
           </incDir>
-          <commandLine>`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4`</commandLine>
-          <warningLevel>2</warningLevel>
+          <commandLine>`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`</commandLine>
         </cTool>
         <linkerTool>
           <linkerAddLib>
@@ -73,7 +69,7 @@
             <pElem>${JAVA_HOME}/include</pElem>
             <pElem>${JAVA_HOME}/include/linux</pElem>
           </incDir>
-          <commandLine>`pkg-config --cflags glib-2.0 dbusmenu-glib-0.4`</commandLine>
+          <commandLine>`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`</commandLine>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
@@ -90,7 +86,7 @@
           </linkerAddLib>
           <linkerLibItems>
             <linkerLibLibItem>jawt</linkerLibLibItem>
-            <linkerOptionItem>`pkg-config --libs glib-2.0 dbusmenu-glib-0.4`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
