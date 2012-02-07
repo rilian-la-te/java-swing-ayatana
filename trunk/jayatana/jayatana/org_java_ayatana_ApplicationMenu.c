@@ -299,9 +299,9 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
 		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
 		if ((modifiers & JK_SHIFT) == JK_SHIFT)
 			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
-		else if ((modifiers & JK_CTRL) == JK_CTRL)
+		if ((modifiers & JK_CTRL) == JK_CTRL)
 			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
-		else if ((modifiers & JK_ALT) == JK_ALT)
+		if ((modifiers & JK_ALT) == JK_ALT)
 			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
 		const char *keystring = jkeycode_to_xkey(keycode);
 		g_variant_builder_add(&builder, "s", keystring);
@@ -329,9 +329,9 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
 		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
 		if ((modifiers & JK_SHIFT) == JK_SHIFT)
 			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
-		else if ((modifiers & JK_CTRL) == JK_CTRL)
+		if ((modifiers & JK_CTRL) == JK_CTRL)
 			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
-		else if ((modifiers & JK_ALT) == JK_ALT)
+		if ((modifiers & JK_ALT) == JK_ALT)
 			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
 		const char *keystring = jkeycode_to_xkey(keycode);
 		g_variant_builder_add(&builder, "s", keystring);
@@ -362,9 +362,9 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
 		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
 		if ((modifiers & JK_SHIFT) == JK_SHIFT)
 			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
-		else if ((modifiers & JK_CTRL) == JK_CTRL)
+		if ((modifiers & JK_CTRL) == JK_CTRL)
 			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
-		else if ((modifiers & JK_ALT) == JK_ALT)
+		if ((modifiers & JK_ALT) == JK_ALT)
 			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
 		const char *keystring = jkeycode_to_xkey(keycode);
 		g_variant_builder_add(&builder, "s", keystring);

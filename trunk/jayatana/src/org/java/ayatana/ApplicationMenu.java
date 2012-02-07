@@ -26,14 +26,10 @@
 
 package org.java.ayatana;
 
-import java.awt.AWTEvent;
-import java.awt.Component;
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.AWTEventListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.*;
+import java.awt.event.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.*;
@@ -94,6 +90,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	
 	
 	private static boolean initialized = false;
+	private static Method methodFireItemStateChanged;
+	private static Method methodFireActionPerformed;
+	
 	/**
 	 * Inicializa el ApplicationMenu para iniciar con la integración con Ayatana
 	 * de Ubuntu
@@ -119,6 +118,17 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 			};
 			shutdownThread.setDaemon(true);
 			Runtime.getRuntime().addShutdownHook(shutdownThread);
+			
+			try {
+				methodFireItemStateChanged = AbstractButton.class.getDeclaredMethod(
+						"fireItemStateChanged", ItemEvent.class);
+				methodFireItemStateChanged.setAccessible(true);
+				methodFireActionPerformed = AbstractButton.class.getDeclaredMethod(
+						"fireActionPerformed", ActionEvent.class);
+				methodFireActionPerformed.setAccessible(true);
+			} catch (Exception e){
+				throw new RuntimeException(e);
+			}
 			
 			initialized = true;
 		}
@@ -157,6 +167,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * @param menu menu
 	 */
 	private void addMenu(JMenu menu) {
+		if (menu.getText() == null || "".equals(menu.getText()))
+			return;
 		this.addMenu(windowxid, menu.hashCode(), menu.getText(), menu.isEnabled());
 	}
 	/**
@@ -173,6 +185,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * @param menuitem menu
 	 */
 	private void addMenuItem(JMenuItem menuitem) {
+		if (menuitem.getText() == null || "".equals(menuitem.getText()))
+			return;
+		
 		int modifiers = -1;
 		int keycode = -1;
 		if (menuitem.getAccelerator() != null) {
@@ -195,12 +210,52 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					menuitem.getText(), menuitem.isEnabled(), modifiers, keycode);
 		}
 	}
+	/**
+	 * Agrega un menu basico
+	 * 
+	 * @param windowxid identificador de ventana
+	 * @param hashcode identificador de menu
+	 * @param label etiqueta
+	 * @param enabled habilitado
+	 * @param modifiers modificador de accelerador
+	 * @param keycode codigo de accelerador
+	 */
 	native private void addMenuItem(long windowxid, int hashcode, String label, boolean enabled, int modifiers, int keycode);
+	/**
+	 * Agrega un menu RADIO
+	 * 
+	 * @param windowxid identificador de ventana
+	 * @param hashcode identificador de menu
+	 * @param label etiqueta
+	 * @param enabled habilitado
+	 * @param modifiers modificador de acelerador
+	 * @param keycode codigo de accelerador
+	 * @param selected estado de selección
+	 */
 	native private void addMenuItemRadio(long windowxid, int hashcode, String label, boolean enabled, int modifiers, int keycode, boolean selected);
+	/**
+	 * Agrega un menu CHECK
+	 * 
+	 * @param windowxid identificador de ventana
+	 * @param hashcode identificador de menu
+	 * @param label etiqueta
+	 * @param enabled habilitado
+	 * @param modifiers modificador de acelerador
+	 * @param keycode codigo de accelerador
+	 * @param selected estado de selección
+	 */
 	native private void addMenuItemCheck(long windowxid, int hashcode, String label, boolean enabled, int modifiers, int keycode, boolean selected);
+	/**
+	 * Agrega un separador
+	 */
 	private void addSeparator() {
 		this.addMenuItemSeparator(windowxid);
 	}
+	/**
+	 * Agrega un separador
+	 * 
+	 * @param windowxid identificador de ventana
+	 */
 	native private void addMenuItemSeparator(long windowxid);
 	
 	/**
@@ -213,6 +268,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		this.frame = frame;
 		this.menubar = menubar;
 		frame.addWindowListener(this);
+		if (frame.isActive())
+			this.tryInstall();
 	}
 	
 	/**
@@ -324,13 +381,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * @param hashcode identificador de menu
 	 */
 	private void itemAboutToShow(int hashcode) {
-		JMenu menu = (JMenu)this.getJMenuItem(hashcode);
-		for (Component comp : menu.getMenuComponents()) {
-			if (comp instanceof JMenuItem)
-				this.addMenuItem((JMenuItem)comp);
-			else if (comp instanceof JSeparator)
-				this.addSeparator();
-		}
+		this.invokeMenu((JMenu)this.getJMenuItem(hashcode));
 	}
 	
 	/**
@@ -338,18 +389,61 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * 
 	 * @param menuitem menu
 	 */
-	private void invokeMenuItem(JMenuItem menuitem) {
-		if (menuitem != null) {
+	private void invokeMenuItem(final JMenuItem menuitem) {
+		if (menuitem != null)
 			if (menuitem.isEnabled() && menuitem.isVisible()) {
-				menuitem.getModel().setArmed(true);
-				menuitem.getModel().setPressed(true);
-				try {
-					Thread.currentThread().sleep(68);
-				} catch (InterruptedException e) {}
-				menuitem.getModel().setPressed(false);
-				menuitem.getModel().setArmed(false);
+				EventQueue.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						menuitem.getModel().setArmed(true);
+						menuitem.getModel().setPressed(true);
+						menuitem.getModel().setPressed(false);
+						menuitem.getModel().setArmed(false);
+					}
+				});
 			}
-		}
+	}
+	
+	/**
+	 * Invokar menu
+	 * 
+	 * @param menu 
+	 */
+	private void invokeMenu(final JMenu menu) {
+		if (menu != null) 
+			if (menu.isEnabled() && menu.isVisible()) {
+				try {
+					EventQueue.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								ItemEvent itemEvent = new ItemEvent(
+										menu, ItemEvent.ITEM_STATE_CHANGED,
+										menu, ItemEvent.SELECTED);
+								methodFireItemStateChanged.invoke(menu, itemEvent);
+								
+								ActionEvent actionEvent = new ActionEvent(
+										menu, ActionEvent.ACTION_PERFORMED, menu.getActionCommand());
+								methodFireActionPerformed.invoke(menu, actionEvent);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							for (Component comp : menu.getMenuComponents()) {
+								if (comp instanceof JMenu)
+									ApplicationMenu.this.addMenu((JMenu)comp);
+								else if (comp instanceof JMenuItem)
+									ApplicationMenu.this.addMenuItem((JMenuItem)comp);
+								else if (comp instanceof JSeparator)
+									ApplicationMenu.this.addSeparator();
+							}
+						}
+					});
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				} catch (InvocationTargetException e) {
+					throw new RuntimeException(e);
+				}
+			}
 	}
 	
 	/**
@@ -365,6 +459,12 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		this.invokeMenuItem(menuitem);
 	}
 	
+	/**
+	 * Buscar el JFrame contenedor
+	 * 
+	 * @param comp componente
+	 * @return JFrame contenedor
+	 */
 	private JFrame getFrame(Component comp) {
 		if (comp == null)
 			return null;
@@ -373,6 +473,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		else
 			return this.getFrame(comp.getParent());
 	}
+	/*
+	 * Control de eventos de acceleradores
+	 */
 	@Override
 	public void eventDispatched(AWTEvent event) {
 		if (event.getID() == KeyEvent.KEY_RELEASED) {
@@ -396,16 +499,15 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		}
 	}
 	
+	/*
+	 * Controles de evento de ventana
+	 */
 	@Override
-	public void windowActivated(WindowEvent e) {
-		tryInstall();
-	}
+	public void windowActivated(WindowEvent e) { tryInstall(); }
 	@Override
-	public void windowClosed(WindowEvent e) {}
+	public void windowClosed(WindowEvent e) { tryUninstall(); }
 	@Override
-	public void windowClosing(WindowEvent e) {
-		tryUninstall();
-	}
+	public void windowClosing(WindowEvent e) {}
 	@Override
 	public void windowDeactivated(WindowEvent e) {}
 	@Override
