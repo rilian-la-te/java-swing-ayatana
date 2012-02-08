@@ -282,6 +282,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 	
 	DbusmenuMenuitem *foo = dbusmenu_menuitem_new();
+	dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
 	dbusmenu_menuitem_child_append(item, foo);
 }
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem

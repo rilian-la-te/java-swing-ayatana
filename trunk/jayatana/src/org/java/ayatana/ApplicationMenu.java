@@ -94,6 +94,70 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private static Method methodFireActionPerformed;
 	
 	/**
+	 * Invoka el evento itemStateChanged
+	 * 
+	 * @param menuitem menu
+	 */
+	private static void fireItemStateChanged(JMenuItem menuitem) {
+		try {
+			if (methodFireItemStateChanged == null) {
+				methodFireItemStateChanged = AbstractButton.class.getDeclaredMethod(
+						"fireItemStateChanged", ItemEvent.class);
+				methodFireItemStateChanged.setAccessible(true);
+			}
+			int stateChange;
+			if (menuitem instanceof JCheckBoxMenuItem ||
+					menuitem instanceof JRadioButtonMenuItem) {
+				stateChange = menuitem.isSelected() ? ItemEvent.DESELECTED : ItemEvent.SELECTED;
+			} else {
+				stateChange = ItemEvent.SELECTED;
+			}
+			ItemEvent itemEvent = new ItemEvent(
+					menuitem, ItemEvent.ITEM_STATE_CHANGED,
+					menuitem, stateChange);
+			methodFireItemStateChanged.invoke(menuitem, itemEvent);
+			if (menuitem instanceof JCheckBoxMenuItem ||
+					menuitem instanceof JRadioButtonMenuItem) {
+				menuitem.setSelected(!menuitem.isSelected());
+			}
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * Invoka el evento actionPerformed
+	 * 
+	 * @param menuitem menu
+	 */
+	private static void fireActionPerformed(JMenuItem menuitem) {
+		try {
+			if (methodFireActionPerformed == null) {
+				methodFireActionPerformed = AbstractButton.class.getDeclaredMethod(
+						"fireActionPerformed", ActionEvent.class);
+				methodFireActionPerformed.setAccessible(true);
+			}
+			ActionEvent actionEvent = new ActionEvent(
+					menuitem, ActionEvent.ACTION_PERFORMED, menuitem.getActionCommand());
+			methodFireActionPerformed.invoke(menuitem, actionEvent);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
 	 * Inicializa el ApplicationMenu para iniciar con la integración con Ayatana
 	 * de Ubuntu
 	 */
@@ -392,15 +456,22 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private void invokeMenuItem(final JMenuItem menuitem) {
 		if (menuitem != null)
 			if (menuitem.isEnabled() && menuitem.isVisible()) {
-				EventQueue.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						menuitem.getModel().setArmed(true);
-						menuitem.getModel().setPressed(true);
-						menuitem.getModel().setPressed(false);
-						menuitem.getModel().setArmed(false);
-					}
-				});
+				try {
+					EventQueue.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							if (menuitem instanceof JRadioButtonMenuItem ||
+									menuitem instanceof JCheckBoxMenuItem)
+								ApplicationMenu.fireItemStateChanged(menuitem);
+							else
+								ApplicationMenu.fireActionPerformed(menuitem);
+						}
+					});
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				} catch (InvocationTargetException e) {
+					throw new RuntimeException(e);
+				}
 			}
 	}
 	
@@ -416,18 +487,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					EventQueue.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
-							try {
-								ItemEvent itemEvent = new ItemEvent(
-										menu, ItemEvent.ITEM_STATE_CHANGED,
-										menu, ItemEvent.SELECTED);
-								methodFireItemStateChanged.invoke(menu, itemEvent);
-								
-								ActionEvent actionEvent = new ActionEvent(
-										menu, ActionEvent.ACTION_PERFORMED, menu.getActionCommand());
-								methodFireActionPerformed.invoke(menu, actionEvent);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+							ApplicationMenu.fireItemStateChanged(menu);
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
 									ApplicationMenu.this.addMenu((JMenu)comp);
