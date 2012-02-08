@@ -10,7 +10,7 @@ Es necesario que el javax.swing.JFrame incluya una barra de menús del objeto ja
 {{{
 public class Ventana extends JFrame {
     public Ventana() {
-        ...
+        // configuración de ventana ...
         ApplicationMenu.tryInstall(this);
     }
 }
