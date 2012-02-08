@@ -8,5 +8,10 @@ Se requiere que incluya la librería jayatana.jar dentro del CLASSPATH de la apl
 Es necesario que el javax.swing.JFrame incluya una barra de menús del objeto javax.swing.JMenuBar.
 
 {{{
-ApplicationMenu.tryInstall(this);
+public class Ventana extends JFrame {
+    public Ventana() {
+        ...
+        ApplicationMenu.tryInstall(this);
+    }
+}
 }}}
