@@ -292,10 +292,26 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 	dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
 	dbusmenu_menuitem_child_append(item, foo);
 }
+void set_menuitem_shortcut(DbusmenuMenuitem *item, jint modifiers, jint keycode) {
+	GVariantBuilder builder;
+	g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+	if ((modifiers & JK_SHIFT) == JK_SHIFT)
+		g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
+	if ((modifiers & JK_CTRL) == JK_CTRL)
+		g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
+	if ((modifiers & JK_ALT) == JK_ALT)
+		g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
+	const char *keystring = jkeycode_to_xkey(keycode);
+	g_variant_builder_add(&builder, "s", keystring);
+	GVariant *inside = g_variant_builder_end(&builder);
+	g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
+	g_variant_builder_add_value(&builder, inside);
+	GVariant *outsidevariant = g_variant_builder_end(&builder);
+	dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
+}
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -304,21 +320,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 			G_CALLBACK(item_activated), jinstance);
 	if (modifiers > -1 && keycode > -1) {
-		GVariantBuilder builder;
-		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-		if ((modifiers & JK_SHIFT) == JK_SHIFT)
-			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
-		if ((modifiers & JK_CTRL) == JK_CTRL)
-			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
-		if ((modifiers & JK_ALT) == JK_ALT)
-			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
-		const char *keystring = jkeycode_to_xkey(keycode);
-		g_variant_builder_add(&builder, "s", keystring);
-		GVariant *inside = g_variant_builder_end(&builder);
-		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-		g_variant_builder_add_value(&builder, inside);
-		GVariant *outsidevariant = g_variant_builder_end(&builder);
-		dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
+		set_menuitem_shortcut(item, modifiers, keycode);
 	}
 	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 }
@@ -326,7 +328,6 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -335,21 +336,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 			G_CALLBACK(item_activated), jinstance);
 	if (modifiers > -1 && keycode > -1) {
-		GVariantBuilder builder;
-		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-		if ((modifiers & JK_SHIFT) == JK_SHIFT)
-			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
-		if ((modifiers & JK_CTRL) == JK_CTRL)
-			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
-		if ((modifiers & JK_ALT) == JK_ALT)
-			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
-		const char *keystring = jkeycode_to_xkey(keycode);
-		g_variant_builder_add(&builder, "s", keystring);
-		GVariant *inside = g_variant_builder_end(&builder);
-		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-		g_variant_builder_add_value(&builder, inside);
-		GVariant *outsidevariant = g_variant_builder_end(&builder);
-		dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
+		set_menuitem_shortcut(item, modifiers, keycode);
 	}
 	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_RADIO);
 	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
@@ -360,7 +347,6 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -369,21 +355,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 			G_CALLBACK(item_activated), jinstance);
 	if (modifiers > -1 && keycode > -1) {
-		GVariantBuilder builder;
-		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-		if ((modifiers & JK_SHIFT) == JK_SHIFT)
-			g_variant_builder_add(&builder, "s",  DBUSMENU_MENUITEM_SHORTCUT_SHIFT);
-		if ((modifiers & JK_CTRL) == JK_CTRL)
-			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_CONTROL);
-		if ((modifiers & JK_ALT) == JK_ALT)
-			g_variant_builder_add(&builder, "s", DBUSMENU_MENUITEM_SHORTCUT_ALT);
-		const char *keystring = jkeycode_to_xkey(keycode);
-		g_variant_builder_add(&builder, "s", keystring);
-		GVariant *inside = g_variant_builder_end(&builder);
-		g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
-		g_variant_builder_add_value(&builder, inside);
-		GVariant *outsidevariant = g_variant_builder_end(&builder);
-		dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
+		set_menuitem_shortcut(item, modifiers, keycode);
 	}
 	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_CHECK);
 	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
@@ -394,7 +366,6 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemSeparator
   (JNIEnv *env, jobject that, jlong windowxid) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);

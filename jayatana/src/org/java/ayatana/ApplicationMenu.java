@@ -166,7 +166,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private static void initialize() {
 		if (!initialized) {
 			ApplicationMenu.nativeInitialize();
-			
 			Thread shutdownThread = new Thread() {
 				@Override
 				public void run() {
@@ -174,7 +173,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 				}
 			};
 			Runtime.getRuntime().addShutdownHook(shutdownThread);
-			
 			try {
 				methodFireItemStateChanged = AbstractButton.class.getDeclaredMethod(
 						"fireItemStateChanged", ItemEvent.class);
@@ -185,7 +183,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 			} catch (Exception e){
 				throw new RuntimeException(e);
 			}
-			
 			initialized = true;
 		}
 	}
