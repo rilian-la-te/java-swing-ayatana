@@ -27,12 +27,16 @@
 package org.java.ayatana;
 
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.AWTEventListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 /**
  * Clase para instalar el menu de aplicaciones globales del
@@ -95,69 +99,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	
 	
 	private static boolean initialized = false;
-	private static Method methodFireItemStateChanged;
-	private static Method methodFireActionPerformed;
-	
-	/**
-	 * Invoka el evento itemStateChanged
-	 * 
-	 * @param menuitem menu
-	 */
-	private static void fireItemStateChanged(JMenuItem menuitem) {
-		try {
-			if (methodFireItemStateChanged == null) {
-				methodFireItemStateChanged = AbstractButton.class.getDeclaredMethod(
-						"fireItemStateChanged", ItemEvent.class);
-				methodFireItemStateChanged.setAccessible(true);
-			}
-			int stateChange;
-			if (menuitem instanceof JCheckBoxMenuItem ||
-					menuitem instanceof JRadioButtonMenuItem) {
-				menuitem.setSelected(!menuitem.isSelected());
-				stateChange = menuitem.isSelected() ? ItemEvent.DESELECTED : ItemEvent.SELECTED;
-			} else {
-				stateChange = ItemEvent.SELECTED;
-			}
-			ItemEvent itemEvent = new ItemEvent(
-					menuitem, ItemEvent.ITEM_STATE_CHANGED,
-					menuitem, stateChange);
-			methodFireItemStateChanged.invoke(menuitem, itemEvent);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	/**
-	 * Invoka el evento actionPerformed
-	 * 
-	 * @param menuitem menu
-	 */
-	private static void fireActionPerformed(JMenuItem menuitem) {
-		try {
-			if (methodFireActionPerformed == null) {
-				methodFireActionPerformed = AbstractButton.class.getDeclaredMethod(
-						"fireActionPerformed", ActionEvent.class);
-				methodFireActionPerformed.setAccessible(true);
-			}
-			ActionEvent actionEvent = new ActionEvent(
-					menuitem, ActionEvent.ACTION_PERFORMED, menuitem.getActionCommand());
-			methodFireActionPerformed.invoke(menuitem, actionEvent);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException(e);
-		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
 	
 	/**
 	 * Inicializa el ApplicationMenu para iniciar con la integración con Ayatana
@@ -173,16 +114,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 				}
 			};
 			Runtime.getRuntime().addShutdownHook(shutdownThread);
-			try {
-				methodFireItemStateChanged = AbstractButton.class.getDeclaredMethod(
-						"fireItemStateChanged", ItemEvent.class);
-				methodFireItemStateChanged.setAccessible(true);
-				methodFireActionPerformed = AbstractButton.class.getDeclaredMethod(
-						"fireActionPerformed", ActionEvent.class);
-				methodFireActionPerformed.setAccessible(true);
-			} catch (Exception e){
-				throw new RuntimeException(e);
-			}
 			initialized = true;
 		}
 	}
@@ -449,11 +380,10 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					EventQueue.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
-							if (menuitem instanceof JRadioButtonMenuItem ||
-									menuitem instanceof JCheckBoxMenuItem)
-								ApplicationMenu.fireItemStateChanged(menuitem);
-							else
-								ApplicationMenu.fireActionPerformed(menuitem);
+							menuitem.getModel().setArmed(true);
+							menuitem.getModel().setPressed(true);
+							menuitem.getModel().setPressed(false);
+							menuitem.getModel().setArmed(false);
 						}
 					});
 				} catch (InterruptedException e) {
@@ -476,8 +406,17 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					EventQueue.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
-							ApplicationMenu.fireItemStateChanged(menu);
-							ApplicationMenu.fireActionPerformed(menu);
+							menu.getModel().setArmed(true);
+							menu.getModel().setPressed(true);
+							MenuListener mls[] = menu.getMenuListeners();
+							if (mls.length > 0) {
+								MenuEvent mevent = new MenuEvent(menu);
+								for (MenuListener ml : menu.getMenuListeners())
+									if (ml != null)
+										ml.menuSelected(mevent);
+							}
+							menu.getModel().setPressed(false);
+							menu.getModel().setArmed(false);
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
 									ApplicationMenu.this.addMenu((JMenu)comp);
@@ -485,6 +424,12 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 									ApplicationMenu.this.addMenuItem((JMenuItem)comp);
 								else if (comp instanceof JSeparator)
 									ApplicationMenu.this.addSeparator();
+							}
+							if (mls.length > 0) {
+								MenuEvent mevent = new MenuEvent(menu);
+								for (MenuListener ml : menu.getMenuListeners())
+									if (ml != null)
+										ml.menuDeselected(mevent);
 							}
 						}
 					});
