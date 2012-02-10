@@ -30,8 +30,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Clase que conteien la descripción del archivo de escritorio
@@ -40,11 +41,12 @@ import java.util.*;
  */
 public class DesktopFile {
 	private String desktopFileName;
+	private String defaultName;
 	private Map<Locale, String> names;
+	private String defaultDescription;
 	private Map<Locale, String> descriptions;
 	private String command;
-	private String iconName;
-	private Map<String,List<URL>> icons;
+	private String icon;
 	private String categories;
 	private String startupWMClass;
 	
@@ -54,7 +56,7 @@ public class DesktopFile {
 	
 	private boolean changed = false;
 	
-	public DesktopFile(String desktopFileName) {
+	public DesktopFile(String desktopFileName, String startupWMClass) throws IOException {
 		if (desktopFileName == null)
 			throw new NullPointerException("desktopFileName can't be null");
 		this.desktopFileName = desktopFileName;
@@ -62,11 +64,12 @@ public class DesktopFile {
 			this.desktopFileName += ".desktop";
 		this.names = new TreeMap<Locale, String>();
 		this.descriptions = new TreeMap<Locale, String>();
-		this.icons = new TreeMap<String, List<URL>>();
+		this.load();
+		this.setStartupWMClass(startupWMClass);
 	}
 	
 	public void setName(String name) {
-		this.setName(name, Locale.getDefault());
+		this.defaultName = name;
 	}
 	public void setName(String name, Locale locale) {
 		String old = names.put(locale, name);
@@ -74,14 +77,14 @@ public class DesktopFile {
 			changed = true;
 	}
 	public String getName() {
-		return this.getName(Locale.getDefault());
+		return defaultName;
 	}
 	public String getName(Locale locale) {
 		return names.get(locale);
 	}
 	
 	public void setDescription(String description) {
-		this.setName(description, Locale.getDefault());
+		this.defaultDescription = description;
 	}
 	public void setDescription(String description, Locale locale) {
 		String old = descriptions.put(locale, description);
@@ -89,7 +92,7 @@ public class DesktopFile {
 			changed = true;
 	}
 	public String getDescription() {
-		return this.getName(Locale.getDefault());
+		return defaultDescription;
 	}
 	public String getDescription(Locale locale) {
 		return descriptions.get(locale);
@@ -103,31 +106,13 @@ public class DesktopFile {
 	public String getCommand() {
 		return command;
 	}
-	
-	public void setIconName(String iconName) {
-		if (this.iconName == null ? this.iconName != iconName : !this.iconName.equals(iconName))
+	public void setIcon(String icon) {
+		if (this.icon == null ? this.icon != icon : !this.icon.equals(icon))
 			changed = true;
-		this.iconName = iconName;
+		this.icon = icon;
 	}
-	public String getIconName() {
-		return iconName;
-	}
-	
-	public void setIcons(List<URL> icons) {
-		this.setIcons("hicolor", icons);
-	}
-	public void setIcons(String theme, List<URL> icons) {
-		this.icons.put(theme, icons);
-	}
-	public List<URL> getIcons() {
-		return this.getIcons("hicolor");
-	}
-	public List<URL> getIcons(String theme) {
-		List<URL> i;
-		if ((i=icons.get(theme)) != null)
-			return i;
-		else
-			return Collections.EMPTY_LIST;
+	public String getIcon() {
+		return icon;
 	}
 	
 	public void setCategories(String categories) {
@@ -173,8 +158,18 @@ public class DesktopFile {
 		this.type = type;
 	}
 	
+	private Locale resolveLocale(String lang) {
+		Locale locale;
+		if (lang.contains("_")) {
+			String param[] = lang.split("_");
+			locale = new Locale(param[0], param[1]);
+		} else {
+			locale = new Locale(lang);
+		}
+		return locale;
+	}
+	
 	public boolean load() throws IOException {
-		changed = false;
 		File deskFile = new File(System.getProperty("user.home"),
 				"/.local/share/applications/" + this.getDesktopFileName());
 		if (!deskFile.exists()) {
@@ -185,18 +180,55 @@ public class DesktopFile {
 					new FileReader(deskFile));
 			String line;
 			while ((line = reader.readLine()) != null) {
-				System.out.println(line);
+				if (line.contains("=") && !line.startsWith("#")) {
+					String param[] = line.split("=");
+					String key = param[0].trim().toLowerCase();
+					String value = param[1].trim().toLowerCase();
+					if (key.startsWith("name")) {
+						if (key.endsWith("]")) {
+							String lang = key.substring(key.indexOf("[")+1, key.length()-1);
+							this.setName(value, this.resolveLocale(lang));
+						} else {
+							this.setName(value);
+						}
+					} else if (key.startsWith("description")) {
+						if (key.endsWith("]")) {
+							String lang = key.substring(key.indexOf("[")+1, key.length()-1);
+							this.setDescription(value, this.resolveLocale(lang));
+						} else {
+							this.setDescription(value);
+						}
+					} else if (key.equals("encoding")) {
+						
+					} else if (key.equals("exec")) {
+						this.setCommand(value);
+					} else if (key.equals("categories")) {
+						this.setCategories(value);
+					} else if (key.equals("startupwmclass")) {
+						this.setStartupWMClass(value);
+					} else if (key.equals("type")) {
+						this.setType(value);
+					} else if (key.equals("terminal")) {
+						this.setTerminal(value);
+					}
+				}
 			}
 			reader.close();
+			changed = false;
 			return true;
 		} else {
 			return false;
 		}
 	}
-	public void storeSafe() {
+	public boolean update() {
 		if (changed) {
+			File deskFile = new File(System.getProperty("user.home"),
+				"/.local/share/applications/" + this.getDesktopFileName());
 			
 			changed = false;
+			return true;
+		} else {
+			return false;
 		}
 	}
 	

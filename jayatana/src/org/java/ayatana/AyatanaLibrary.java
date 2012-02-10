@@ -38,6 +38,7 @@ import java.security.NoSuchAlgorithmException;
 public class AyatanaLibrary {
 	public static final String VERSION = "0.2.0";
 	private static boolean loaded = false;
+	private static boolean successful = false;
 	
 	/**
 	 * Converite un arreglo de bytes a una cadena hexadecimal
@@ -80,7 +81,7 @@ public class AyatanaLibrary {
 	/**
 	 * Carga la library libjayatana.so
 	 */
-	public static void load() {
+	public static boolean load() {
 		if (!loaded) {
 			try {
 				final File targetDirectory = new File(
@@ -123,10 +124,13 @@ public class AyatanaLibrary {
 					input.close();
 				}
 				System.load(targetLibrary.getCanonicalPath());
-				loaded = true;
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+				successful = true;
+			} catch (Exception e) {
+				e.printStackTrace();
+				successful = false;
 			}
+			loaded = true;
 		}
+		return successful;
 	}
 }

@@ -71,12 +71,18 @@
     nbproject/build-impl.xml file. 
 
     -->
+	<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
+		<isset property="platform.home"/>
+	</condition>
 	<target name="-post-clean">
 		<exec executable="make" dir="jayatana">
+			<env key="JAVA_HOME" value="${project.java.home}"/>
 			<arg line="clean"/>
 		</exec>
 	</target>
-	<target name="-post-compile">
-		<exec executable="make" dir="jayatana"/>
+	<target name="-pre-jar">
+		<exec executable="make" dir="jayatana">
+			<env key="JAVA_HOME" value="${project.java.home}"/>
+		</exec>
 	</target>
 </project>

@@ -72,8 +72,13 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 			return false;
 		if (!"libappmenu.so".equals(System.getenv("UBUNTU_MENUPROXY")))
 			return false;
-		new ApplicationMenu(frame, menubar);
-		return true;
+		
+		if (AyatanaLibrary.load()) {
+			new ApplicationMenu(frame, menubar);
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	
@@ -108,6 +113,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 			int stateChange;
 			if (menuitem instanceof JCheckBoxMenuItem ||
 					menuitem instanceof JRadioButtonMenuItem) {
+				menuitem.setSelected(!menuitem.isSelected());
 				stateChange = menuitem.isSelected() ? ItemEvent.DESELECTED : ItemEvent.SELECTED;
 			} else {
 				stateChange = ItemEvent.SELECTED;
@@ -116,10 +122,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					menuitem, ItemEvent.ITEM_STATE_CHANGED,
 					menuitem, stateChange);
 			methodFireItemStateChanged.invoke(menuitem, itemEvent);
-			if (menuitem instanceof JCheckBoxMenuItem ||
-					menuitem instanceof JRadioButtonMenuItem) {
-				menuitem.setSelected(!menuitem.isSelected());
-			}
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch (IllegalArgumentException e) {
@@ -163,16 +165,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 */
 	private static void initialize() {
 		if (!initialized) {
-			AyatanaLibrary.load();
-			
-			Thread startupThread = new Thread() {
-				@Override
-				public void run() {
-					ApplicationMenu.nativeInitialize();
-				}
-			};
-			startupThread.setDaemon(true);
-			startupThread.start();
+			ApplicationMenu.nativeInitialize();
 			
 			Thread shutdownThread = new Thread() {
 				@Override
@@ -180,7 +173,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					ApplicationMenu.nativeUninitialize();
 				}
 			};
-			shutdownThread.setDaemon(true);
 			Runtime.getRuntime().addShutdownHook(shutdownThread);
 			
 			try {
@@ -488,6 +480,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 						@Override
 						public void run() {
 							ApplicationMenu.fireItemStateChanged(menu);
+							ApplicationMenu.fireActionPerformed(menu);
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
 									ApplicationMenu.this.addMenu((JMenu)comp);
