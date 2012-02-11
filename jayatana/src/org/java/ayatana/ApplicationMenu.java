@@ -406,9 +406,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					EventQueue.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
+							MenuListener mls[] = menu.getMenuListeners();
 							menu.getModel().setArmed(true);
 							menu.getModel().setPressed(true);
-							MenuListener mls[] = menu.getMenuListeners();
 							if (mls.length > 0) {
 								MenuEvent mevent = new MenuEvent(menu);
 								for (MenuListener ml : menu.getMenuListeners())
@@ -417,6 +417,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 							}
 							menu.getModel().setPressed(false);
 							menu.getModel().setArmed(false);
+							
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
 									ApplicationMenu.this.addMenu((JMenu)comp);
@@ -424,12 +425,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 									ApplicationMenu.this.addMenuItem((JMenuItem)comp);
 								else if (comp instanceof JSeparator)
 									ApplicationMenu.this.addSeparator();
-							}
-							if (mls.length > 0) {
-								MenuEvent mevent = new MenuEvent(menu);
-								for (MenuListener ml : menu.getMenuListeners())
-									if (ml != null)
-										ml.menuDeselected(mevent);
 							}
 						}
 					});
