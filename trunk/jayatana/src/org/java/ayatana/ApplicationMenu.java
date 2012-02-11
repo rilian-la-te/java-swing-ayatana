@@ -97,7 +97,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 */
 	private static native void nativeUninitialize();
 	
-	
 	private static boolean initialized = false;
 	
 	/**
@@ -171,14 +170,12 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private void addMenuItem(JMenuItem menuitem) {
 		if (menuitem.getText() == null || "".equals(menuitem.getText()))
 			return;
-		
 		int modifiers = -1;
 		int keycode = -1;
 		if (menuitem.getAccelerator() != null) {
 			modifiers = menuitem.getAccelerator().getModifiers();
 			keycode = menuitem.getAccelerator().getKeyCode();
 		}
-		
 		if (menuitem instanceof JMenu) {
 			this.addMenu((JMenu)menuitem);
 		} else if (menuitem instanceof JRadioButtonMenuItem) {
@@ -263,11 +260,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private synchronized void tryInstall() {
 		if (tryInstalled)
 			return;
-		
 		ApplicationMenu.initialize();
 		windowxid = this.getWindowXID(frame);
 		this.registerWatcher(windowxid);
-		
 		tryInstalled = true;
 	}
 	/**
@@ -277,10 +272,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private synchronized void tryUninstall() {
 		if (!tryInstalled)
 			return;
-		
 		this.unregisterWatcher(windowxid);
 		frame.removeWindowListener(this);
-		
 		tryInstalled = false;
 	}
 	
@@ -292,14 +285,11 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		acceleratorsmap = new TreeMap<String, JMenuItem>();
 		acceleratorsListener = new AcceleratorsListener(
 				menubar, acceleratorsmap);
-		
 		Toolkit.getDefaultToolkit()
 				.addAWTEventListener(this, AWTEvent.KEY_EVENT_MASK);
-		
 		for (Component comp : menubar.getComponents())
 			if (comp instanceof JMenu && comp.isVisible())
 				this.addMenu((JMenu)comp);
-		
 		menubar.setVisible(false);
 	}
 	/**
@@ -308,10 +298,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 */
 	private void uninstall() {
 		menubar.setVisible(true);
-		
 		Toolkit.getDefaultToolkit()
 				.removeAWTEventListener(this);
-		
 		acceleratorsListener.uninstall();
 		acceleratorsmap.clear();
 	}
@@ -369,6 +357,21 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	}
 	
 	/**
+	 * Invocar un evento de clic de menu
+	 * 
+	 * @param menuitem menu
+	 */
+	private void doClick(JMenuItem menuitem) {
+		menuitem.getModel().setArmed(true);
+		menuitem.getModel().setPressed(true);
+		try {
+			Thread.sleep(68);
+		} catch (InterruptedException e) {}
+		menuitem.getModel().setPressed(false);
+		menuitem.getModel().setArmed(false);
+	}
+	
+	/**
 	 * Invoca la accion de un elemento de menu
 	 * 
 	 * @param menuitem menu
@@ -380,10 +383,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					EventQueue.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
-							menuitem.getModel().setArmed(true);
-							menuitem.getModel().setPressed(true);
-							menuitem.getModel().setPressed(false);
-							menuitem.getModel().setArmed(false);
+							doClick(menuitem);
 						}
 					});
 				} catch (InterruptedException e) {
@@ -406,18 +406,14 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 					EventQueue.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
+							doClick(menu);
 							MenuListener mls[] = menu.getMenuListeners();
-							menu.getModel().setArmed(true);
-							menu.getModel().setPressed(true);
 							if (mls.length > 0) {
 								MenuEvent mevent = new MenuEvent(menu);
 								for (MenuListener ml : menu.getMenuListeners())
 									if (ml != null)
 										ml.menuSelected(mevent);
 							}
-							menu.getModel().setPressed(false);
-							menu.getModel().setArmed(false);
-							
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
 									ApplicationMenu.this.addMenu((JMenu)comp);
