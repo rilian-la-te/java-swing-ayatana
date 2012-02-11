@@ -57,7 +57,7 @@ ARCH=$(shell getconf LONG_BIT)
 ifeq (${ARCH},64)
 JAVA_ARCH=amd64
 else
-AVA_ARCH=i386
+JAVA_ARCH=i386
 endif
 
 # Entorno de JAYATANA
