@@ -60,20 +60,15 @@ else
 JAVA_ARCH=i386
 endif
 
-# Entorno de JAYATANA
-VERSION=0.2.0
-
 # build
 build: .build-post
 
 .build-pre:
 	export JAVA_HOME=${JAVA_HOME}
 	export LD_LIBRARY_PATH=${JAVA_HOME}/jre/lib/${JAVA_ARCH}
-	export PATH=${JAVA_HOME}/bin
 
 .build-post: .build-impl
-	mkdir -p ../build/classes/native/${VERSION}/${JAVA_ARCH}
-	cp ${CND_DISTDIR}/${CONF}/${CND_PLATFORM_${CONF}}/libjayatana.so ../build/classes/native/${VERSION}/${JAVA_ARCH}
+# Add your pre 'clean' code here...
 
 
 # clean
@@ -138,8 +133,7 @@ help: .help-post
 javah:
 	export JAVA_HOME=${JAVA_HOME}
 	export LD_LIBRARY_PATH=${JAVA_HOME}/jre/lib/${JAVA_ARCH}
-	export PATH=${JAVA_HOME}/bin
-	javah -classpath ../build/classes org.java.ayatana.ApplicationMenu
+	${JAVA_HOME}/bin/javah -classpath ../build/classes org.java.ayatana.ApplicationMenu
 
 # include project implementation makefile
 include nbproject/Makefile-impl.mk
