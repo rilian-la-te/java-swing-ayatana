@@ -8,8 +8,8 @@
 <!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
 <!-- in the project's Project Properties dialog box.-->
 <project name="jayatana" default="default" basedir=".">
-    <description>Builds, tests, and runs the project jayatana.</description>
-    <import file="nbproject/build-impl.xml"/>
+	<description>Builds, tests, and runs the project jayatana.</description>
+	<import file="nbproject/build-impl.xml"/>
     <!--
 
     There exist several targets which are by default empty and which can be 
@@ -71,6 +71,12 @@
     nbproject/build-impl.xml file. 
 
     -->
+	<property name="remote.ssh.user" value="ubuntu"/>
+	<property name="remote.ssh.password" value="ubuntu"/>
+	<property name="remote.ssh.host" value="localhost"/>
+	<property name="remote.ssh.port" value="2222"/>
+	<property name="remote.home" value="/home/ubuntu"/>
+	
 	<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
 		<isset property="platform.home"/>
 	</condition>
@@ -83,6 +89,16 @@
 	<target name="-pre-jar">
 		<exec executable="make" dir="jayatana">
 			<env key="JAVA_HOME" value="${project.java.home}"/>
+			<arg line="build"/>
 		</exec>
+		<mkdir dir="${build.classes.dir}/native/0.2.0/amd64"/>
+		<mkdir dir="${build.classes.dir}/native/0.2.0/i386"/>
+		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+			todir="${build.classes.dir}/native/0.2.0/amd64"/>
+		<property environment="env"/>
+		<exec executable="hostname" outputproperty="host.name"/>
+		<scp file="${remote.ssh.user}:${remote.ssh.password}@${remote.ssh.host}:${remote.home}/.netbeans/remote/localhost/${host.name}-Linux-x86_64${basedir}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+			todir="${build.classes.dir}/native/0.2.0/i386"
+			port="${remote.ssh.port}"/>
 	</target>
 </project>
