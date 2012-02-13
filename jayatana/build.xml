@@ -99,6 +99,7 @@
 		<exec executable="hostname" outputproperty="host.name"/>
 		<scp file="${remote.ssh.user}:${remote.ssh.password}@${remote.ssh.host}:${remote.home}/.netbeans/remote/localhost/${host.name}-Linux-x86_64${basedir}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
 			todir="${build.classes.dir}/native/0.2.0/i386"
-			port="${remote.ssh.port}"/>
+			port="${remote.ssh.port}"
+			failonerror="false"/>
 	</target>
 </project>

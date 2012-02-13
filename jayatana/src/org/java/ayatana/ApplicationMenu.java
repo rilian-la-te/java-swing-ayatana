@@ -364,9 +364,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private void doClick(JMenuItem menuitem) {
 		menuitem.getModel().setArmed(true);
 		menuitem.getModel().setPressed(true);
-		try {
-			Thread.sleep(68);
-		} catch (InterruptedException e) {}
 		menuitem.getModel().setPressed(false);
 		menuitem.getModel().setArmed(false);
 	}
@@ -411,8 +408,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 							if (mls.length > 0) {
 								MenuEvent mevent = new MenuEvent(menu);
 								for (MenuListener ml : menu.getMenuListeners())
-									if (ml != null)
-										ml.menuSelected(mevent);
+									if (ml != null) ml.menuSelected(mevent);
 							}
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
