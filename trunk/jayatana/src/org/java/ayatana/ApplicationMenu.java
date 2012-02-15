@@ -27,16 +27,16 @@
 package org.java.ayatana;
 
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.AWTEventListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.plaf.basic.BasicMenuItemUI;
 
 /**
  * Clase para instalar el menu de aplicaciones globales del
@@ -54,8 +54,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * @return retorna <code>True</code> si se puede instalar el menu global
 	 * de lo contrario retorna <code>False</code>.
 	 */
-	public static boolean tryInstall(final JFrame frame) {
-		return ApplicationMenu.tryInstall(frame, frame.getJMenuBar());
+	public static boolean tryInstall(JFrame frame) {
+		return ApplicationMenu.tryInstall(frame, frame.getJMenuBar(), null);
 	}
 	/**
 	 * Trata de instalar el menu de aplicaciones globales, si no es posible
@@ -67,13 +67,40 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * @return retorna <code>True</code> si se puede instalar el menu global
 	 * de lo contrario retorna <code>False</code>.
 	 */
-	public static boolean tryInstall(final JFrame frame, final JMenuBar menubar) {
+	public static boolean tryInstall(JFrame frame, JMenuBar menubar) {
+		return ApplicationMenu.tryInstall(frame, menubar, null);
+	}
+	/**
+	 * Trata de instalar el menu de aplicaciones globales, si no es posible
+	 * por incompatibilidad del sistema operativo o esta des habilitado el
+	 * menu global retornara <code>False</code>.
+	 * 
+	 * @param frame Ventana que contiene la barra de menus
+	 * @param additionalMenuAction interface para acciones adicionales
+	 * @return retorna <code>True</code> si se puede instalar el menu global
+	 * de lo contrario retorna <code>False</code>.
+	 */
+	public static boolean tryInstall(JFrame frame, AdditionalMenuAction additionalMenuAction) {
+		return ApplicationMenu.tryInstall(frame, frame.getJMenuBar(), additionalMenuAction);
+	}
+	/**
+	 * Trata de instalar el menu de aplicaciones globales, si no es posible
+	 * por incompatibilidad del sistema operativo o esta des habilitado el
+	 * menu global retornara <code>False</code>.
+	 * 
+	 * @param frame Ventana que contiene la barra de menus
+	 * @param menubar La barra de menus en caso de que este contenida entro panel
+	 * @param additionalMenuAction interface para acciones adicionales
+	 * @return retorna <code>True</code> si se puede instalar el menu global
+	 * de lo contrario retorna <code>False</code>.
+	 */
+	public static boolean tryInstall(JFrame frame, JMenuBar menubar, AdditionalMenuAction additionalMenuAction) {
 		if (frame == null || menubar == null)
 			throw new NullPointerException();
 		if (!"libappmenu.so".equals(System.getenv("UBUNTU_MENUPROXY")))
 			return false;
 		if (AyatanaLibrary.load()) {
-			new ApplicationMenu(frame, menubar);
+			new ApplicationMenu(frame, menubar, additionalMenuAction);
 			return true;
 		} else {
 			return false;
@@ -117,6 +144,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private boolean tryInstalled = false;
 	private Map<String, JMenuItem> acceleratorsmap;
 	private AcceleratorsListener acceleratorsListener;
+	private AdditionalMenuAction additionalMenuAction;
 	private long windowxid;
 	
 	/**
@@ -240,9 +268,10 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * @param frame
 	 * @param menubar 
 	 */
-	private ApplicationMenu(JFrame frame, JMenuBar menubar) {
+	private ApplicationMenu(JFrame frame, JMenuBar menubar, AdditionalMenuAction additionalMenuAction) {
 		this.frame = frame;
 		this.menubar = menubar;
+		this.additionalMenuAction = additionalMenuAction;
 		frame.addWindowListener(this);
 		if (frame.isActive())
 			this.tryInstall();
@@ -392,6 +421,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		
 		menuitem.getModel().setPressed(false);
 		menuitem.getModel().setArmed(false);
+		
+		if (additionalMenuAction != null)
+			additionalMenuAction.invokeMenu(menuitem);
 	}
 	
 	/**
