@@ -196,7 +196,7 @@ int jkeycode_to_xkey_map(int keycode) {
 			case JK_KANA: return XK; */
 		case JK_KANJI: return XK_Kanji;
 			/* case JK_ALPHANUMERIC: return XK_; */
-		case JK_KATAKANA: return XK_KATAKANA;
+		//case JK_KATAKANA: return XK_KATAKANA;
 		case JK_HIRAGANA: return XK_Hiragana;
 			/*case JK_FULL_WIDTH: return XK_;
 			case JK_HALF_WIDTH: return XK_;
@@ -204,7 +204,7 @@ int jkeycode_to_xkey_map(int keycode) {
 			case JK_ALL_CANDIDATES: return XK_;
 			case JK_PREVIOUS_CANDIDATE: return XK_; */
 		case JK_CODE_INPUT: return XK_Codeinput;
-		case JK_JAPANESE_KATAKANA: return XK_KATAKANA;
+		//case JK_JAPANESE_KATAKANA: return XK_KATAKANA;
 		case JK_JAPANESE_HIRAGANA: return XK_Hiragana;
 			/*case JK_JAPANESE_ROMAN: return XK_; */
 		case JK_KANA_LOCK: return XK_Kana_Lock;
