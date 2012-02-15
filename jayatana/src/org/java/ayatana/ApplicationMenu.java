@@ -27,16 +27,16 @@
 package org.java.ayatana;
 
 import java.awt.*;
-import java.awt.event.AWTEventListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.plaf.basic.BasicMenuItemUI;
 
 /**
  * Clase para instalar el menu de aplicaciones globales del
@@ -70,13 +70,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	public static boolean tryInstall(final JFrame frame, final JMenuBar menubar) {
 		if (frame == null || menubar == null)
 			throw new NullPointerException();
-		if (!System.getProperty("os.name").startsWith("Linux"))
-			return false;
-		if (!System.getProperty("sun.desktop").equals("gnome"))
-			return false;
 		if (!"libappmenu.so".equals(System.getenv("UBUNTU_MENUPROXY")))
 			return false;
-		
 		if (AyatanaLibrary.load()) {
 			new ApplicationMenu(frame, menubar);
 			return true;
@@ -372,8 +367,29 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * @param menuitem menu
 	 */
 	private void doClick(JMenuItem menuitem) {
+		boolean ismenu = menuitem instanceof JMenu;
+		
+		MenuListener mls[] = null;
+		if (ismenu) {
+			mls= ((JMenu)menuitem).getMenuListeners();
+			if (mls.length > 0) {
+				MenuEvent mevent = new MenuEvent((JMenu)menuitem);
+				for (MenuListener ml : ((JMenu)menuitem).getMenuListeners())
+					if (ml != null) ml.menuDeselected(mevent);
+			}
+		}
 		menuitem.getModel().setArmed(true);
 		menuitem.getModel().setPressed(true);
+		
+		if (ismenu) {
+			//select
+			if (mls.length > 0) {
+				MenuEvent mevent = new MenuEvent((JMenu)menuitem);
+				for (MenuListener ml : ((JMenu)menuitem).getMenuListeners())
+					if (ml != null) ml.menuSelected(mevent);
+			}
+		}
+		
 		menuitem.getModel().setPressed(false);
 		menuitem.getModel().setArmed(false);
 	}
@@ -386,18 +402,12 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private void invokeMenuItem(final JMenuItem menuitem) {
 		if (menuitem != null)
 			if (menuitem.isEnabled() && menuitem.isVisible()) {
-				try {
-					EventQueue.invokeAndWait(new Runnable() {
-						@Override
-						public void run() {
-							doClick(menuitem);
-						}
-					});
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e);
-				} catch (InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
+				EventQueue.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						doClick(menuitem);
+					}
+				});
 			}
 	}
 	
@@ -414,12 +424,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 						@Override
 						public void run() {
 							doClick(menu);
-							MenuListener mls[] = menu.getMenuListeners();
-							if (mls.length > 0) {
-								MenuEvent mevent = new MenuEvent(menu);
-								for (MenuListener ml : menu.getMenuListeners())
-									if (ml != null) ml.menuSelected(mevent);
-							}
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
 									ApplicationMenu.this.addMenu((JMenu)comp);

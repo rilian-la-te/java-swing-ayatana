@@ -84,6 +84,11 @@ public class AyatanaLibrary {
 	public static boolean load() {
 		if (!loaded) {
 			try {
+				if (!System.getProperty("os.name").startsWith("Linux"))
+					throw new Exception("no linux system");
+				if (!System.getProperty("sun.desktop").equals("gnome"))
+					throw new Exception("no gnome desktop");
+				
 				final File targetDirectory = new File(
 						System.getProperty("user.home"), ".java/jayatana/"+VERSION+"/"+
 						System.getProperty("os.arch"));

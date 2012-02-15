@@ -278,10 +278,11 @@ void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-			
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY,
+			DBUSMENU_MENUITEM_CHILD_DISPLAY_SUBMENU);
 	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW,
@@ -319,9 +320,8 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
 	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 			G_CALLBACK(item_activated), jinstance);
-	if (modifiers > -1 && keycode > -1) {
+	if (modifiers > -1 && keycode > -1)
 		set_menuitem_shortcut(item, modifiers, keycode);
-	}
 	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 }
 
@@ -335,9 +335,8 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
 	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 			G_CALLBACK(item_activated), jinstance);
-	if (modifiers > -1 && keycode > -1) {
+	if (modifiers > -1 && keycode > -1)
 		set_menuitem_shortcut(item, modifiers, keycode);
-	}
 	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_RADIO);
 	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
 			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
@@ -354,9 +353,8 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
 	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
 			G_CALLBACK(item_activated), jinstance);
-	if (modifiers > -1 && keycode > -1) {
+	if (modifiers > -1 && keycode > -1)
 		set_menuitem_shortcut(item, modifiers, keycode);
-	}
 	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE, DBUSMENU_MENUITEM_TOGGLE_CHECK);
 	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
 			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
