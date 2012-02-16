@@ -35,8 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.*;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
+import javax.swing.event.*;
 
 /**
  * Clase para instalar el menu de aplicaciones globales del
@@ -398,24 +397,54 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	private void doClick(JMenuItem menuitem) {
 		boolean ismenu = menuitem instanceof JMenu;
 		
+		PopupMenuListener pls[] = null;
+		PopupMenuEvent pevent = null;
 		MenuListener mls[] = null;
+		MenuEvent mevent = null;
+		ChangeListener cls[];
+		ChangeEvent cevent;
+		
 		if (ismenu) {
-			mls= ((JMenu)menuitem).getMenuListeners();
+			pls = ((JMenu)menuitem).getPopupMenu().getPopupMenuListeners();
+			if (pls.length > 0) {
+				pevent = new PopupMenuEvent(((JMenu)menuitem).getPopupMenu());
+				for (PopupMenuListener pl : pls)
+					if (pl != null) pl.popupMenuWillBecomeInvisible(pevent);
+			}
+			mls = ((JMenu)menuitem).getMenuListeners();
 			if (mls.length > 0) {
-				MenuEvent mevent = new MenuEvent((JMenu)menuitem);
+				mevent = new MenuEvent((JMenu)menuitem);
 				for (MenuListener ml : ((JMenu)menuitem).getMenuListeners())
 					if (ml != null) ml.menuDeselected(mevent);
 			}
 		}
+		
 		menuitem.getModel().setArmed(true);
 		menuitem.getModel().setPressed(true);
 		
 		if (ismenu) {
 			//select
 			if (mls.length > 0) {
-				MenuEvent mevent = new MenuEvent((JMenu)menuitem);
 				for (MenuListener ml : ((JMenu)menuitem).getMenuListeners())
 					if (ml != null) ml.menuSelected(mevent);
+			}
+			if (pls.length > 0) {
+				for (PopupMenuListener pl : pls)
+					if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
+			}
+			
+			if (menuitem.getModel() instanceof DefaultButtonModel) {
+				DefaultButtonModel model = (DefaultButtonModel)menuitem.getModel();
+				cls = model.getChangeListeners();
+				cevent = new ChangeEvent(model);
+				
+				menuitem.getModel().setSelected(true);
+				for (ChangeListener cl : cls)
+					if (cl != null) cl.stateChanged(cevent);
+			
+				menuitem.getModel().setSelected(false);
+				for (ChangeListener cl : cls)
+					if (cl != null) cl.stateChanged(cevent);
 			}
 		}
 		
