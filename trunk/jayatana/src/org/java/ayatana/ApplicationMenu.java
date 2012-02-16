@@ -452,7 +452,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		menuitem.getModel().setArmed(false);
 		
 		if (additionalMenuAction != null)
-			additionalMenuAction.invokeMenu(menuitem);
+			additionalMenuAction.invokeMenu(frame, menubar, menuitem);
 	}
 	
 	/**

@@ -71,6 +71,7 @@
     nbproject/build-impl.xml file. 
 
     -->
+	<property name="jayatana-version" value="0.3.0"/>
 	<property name="remote.ssh.user" value="ubuntu"/>
 	<property name="remote.ssh.password" value="ubuntu"/>
 	<property name="remote.ssh.host" value="localhost"/>
@@ -91,14 +92,14 @@
 			<env key="JAVA_HOME" value="${project.java.home}"/>
 			<arg line="build"/>
 		</exec>
-		<mkdir dir="${build.classes.dir}/native/0.2.0/amd64"/>
-		<mkdir dir="${build.classes.dir}/native/0.2.0/i386"/>
+		<mkdir dir="${build.classes.dir}/native/${jayatana-version}/amd64"/>
+		<mkdir dir="${build.classes.dir}/native/${jayatana-version}/i386"/>
 		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
-			todir="${build.classes.dir}/native/0.2.0/amd64"/>
+			todir="${build.classes.dir}/native/${jayatana-version}/amd64"/>
 		<property environment="env"/>
 		<exec executable="hostname" outputproperty="host.name"/>
 		<scp file="${remote.ssh.user}:${remote.ssh.password}@${remote.ssh.host}:${remote.home}/.netbeans/remote/localhost/${host.name}-Linux-x86_64${basedir}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
-			todir="${build.classes.dir}/native/0.2.0/i386"
+			todir="${build.classes.dir}/native/${jayatana-version}/i386"
 			port="${remote.ssh.port}"
 			failonerror="false"/>
 	</target>

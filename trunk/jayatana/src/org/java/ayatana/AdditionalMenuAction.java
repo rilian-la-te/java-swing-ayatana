@@ -26,6 +26,8 @@
 
 package org.java.ayatana;
 
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 /**
@@ -34,5 +36,5 @@ import javax.swing.JMenuItem;
  * @author Jared González
  */
 public interface AdditionalMenuAction {
-	public void invokeMenu(JMenuItem menuitem);
+	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem);
 }
