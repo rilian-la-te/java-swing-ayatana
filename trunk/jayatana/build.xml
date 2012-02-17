@@ -71,7 +71,7 @@
     nbproject/build-impl.xml file. 
 
     -->
-	<property name="jayatana-version" value="0.3.0"/>
+	<property name="jayatana-version" value="0.4.0"/>
 	<property name="remote.ssh.user" value="ubuntu"/>
 	<property name="remote.ssh.password" value="ubuntu"/>
 	<property name="remote.ssh.host" value="localhost"/>
