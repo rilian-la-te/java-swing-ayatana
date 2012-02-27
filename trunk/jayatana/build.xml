@@ -71,7 +71,20 @@
     nbproject/build-impl.xml file. 
 
     -->
-	<property name="jayatana-version" value="0.4.0"/>
+	<scriptdef name="getubuntuversion" language="javascript">
+		<attribute name="version"/>
+		<![CDATA[
+		importPackage(java.lang);
+		importPackage(java.util);
+		importPackage(java.io);
+		var prop = new Properties();
+		var fis = new FileInputStream("/etc/lsb-release");
+		prop.load(fis);
+		fis.close();
+		project.setProperty(attributes.get("version"), prop.getProperty("DISTRIB_RELEASE"));
+		]]>
+	</scriptdef>
+	<getubuntuversion version="ubuntu.version"/>
 	<property name="remote.ssh.user" value="ubuntu"/>
 	<property name="remote.ssh.password" value="ubuntu"/>
 	<property name="remote.ssh.host" value="localhost"/>
@@ -92,14 +105,14 @@
 			<env key="JAVA_HOME" value="${project.java.home}"/>
 			<arg line="build"/>
 		</exec>
-		<mkdir dir="${build.classes.dir}/native/${jayatana-version}/amd64"/>
-		<mkdir dir="${build.classes.dir}/native/${jayatana-version}/i386"/>
+		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
+		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/i386"/>
 		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
-			todir="${build.classes.dir}/native/${jayatana-version}/amd64"/>
+			todir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
 		<property environment="env"/>
 		<exec executable="hostname" outputproperty="host.name"/>
 		<scp file="${remote.ssh.user}:${remote.ssh.password}@${remote.ssh.host}:${remote.home}/.netbeans/remote/localhost/${host.name}-Linux-x86_64${basedir}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
-			todir="${build.classes.dir}/native/${jayatana-version}/i386"
+			todir="${build.classes.dir}/native/${ubuntu.version}/i386"
 			port="${remote.ssh.port}"
 			failonerror="false"/>
 	</target>

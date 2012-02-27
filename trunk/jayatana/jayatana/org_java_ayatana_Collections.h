@@ -50,6 +50,9 @@ void collection_list_index_add(ListIndex *, long, void *);
 void *collection_list_index_get(ListIndex *, long);
 void *collection_list_index_remove(ListIndex *, long);
 void collection_list_index_destory(ListIndex *);
+void collection_list_index_add_last(ListIndex *, void *);
+void *collection_list_index_get_last(ListIndex *);
+void *collection_list_index_remove_last(ListIndex *);
 
 #ifdef	__cplusplus
 }

@@ -36,5 +36,5 @@ import javax.swing.JMenuItem;
  * @author Jared González
  */
 public interface AdditionalMenuAction {
-	public boolean invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem);
+	public boolean invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
 }

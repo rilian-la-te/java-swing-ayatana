@@ -373,7 +373,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		return null;
 	}
 	/**
-	 * Invoka evento de menu basado en el identificador de menu
+	 * Invoca el evento de menu basado en el identificador de menu
 	 * 
 	 * @param hashcode identificador de menu
 	 */
@@ -381,12 +381,19 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		this.invokeMenuItem(this.getJMenuItem(hashcode));
 	}
 	/**
-	 * Invoka el evento de menu antes de mostrar
+	 * Invoca el evento de menu antes de mostrarse
 	 * 
 	 * @param hashcode identificador de menu
 	 */
 	private void itemAboutToShow(int hashcode) {
-		this.invokeMenu((JMenu)this.getJMenuItem(hashcode));
+		this.invokeSelectMenu((JMenu)this.getJMenuItem(hashcode));
+	}
+	/**
+	 * Invoca el evento de menu después de mostrarse
+	 * @param hashcode 
+	 */
+	private void itemAfterShow(int hashcode) {
+		this.invokeDeselectMenu((JMenu)this.getJMenuItem(hashcode));
 	}
 	
 	/**
@@ -398,64 +405,71 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 		boolean enabled = true;
 		
 		if (additionalMenuAction != null)
-			enabled = additionalMenuAction.invokeMenu(frame, menubar, menuitem);
+			enabled = additionalMenuAction.invokeMenu(frame, menubar, menuitem, true);
 		
 		if (enabled) {
-			boolean ismenu = menuitem instanceof JMenu;
-
-			PopupMenuListener pls[] = null;
-			PopupMenuEvent pevent = null;
-			MenuListener mls[] = null;
-			MenuEvent mevent = null;
-			ChangeListener cls[];
-			ChangeEvent cevent;
-
-			if (ismenu) {
-				pls = ((JMenu)menuitem).getPopupMenu().getPopupMenuListeners();
-				if (pls.length > 0) {
-					pevent = new PopupMenuEvent(((JMenu)menuitem).getPopupMenu());
-					for (PopupMenuListener pl : pls)
-						if (pl != null) pl.popupMenuWillBecomeInvisible(pevent);
-				}
-				mls = ((JMenu)menuitem).getMenuListeners();
-				if (mls.length > 0) {
-					mevent = new MenuEvent((JMenu)menuitem);
-					for (MenuListener ml : ((JMenu)menuitem).getMenuListeners())
-						if (ml != null) ml.menuDeselected(mevent);
-				}
-			}
-
 			menuitem.getModel().setArmed(true);
 			menuitem.getModel().setPressed(true);
-
-			if (ismenu) {
-				//select
-				if (mls.length > 0) {
-					for (MenuListener ml : ((JMenu)menuitem).getMenuListeners())
-						if (ml != null) ml.menuSelected(mevent);
-				}
-				if (pls.length > 0) {
-					for (PopupMenuListener pl : pls)
-						if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
-				}
-
-				if (menuitem.getModel() instanceof DefaultButtonModel) {
-					DefaultButtonModel model = (DefaultButtonModel)menuitem.getModel();
-					cls = model.getChangeListeners();
-					cevent = new ChangeEvent(model);
-
-					menuitem.getModel().setSelected(true);
-					for (ChangeListener cl : cls)
-						if (cl != null) cl.stateChanged(cevent);
-
-					menuitem.getModel().setSelected(false);
-					for (ChangeListener cl : cls)
-						if (cl != null) cl.stateChanged(cevent);
-				}
-			}
-
 			menuitem.getModel().setPressed(false);
 			menuitem.getModel().setArmed(false);
+		}
+	}
+	
+	/**
+	 * Invoca la selecion de un menu
+	 * 
+	 * @param menu menu
+	 */
+	private void selectMenu(JMenu menu) {
+		boolean enabled = true;
+		
+		if (additionalMenuAction != null)
+			enabled = additionalMenuAction.invokeMenu(frame, menubar, menu, true);
+		
+		if (enabled) {
+			menu.getModel().setSelected(true);
+
+			DefaultButtonModel model = (DefaultButtonModel)menu.getModel();
+			ChangeEvent cevent = new ChangeEvent(model);
+			for (ChangeListener cl : model.getChangeListeners())
+				if (cl != null) cl.stateChanged(cevent);
+
+			MenuEvent mevent = new MenuEvent(menu);
+			for (MenuListener ml : menu.getMenuListeners())
+				if (ml != null) ml.menuSelected(mevent);
+
+			PopupMenuEvent pevent = new PopupMenuEvent(menu.getPopupMenu());
+			for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
+				if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
+		}
+	}
+	
+	/**
+	 * Invoca la deselección del menu
+	 * 
+	 * @param menu 
+	 */
+	private void deselectMenu(JMenu menu) {
+		boolean enabled = true;
+		
+		if (additionalMenuAction != null)
+			enabled = additionalMenuAction.invokeMenu(frame, menubar, menu, false);
+		
+		if (enabled) {
+			PopupMenuEvent pevent = new PopupMenuEvent(menu.getPopupMenu());
+			for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
+				if (pl != null) pl.popupMenuWillBecomeInvisible(pevent);
+
+			MenuEvent mevent = new MenuEvent(menu);
+			for (MenuListener ml : menu.getMenuListeners())
+				if (ml != null) ml.menuDeselected(mevent);
+
+			menu.getModel().setSelected(false);
+
+			DefaultButtonModel model = (DefaultButtonModel)menu.getModel();
+			ChangeEvent cevent = new ChangeEvent(model);
+			for (ChangeListener cl : model.getChangeListeners())
+				if (cl != null) cl.stateChanged(cevent);
 		}
 	}
 	
@@ -481,14 +495,14 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 	 * 
 	 * @param menu 
 	 */
-	private void invokeMenu(final JMenu menu) {
+	private void invokeSelectMenu(final JMenu menu) {
 		if (menu != null) 
 			if (menu.isEnabled() && menu.isVisible()) {
 				try {
 					EventQueue.invokeAndWait(new Runnable() {
 						@Override
 						public void run() {
-							doClick(menu);
+							selectMenu(menu);
 							for (Component comp : menu.getMenuComponents()) {
 								if (comp instanceof JMenu)
 									ApplicationMenu.this.addMenu((JMenu)comp);
@@ -497,6 +511,24 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener {
 								else if (comp instanceof JSeparator)
 									ApplicationMenu.this.addSeparator();
 							}
+						}
+					});
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				} catch (InvocationTargetException e) {
+					throw new RuntimeException(e);
+				}
+			}
+	}
+	
+	private void invokeDeselectMenu(final JMenu menu) {
+		if (menu != null) 
+			if (menu.isEnabled() && menu.isVisible()) {
+				try {
+					EventQueue.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							deselectMenu(menu);
 						}
 					});
 				} catch (InterruptedException e) {

@@ -29,6 +29,7 @@ package org.java.ayatana;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Properties;
 
 /**
  * Clase para carga de librería libjayatana.so
@@ -39,6 +40,14 @@ public class AyatanaLibrary {
 	public static final String VERSION = "0.4.0";
 	private static boolean loaded = false;
 	private static boolean successful = false;
+	
+	private static String getUbuntuVersion() throws IOException {
+		Properties prop = new Properties();
+		FileInputStream fis = new FileInputStream("/etc/lsb-release");
+		prop.load(fis);
+		fis.close();
+		return prop.getProperty("DISTRIB_RELEASE");
+	}
 	
 	/**
 	 * Converite un arreglo de bytes a una cadena hexadecimal
@@ -93,7 +102,7 @@ public class AyatanaLibrary {
 						System.getProperty("user.home"), ".java/jayatana/"+VERSION+"/"+
 						System.getProperty("os.arch"));
 				final File targetLibrary = new File(targetDirectory, "libjayatana.so");
-				final String sourceLibrary = "/native/"+VERSION+"/"+
+				final String sourceLibrary = "/native/"+getUbuntuVersion()+"/"+
 						System.getProperty("os.arch")+"/libjayatana.so";
 				
 				if (targetLibrary.exists()) {
@@ -131,7 +140,6 @@ public class AyatanaLibrary {
 				System.load(targetLibrary.getCanonicalPath());
 				successful = true;
 			} catch (Exception e) {
-				e.printStackTrace();
 				successful = false;
 			}
 			loaded = true;
