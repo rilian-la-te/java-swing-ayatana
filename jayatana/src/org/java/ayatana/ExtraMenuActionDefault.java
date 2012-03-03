@@ -15,7 +15,8 @@ public class ExtraMenuActionDefault implements ExtraMenuAction {
 							acceleratorText.equals("pressed BACK_SPACE") ||
 							acceleratorText.equals("ctrl pressed C") ||
 							acceleratorText.equals("ctrl pressed X") ||
-							acceleratorText.equals("ctrl pressed Z"))
+							acceleratorText.equals("ctrl pressed Z") ||
+							acceleratorText.equals("ctrl pressed V"))
 						return false;
 				} else if (acceleratorText.equals("alt pressed F4")) {
 					return false;
