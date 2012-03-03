@@ -251,7 +251,22 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_unregisterWatcher
 }
 
 
-
+/* evento después de mostrar el menu */
+void item_event(DbusmenuMenuitem *item) {
+	gboolean select;
+	dbusmenu_menuitem_property_set_bool(item, "jayatana-select",
+			(select = !dbusmenu_menuitem_property_get_bool(item, "jayatana-select")));
+	if (!select) {
+		JNIEnv *env = NULL;
+		JavaInstance *jinstance = (JavaInstance *)collection_list_index_get_last(jinstancesstack);
+		(*jinstance->jvm)->AttachCurrentThread(jinstance->jvm, (void**)&env, NULL);
+		jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
+		jmethodID mid = (*env)->GetMethodID(env, thatclass, "itemAfterShow", "(I)V");
+		(*env)->CallVoidMethod(env, jinstance->that, mid,
+				dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode"));
+		(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
+	}
+}
 /* evento de actviar el menu*/
 void item_activated (DbusmenuMenuitem *item, guint timestamp, gpointer user_data) {
 	JavaInstance *jinstance = (JavaInstance *)user_data;
@@ -263,6 +278,12 @@ void item_activated (DbusmenuMenuitem *item, guint timestamp, gpointer user_data
 	(*env)->CallVoidMethod(env, jinstance->that, mid,
 			dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode"));
 	(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
+	
+	DbusmenuMenuitem *parent = dbusmenu_menuitem_get_parent(item);
+	while (parent != NULL && parent != jinstance->menuroot) {
+		item_event(parent);
+		parent = dbusmenu_menuitem_get_parent(parent);
+	}
 }
 /* evento antes de mostrar el menu*/
 void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
@@ -280,22 +301,7 @@ void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
 			dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode"));
 	(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
 }
-/* evento después de mostrar el menu */
-void item_event(DbusmenuMenuitem *item, guint timestamp, gpointer user_data) {
-	gboolean select;
-	dbusmenu_menuitem_property_set_bool(item, "jayatana-select",
-			(select = !dbusmenu_menuitem_property_get_bool(item, "jayatana-select")));
-	if (!select) {
-		JNIEnv *env = NULL;
-		JavaInstance *jinstance = (JavaInstance *)collection_list_index_get_last(jinstancesstack);
-		(*jinstance->jvm)->AttachCurrentThread(jinstance->jvm, (void**)&env, NULL);
-		jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
-		jmethodID mid = (*env)->GetMethodID(env, thatclass, "itemAfterShow", "(I)V");
-		(*env)->CallVoidMethod(env, jinstance->that, mid,
-				dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode"));
-		(*jinstance->jvm)->DetachCurrentThread(jinstance->jvm);
-	}
-}
+/* agrega un menu padre */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
@@ -317,6 +323,13 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 	dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
 	dbusmenu_menuitem_child_append(item, foo);
 }
+/* elimina todos los menu */
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAllMenus
+  (JNIEnv *env, jobject that, jlong windowxid) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
+	destroy_menu_items(jinstance->menuroot);
+}
+/* establece el acelerador de menu */
 void set_menuitem_shortcut(DbusmenuMenuitem *item, jint modifiers, jint keycode) {
 	GVariantBuilder builder;
 	g_variant_builder_init(&builder, G_VARIANT_TYPE_ARRAY);
@@ -334,6 +347,7 @@ void set_menuitem_shortcut(DbusmenuMenuitem *item, jint modifiers, jint keycode)
 	GVariant *outsidevariant = g_variant_builder_end(&builder);
 	dbusmenu_menuitem_property_set_variant(item, DBUSMENU_MENUITEM_PROP_SHORTCUT, outsidevariant);
 }
+/* agrega un menu hoja */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
@@ -348,7 +362,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
 		set_menuitem_shortcut(item, modifiers, keycode);
 	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 }
-
+/* agrega un menu opcional hoja */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
@@ -366,7 +380,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
 			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
 	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 }
-
+/* agrega un menu verificación hoja */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
@@ -384,7 +398,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
 			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
 	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
 }
-
+/* agrega un separador */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemSeparator
   (JNIEnv *env, jobject that, jlong windowxid) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
