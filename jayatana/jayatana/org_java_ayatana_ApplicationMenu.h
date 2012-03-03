@@ -57,6 +57,14 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
+ * Method:    removeAllMenus
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAllMenus
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     org_java_ayatana_ApplicationMenu
  * Method:    addMenuItem
  * Signature: (JILjava/lang/String;ZII)V
  */
