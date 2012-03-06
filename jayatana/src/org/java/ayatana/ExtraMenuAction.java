@@ -36,5 +36,9 @@ import javax.swing.JMenuItem;
  * @author Jared González
  */
 public interface ExtraMenuAction {
-	public boolean invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public boolean allowDynamicMenuBar();
+	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
 }
