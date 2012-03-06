@@ -324,10 +324,20 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 	dbusmenu_menuitem_child_append(item, foo);
 }
 /* elimina todos los menu */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAllMenus
-  (JNIEnv *env, jobject that, jlong windowxid) {
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeMenu
+  (JNIEnv *env, jobject that, jlong windowxid, jint hashcode) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	destroy_menu_items(jinstance->menuroot);
+	GList *items = dbusmenu_menuitem_take_children(jinstance->menuroot);
+	if (items != NULL) {
+		do {
+			DbusmenuMenuitem *item = (DbusmenuMenuitem *)items->data;
+			if (dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode") == hashcode) {
+				destroy_menu(item);
+				break;
+			}
+			items = items->next;
+		} while (items != NULL);
+	}
 }
 /* establece el acelerador de menu */
 void set_menuitem_shortcut(DbusmenuMenuitem *item, jint modifiers, jint keycode) {

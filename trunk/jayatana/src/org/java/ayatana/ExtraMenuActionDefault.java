@@ -5,7 +5,11 @@ import javax.swing.text.JTextComponent;
 
 public class ExtraMenuActionDefault implements ExtraMenuAction {
 	@Override
-	public boolean invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
+	public boolean allowDynamicMenuBar() {
+		return false;
+	}
+	@Override
+	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
 		if (selected) {
 			KeyStroke accelerator = menuitem.getAccelerator();
 			if (accelerator != null) {
@@ -24,5 +28,18 @@ public class ExtraMenuActionDefault implements ExtraMenuAction {
 			}
 		}
 		return true;
+	}
+	
+	@Override
+	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
+		
+	}
+	@Override
+	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
+		
+	}
+	@Override
+	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
+		
 	}
 }
