@@ -52,7 +52,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * de lo contrario retorna <code>False</code>.
 	 */
 	public static boolean tryInstall(JFrame frame) {
-		return ApplicationMenu.tryInstall(frame, frame.getJMenuBar(), new ExtraMenuActionDefault());
+		return ApplicationMenu.tryInstall(frame, frame.getJMenuBar(), new DefaultExtraMenuAction());
 	}
 	/**
 	 * Trata de instalar el menu de aplicaciones globales, si no es posible
@@ -65,7 +65,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * de lo contrario retorna <code>False</code>.
 	 */
 	public static boolean tryInstall(JFrame frame, JMenuBar menubar) {
-		return ApplicationMenu.tryInstall(frame, menubar, new ExtraMenuActionDefault());
+		return ApplicationMenu.tryInstall(frame, menubar, new DefaultExtraMenuAction());
 	}
 	/**
 	 * Trata de instalar el menu de aplicaciones globales, si no es posible

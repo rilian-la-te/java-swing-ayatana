@@ -3,7 +3,7 @@ package org.java.ayatana;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-public class ExtraMenuActionDefault implements ExtraMenuAction {
+public class DefaultExtraMenuAction implements ExtraMenuAction {
 	@Override
 	public boolean allowDynamicMenuBar() {
 		return false;
