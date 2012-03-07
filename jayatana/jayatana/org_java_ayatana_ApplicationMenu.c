@@ -210,7 +210,7 @@ void on_registrar_unavailable(GDBusConnection *connection, const gchar *name, gp
 	}
 }
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_registerWatcher
-  (JNIEnv *env, jobject that, jlong windowxid) { 
+  (JNIEnv *env, jobject that, jlong windowxid) {
 	JavaInstance *jinstance = (JavaInstance *)malloc(sizeof(JavaInstance));
 	jinstance->windowxid = windowxid;
 	jinstance->installed = FALSE;
