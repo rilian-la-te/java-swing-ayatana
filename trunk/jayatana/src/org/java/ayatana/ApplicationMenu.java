@@ -328,29 +328,39 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * Este método es invocado por la interface nativa en caso de que
 	 * existe un applicationmenu registrado
 	 */
-	private void install() {
-		acceleratorsmap = new TreeMap<String, JMenuItem>();
-		acceleratorsListener = new AcceleratorsListener(
-				menubar, acceleratorsmap);
-		Toolkit.getDefaultToolkit()
-				.addAWTEventListener(ApplicationMenu.this, AWTEvent.KEY_EVENT_MASK);
-		for (Component comp : menubar.getComponents())
-			if (comp instanceof JMenu && comp.isVisible())
-				addMenu((JMenu)comp);
-		menubar.setVisible(false);
-		menubar.addContainerListener(ApplicationMenu.this);
+	private synchronized void install() {
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				acceleratorsmap = new TreeMap<String, JMenuItem>();
+				acceleratorsListener = new AcceleratorsListener(
+						menubar, acceleratorsmap);
+				Toolkit.getDefaultToolkit()
+						.addAWTEventListener(ApplicationMenu.this, AWTEvent.KEY_EVENT_MASK);
+				for (Component comp : menubar.getComponents())
+					if (comp instanceof JMenu && comp.isVisible())
+						addMenu((JMenu)comp);
+				menubar.setVisible(false);
+				menubar.addContainerListener(ApplicationMenu.this);
+			}
+		});
 	}
 	/**
 	 * Este método es invocado por la interface nativa en caso de que se
 	 * deshabilite al applicationmenu registrado
 	 */
-	private void uninstall() {
-		menubar.removeContainerListener(ApplicationMenu.this);
-		menubar.setVisible(true);
-		Toolkit.getDefaultToolkit()
-				.removeAWTEventListener(ApplicationMenu.this);
-		acceleratorsListener.uninstall();
-		acceleratorsmap.clear();
+	private synchronized void uninstall() {
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				menubar.removeContainerListener(ApplicationMenu.this);
+				menubar.setVisible(true);
+				Toolkit.getDefaultToolkit()
+						.removeAWTEventListener(ApplicationMenu.this);
+				acceleratorsListener.uninstall();
+				acceleratorsmap.clear();
+			}
+		});
 	}
 	
 	/**
