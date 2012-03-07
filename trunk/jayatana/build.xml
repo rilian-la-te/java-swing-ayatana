@@ -71,36 +71,38 @@
     nbproject/build-impl.xml file. 
 
     -->
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="lib/ant-contrib-1.0b3.jar"/>
+		</classpath>
+	</taskdef>
+
 	<scriptdef name="getubuntuversion" language="javascript">
 		<attribute name="version"/>
 		<![CDATA[
-		importPackage(java.lang);
-		importPackage(java.util);
-		importPackage(java.io);
-		var prop = new Properties();
-		var fis = new FileInputStream("/etc/lsb-release");
-		prop.load(fis);
-		fis.close();
-		project.setProperty(attributes.get("version"), prop.getProperty("DISTRIB_RELEASE"));
+			importPackage(java.lang);
+			importPackage(java.util);
+			importPackage(java.io);
+			var prop = new Properties();
+			var fis = new FileInputStream("/etc/lsb-release");
+			prop.load(fis);
+			fis.close();
+			project.setProperty(attributes.get("version"), prop.getProperty("DISTRIB_RELEASE"));
 		]]>
 	</scriptdef>
 	<getubuntuversion version="ubuntu.version"/>
+	
+	<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
+		<isset property="platform.home"/>
+	</condition>
+	
 	<property name="remote.ssh.user" value="ubuntu"/>
 	<property name="remote.ssh.password" value="ubuntu"/>
 	<property name="remote.ssh.host" value="localhost"/>
 	<property name="remote.ssh.port" value="2222"/>
 	<property name="remote.home" value="/home/ubuntu"/>
 	
-	<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
-		<isset property="platform.home"/>
-	</condition>
-	<target name="-post-clean">
-		<exec executable="make" dir="jayatana">
-			<env key="JAVA_HOME" value="${project.java.home}"/>
-			<arg line="clean"/>
-		</exec>
-	</target>
-	<target name="-pre-jar">
+	<target name="-build-jni-local">
 		<exec executable="make" dir="jayatana">
 			<env key="JAVA_HOME" value="${project.java.home}"/>
 			<arg line="build"/>
@@ -109,11 +111,79 @@
 		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/i386"/>
 		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
 			todir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
-		<property environment="env"/>
-		<exec executable="hostname" outputproperty="host.name"/>
-		<scp file="${remote.ssh.user}:${remote.ssh.password}@${remote.ssh.host}:${remote.home}/.netbeans/remote/localhost/${host.name}-Linux-x86_64${basedir}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
-			todir="${build.classes.dir}/native/${ubuntu.version}/i386"
-			port="${remote.ssh.port}"
-			failonerror="false"/>
 	</target>
+	
+	<target name="-clean-jni-local">
+		<exec executable="make" dir="jayatana">
+			<env key="JAVA_HOME" value="${project.java.home}"/>
+			<arg line="clean"/>
+		</exec>
+	</target>
+	
+	<!--
+	
+	Para incluir librerias de otras arquitecturas y versiones, se debe crear
+	el archivo remote.properties en la raíz del proyecto con el siguiente contenido indicando el
+	directorio HOME, version de ubuntu (xx.xx ej: 11.10) y arquitectura (i386 ó amd64) además
+	de que el servidor remoto tiene que tener la variable de ambiente JAVA_HOME
+	
+	remote.connections=usuario:contraseña:servidor32:22:/home/ubuntu:11.10:i386,usuario:contraseña:servidor64:22:/home/ubuntu:11.10:amd64,...
+	
+	Para que el constructor ant incorpore las librerias nativas al jar.
+	
+	-->
+	
+	<scriptdef name="remoteproperties" language="javascript">
+		<attribute name="remoteconnction"/>
+		<![CDATA[
+			var rc = attributes.get("remoteconnction");
+			var rcarray = rc.split(":");
+			project.setProperty("remote.user", rcarray[0]);
+			project.setProperty("remote.password", rcarray[1]);
+			project.setProperty("remote.server", rcarray[2]);
+			project.setProperty("remote.port", rcarray[3]);
+			project.setProperty("remote.home", rcarray[4]);
+			project.setProperty("remote.version", rcarray[5]);
+			project.setProperty("remote.arch", rcarray[6]);
+		]]>
+	</scriptdef>
+	
+	<target name="-build-jni-remote">
+		<exec executable="hostname" outputproperty="host.name"/>
+		<property file="remote.properties"/>
+		<if>
+			<equals arg1="${remote.connections}" arg2="$${remote.connections}"/>
+			<then></then>
+			<else>
+				<for list="${remote.connections}" param="remote.connection">
+					<sequential>
+						<remoteproperties remoteconnction="@{remote.connection}"/>
+						<sshexec host="${remote.server}" port="${remote.port}"
+							username="${remote.user}" password="${remote.password}"
+							command="mkdir -p ${remote.home}/jayatana"
+							failonerror="false"/>
+						<scp todir="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana"
+							port="${remote.port}"
+							failonerror="false">
+							<fileset dir="jayatana">
+								<exclude name="build/**"/>
+								<exclude name="dist/**"/>
+							</fileset>
+						</scp>
+						<sshexec host="${remote.server}" port="${remote.port}"
+							username="${remote.user}" password="${remote.password}"
+							command="cd ${remote.home}/jayatana ; make"
+							failonerror="false"/>
+						<scp file="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+							todir="${build.classes.dir}/native/${remote.version}/${remote.arch}"
+							port="${remote.port}"
+							failonerror="false"/>
+					</sequential>
+				</for>
+			</else>
+		</if>
+	</target>
+	
+	<target name="-post-clean" depends="-clean-jni-local"/>
+	<target name="-pre-jar" depends="-build-jni-local, -build-jni-remote"/>
 </project>
