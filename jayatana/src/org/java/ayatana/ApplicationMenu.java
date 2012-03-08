@@ -94,6 +94,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	public static boolean tryInstall(JFrame frame, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
 		if (frame == null || menubar == null || additionalMenuAction == null)
 			throw new NullPointerException();
+		if (!AyatanaDesktop.isSupported())
+			return false;
 		if (!"libappmenu.so".equals(System.getenv("UBUNTU_MENUPROXY")))
 			return false;
 		if (AyatanaLibrary.load()) {
@@ -172,7 +174,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private void addMenu(JMenu menu) {
 		if (menu.getText() == null || "".equals(menu.getText()))
 			return;
-		this.addMenu(windowxid, menu.hashCode(), menu.getText(), menu.isEnabled());
+		addMenu(windowxid, menu.hashCode(), menu.getText(), menu.isEnabled());
 	}
 	/**
 	 * Crear un menu en el menu de aplicaciones globales
@@ -189,7 +191,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param menu menu
 	 */
 	private void removeMenu(JMenu menu) {
-		this.removeMenu(windowxid, menu.hashCode());
+		removeMenu(windowxid, menu.hashCode());
 	}
 	/**
 	 * Elimina un menu del menu de aplicaciones globales
@@ -213,17 +215,17 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 			keycode = menuitem.getAccelerator().getKeyCode();
 		}
 		if (menuitem instanceof JMenu) {
-			this.addMenu((JMenu)menuitem);
+			addMenu((JMenu)menuitem);
 		} else if (menuitem instanceof JRadioButtonMenuItem) {
-			this.addMenuItemRadio(windowxid, menuitem.hashCode(),
+			addMenuItemRadio(windowxid, menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers, keycode,
 					menuitem.isSelected());
 		} else if (menuitem instanceof JCheckBoxMenuItem) {
-			this.addMenuItemCheck(windowxid, menuitem.hashCode(),
+			addMenuItemCheck(windowxid, menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers, keycode,
 					menuitem.isSelected());
 		} else {
-			this.addMenuItem(windowxid, menuitem.hashCode(),
+			addMenuItem(windowxid, menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers, keycode);
 		}
 	}
@@ -266,7 +268,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * Agrega un separador
 	 */
 	private void addSeparator() {
-		this.addMenuItemSeparator(windowxid);
+		addMenuItemSeparator(windowxid);
 	}
 	/**
 	 * Agrega un separador
@@ -284,10 +286,10 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private ApplicationMenu(JFrame frame, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
 		this.frame = frame;
 		this.menubar = menubar;
-		this.extraMenuAction = additionalMenuAction;
+		extraMenuAction = additionalMenuAction;
 		frame.addWindowListener(this);
 		if (frame.isActive())
-			this.tryInstall();
+			tryInstall();
 	}
 	
 	/**
@@ -404,7 +406,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param hashcode identificador de menu
 	 */
 	private void itemActivated(int hashcode) {
-		this.invokeMenuItem(this.getJMenuItem(hashcode));
+		invokeMenuItem(getJMenuItem(hashcode));
 	}
 	/**
 	 * Invoca el evento de menu antes de mostrarse
@@ -412,14 +414,14 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param hashcode identificador de menu
 	 */
 	private void itemAboutToShow(int hashcode) {
-		this.invokeSelectMenu((JMenu)this.getJMenuItem(hashcode));
+		invokeSelectMenu((JMenu)getJMenuItem(hashcode));
 	}
 	/**
 	 * Invoca el evento de menu después de mostrarse
 	 * @param hashcode 
 	 */
 	private void itemAfterShow(int hashcode) {
-		this.invokeDeselectMenu((JMenu)this.getJMenuItem(hashcode));
+		invokeDeselectMenu((JMenu)getJMenuItem(hashcode));
 	}
 	
 	/**
@@ -474,11 +476,11 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 							
 							for (Component comp : popupMenu.getComponents()) {
 								if (comp instanceof JMenu)
-									ApplicationMenu.this.addMenu((JMenu)comp);
+									addMenu((JMenu)comp);
 								else if (comp instanceof JMenuItem)
-									ApplicationMenu.this.addMenuItem((JMenuItem)comp);
+									addMenuItem((JMenuItem)comp);
 								else if (comp instanceof JSeparator)
-									ApplicationMenu.this.addSeparator();
+									addSeparator();
 							}
 							
 							extraMenuAction.afterInvokeMenu(frame, menubar, menu, true);
@@ -533,7 +535,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		JMenuItem menuitem = acceleratorsmap.get(
 				KeyEvent.getKeyModifiersText(modifiers)+
 				KeyEvent.getKeyText(keycode));
-		this.invokeMenuItem(menuitem);
+		invokeMenuItem(menuitem);
 	}
 	
 	/**
@@ -548,7 +550,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		else if (comp instanceof JFrame)
 			return (JFrame)comp;
 		else
-			return this.getFrame(comp.getParent());
+			return getFrame(comp.getParent());
 	}
 	/*
 	 * Control de eventos de acceleradores
@@ -565,13 +567,13 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 					frame.isActive()) {
 				JFrame currentframe;
 				if (event.getSource() instanceof Component)
-					currentframe = this.getFrame((Component)event.getSource());
+					currentframe = getFrame((Component)event.getSource());
 				else if (event.getSource() instanceof JFrame)
 					currentframe = (JFrame)event.getSource();
 				else 
 					currentframe = null;
 				if (frame.equals(currentframe))
-					this.invokeAccelerator(e.getModifiers(), e.getKeyCode());
+					invokeAccelerator(e.getModifiers(), e.getKeyCode());
 			}
 		}
 	}
@@ -583,14 +585,14 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	public void componentAdded(ContainerEvent e) {
 		if (extraMenuAction != null && extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getChild() instanceof JMenu && e.getChild().isVisible())
-				this.addMenu((JMenu)e.getChild());
+				addMenu((JMenu)e.getChild());
 		}
 	}
 	@Override
 	public void componentRemoved(ContainerEvent e) {
 		if (extraMenuAction != null && extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getChild() instanceof JMenu && e.getChild().isVisible())
-				this.removeMenu((JMenu)e.getChild());
+				removeMenu((JMenu)e.getChild());
 		}
 	}
 	
