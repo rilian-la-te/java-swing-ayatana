@@ -26,10 +26,9 @@
 
 package org.java.ayatana;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.awt.Toolkit;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,37 +38,54 @@ import java.util.TreeMap;
  * 
  * @author Jared González
  */
-public class DesktopFile {
+final public class DesktopFile {
+	public static final String BOOLEAN_TRUE = "true";
+	public static final String BOOLEAN_FALSE = "false";
+	public static final String TYPE_APPLICATION = "Application";
+	public static final String TYPE_TERMINAL = "Terminal";
+	
+	private static DesktopFile desktopFile = null;
+	
+	public static DesktopFile initialize(String desktopFileName, String startupWMClass) throws IOException {
+		desktopFile = new DesktopFile(desktopFileName, startupWMClass);
+		return desktopFile;
+	}
+	public static DesktopFile getInstance() {
+		if (desktopFile == null)
+			throw new IllegalAccessError("DesktopFile is not initialized");
+		return desktopFile;
+	}
+	
 	private String desktopFileName;
 	private String defaultName;
 	private Map<Locale, String> names;
-	private String defaultDescription;
-	private Map<Locale, String> descriptions;
+	private String defaultComment;
+	private Map<Locale, String> comments;
 	private String command;
 	private String icon;
 	private String categories;
 	private String startupWMClass;
 	
-	private String startupNotify = "true";
-	private String terminal = "false";
-	private String type = "Application";
+	private String startupNotify = BOOLEAN_TRUE;
+	private String terminal = BOOLEAN_FALSE;
+	private String type = TYPE_APPLICATION;
 	
 	private boolean changed = false;
 	
-	public DesktopFile(String desktopFileName, String startupWMClass) throws IOException {
+	private DesktopFile(String desktopFileName, String startupWMClass) throws IOException {
 		if (desktopFileName == null)
 			throw new NullPointerException("desktopFileName can't be null");
 		this.desktopFileName = desktopFileName;
 		if (!this.desktopFileName.endsWith(".desktop"))
 			this.desktopFileName += ".desktop";
-		this.names = new TreeMap<Locale, String>();
-		this.descriptions = new TreeMap<Locale, String>();
-		this.load();
-		this.setStartupWMClass(startupWMClass);
+		names = new TreeMap<Locale, String>();
+		comments = new TreeMap<Locale, String>();
+		load();
+		setStartupWMClass(startupWMClass);
 	}
 	
 	public void setName(String name) {
-		this.defaultName = name;
+		defaultName = name;
 	}
 	public void setName(String name, Locale locale) {
 		String old = names.put(locale, name);
@@ -83,23 +99,23 @@ public class DesktopFile {
 		return names.get(locale);
 	}
 	
-	public void setDescription(String description) {
-		this.defaultDescription = description;
+	public void setComment(String comment) {
+		defaultComment = comment;
 	}
-	public void setDescription(String description, Locale locale) {
-		String old = descriptions.put(locale, description);
+	public void setComment(String comment, Locale locale) {
+		String old = comments.put(locale, comment);
 		if (old == null ? old != null : !old.equals(old))
 			changed = true;
 	}
-	public String getDescription() {
-		return defaultDescription;
+	public String getComment() {
+		return defaultComment;
 	}
-	public String getDescription(Locale locale) {
-		return descriptions.get(locale);
+	public String getComment(Locale locale) {
+		return comments.get(locale);
 	}
 	
 	public void setCommand(String command) {
-		if (this.command == null ? this.command != command : !this.command.equals(command))
+		if (this.command == null ? command != null : !this.command.equals(command))
 			changed = true;
 		this.command = command;
 	}
@@ -107,7 +123,7 @@ public class DesktopFile {
 		return command;
 	}
 	public void setIcon(String icon) {
-		if (this.icon == null ? this.icon != icon : !this.icon.equals(icon))
+		if (this.icon == null ? icon != null : !this.icon.equals(icon))
 			changed = true;
 		this.icon = icon;
 	}
@@ -116,7 +132,7 @@ public class DesktopFile {
 	}
 	
 	public void setCategories(String categories) {
-		if (this.categories == null ? this.categories != categories : !this.categories.equals(categories))
+		if (this.categories == null ? categories != null : !this.categories.equals(categories))
 			changed = true;
 		this.categories = categories;
 	}
@@ -125,9 +141,19 @@ public class DesktopFile {
 	}
 	
 	public void setStartupWMClass(String startupWMClass) {
-		if (this.startupWMClass == null ? this.startupWMClass != startupWMClass : !this.startupWMClass.equals(startupWMClass))
+		if (this.startupWMClass == null ? startupWMClass != null : !this.startupWMClass.equals(startupWMClass))
 			changed = true;
 		this.startupWMClass = startupWMClass;
+		if (AyatanaDesktop.isSupported() && changed) {
+			try {
+				Toolkit xToolkit = Toolkit.getDefaultToolkit();
+				Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
+				awtAppClassNameField.setAccessible(true);
+				awtAppClassNameField.set(xToolkit, startupWMClass);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 	public String getStartupWMClass() {
 		return startupWMClass;
@@ -137,7 +163,7 @@ public class DesktopFile {
 		return startupNotify;
 	}
 	private void setStartupNotify(String startupNotify) {
-		if (this.startupNotify == null ? this.startupNotify != startupNotify : !this.startupNotify.equals(startupNotify))
+		if (this.startupNotify == null ? startupNotify != null : !this.startupNotify.equals(startupNotify))
 			changed = true;
 		this.startupNotify = startupNotify;
 	}
@@ -145,15 +171,15 @@ public class DesktopFile {
 		return terminal;
 	}
 	private void setTerminal(String terminal) {
-		if (this.terminal == null ? this.terminal != terminal : !this.terminal.equals(terminal))
+		if (this.terminal == null ? terminal != null : !this.terminal.equals(terminal))
 			changed = true;
 		this.terminal = terminal;
 	}
-	private String getType() {
+	public String getType() {
 		return type;
 	}
-	private void setType(String type) {
-		if (this.type == null ? this.type != type : !this.type.equals(type))
+	public void setType(String type) {
+		if (this.type == null ? type != null : !this.type.equals(type))
 			changed = true;
 		this.type = type;
 	}
@@ -171,9 +197,9 @@ public class DesktopFile {
 	
 	public boolean load() throws IOException {
 		File deskFile = new File(System.getProperty("user.home"),
-				"/.local/share/applications/" + this.getDesktopFileName());
+				"/.local/share/applications/" + getDesktopFileName());
 		if (!deskFile.exists()) {
-			deskFile = new File("/usr/share/applications/" + this.getDesktopFileName());
+			deskFile = new File("/usr/share/applications/" + getDesktopFileName());
 		}
 		if (deskFile.exists()) {
 			BufferedReader reader = new BufferedReader(
@@ -183,33 +209,37 @@ public class DesktopFile {
 				if (line.contains("=") && !line.startsWith("#")) {
 					String param[] = line.split("=");
 					String key = param[0].trim().toLowerCase();
-					String value = param[1].trim().toLowerCase();
+					String value = param[1].trim();
 					if (key.startsWith("name")) {
 						if (key.endsWith("]")) {
 							String lang = key.substring(key.indexOf("[")+1, key.length()-1);
-							this.setName(value, this.resolveLocale(lang));
+							setName(value, resolveLocale(lang));
 						} else {
-							this.setName(value);
+							setName(value);
 						}
 					} else if (key.startsWith("description")) {
 						if (key.endsWith("]")) {
 							String lang = key.substring(key.indexOf("[")+1, key.length()-1);
-							this.setDescription(value, this.resolveLocale(lang));
+							setComment(value, resolveLocale(lang));
 						} else {
-							this.setDescription(value);
+							setComment(value);
 						}
 					} else if (key.equals("encoding")) {
 						
 					} else if (key.equals("exec")) {
-						this.setCommand(value);
+						setCommand(value);
+					} else if (key.equals("icon")) {
+						setIcon(value);
 					} else if (key.equals("categories")) {
-						this.setCategories(value);
+						setCategories(value);
 					} else if (key.equals("startupwmclass")) {
-						this.setStartupWMClass(value);
+						setStartupWMClass(value);
+					} else if (key.equals("startupnotify")) {
+						setStartupNotify(value);
 					} else if (key.equals("type")) {
-						this.setType(value);
+						setType(value);
 					} else if (key.equals("terminal")) {
-						this.setTerminal(value);
+						setTerminal(value);
 					}
 				}
 			}
@@ -220,16 +250,74 @@ public class DesktopFile {
 			return false;
 		}
 	}
-	public boolean update() {
+	public boolean update() throws IOException {
 		if (changed) {
-			File deskFile = new File(System.getProperty("user.home"),
-				"/.local/share/applications/" + this.getDesktopFileName());
+			File df = new File(System.getProperty("user.home"),
+				"/.local/share/applications/" + getDesktopFileName());
 			
+			BufferedWriter writer = new BufferedWriter(
+					new FileWriter(df));
+			writer.write("[Desktop Entry]");
+			writer.newLine();
+			
+			if (getName() != null) {
+				writer.write("Name="+getName());
+				writer.newLine();
+			}
+			for (Map.Entry<Locale, String> entry : names.entrySet()) {
+				if (entry.getValue() != null) {
+					writer.write("Name["+entry.getKey().toString()+"]="+entry.getValue());
+					writer.newLine();
+				}
+			}
+			if (getComment() != null) {
+				writer.write("Comment="+getComment());
+				writer.newLine();
+			}
+			for (Map.Entry<Locale, String> entry : comments.entrySet()) {
+				if (entry.getValue() != null) {
+					writer.write("Comment["+entry.getKey().toString()+"]="+entry.getValue());
+					writer.newLine();
+				}
+			}
+			if (getCommand() != null) {
+				writer.write("Exec="+getCommand());
+				writer.newLine();
+			}
+			if (getIcon() != null) {
+				writer.write("Icon="+getIcon());
+				writer.newLine();
+			}
+			if (getCategories() != null) {
+				writer.write("Categories="+getCategories());
+				writer.newLine();
+			}
+			if (getStartupWMClass() != null) {
+				writer.write("StartupWMClass="+getStartupWMClass());
+				writer.newLine();
+			}
+			if (getStartupNotify() != null) {
+				writer.write("StartupNotify="+getStartupNotify());
+				writer.newLine();
+			}
+			if (getTerminal() != null) {
+				writer.write("Terminal="+getTerminal());
+				writer.newLine();
+			}
+			if (getType() != null) {
+				writer.write("Type="+getType());
+				writer.newLine();
+			}
+			writer.close();
 			changed = false;
 			return true;
 		} else {
 			return false;
 		}
+	}
+	
+	public boolean delete() {
+		return new File(getDesktopFileName()).delete();
 	}
 	
 	public String getDesktopFileName() {

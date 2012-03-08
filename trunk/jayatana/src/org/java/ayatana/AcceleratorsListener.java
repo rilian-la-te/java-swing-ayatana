@@ -49,33 +49,33 @@ final class AcceleratorsListener implements ContainerListener, PropertyChangeLis
 	AcceleratorsListener(JMenuBar menubar, Map<String, JMenuItem> acceleratorsmap) {
 		this.menubar = menubar;
 		this.acceleratorsmap = acceleratorsmap;
-		this.install();
+		install();
 	}
 	private void install() {
 		for (Component comp : menubar.getComponents())
 			if (comp instanceof JMenu)
-				this.addMenu((JMenu)comp);
+				addMenu((JMenu)comp);
 	}
 	void uninstall() {
 		for (Component comp : menubar.getComponents())
 			if (comp instanceof JMenu)
-				this.removeMenu((JMenu)comp);
+				removeMenu((JMenu)comp);
 	}
 
 	private void addMenu(JMenu menu) {
 		for (Component comp : menu.getMenuComponents())
 			if (comp instanceof JMenu)
-				this.addMenu((JMenu)comp);
+				addMenu((JMenu)comp);
 			else if (comp instanceof JMenuItem)
-				this.addMenuItem((JMenuItem)comp);
+				addMenuItem((JMenuItem)comp);
 		menu.addContainerListener(this);
 	}
 	private void removeMenu(JMenu menu) {
 		for (Component comp : menu.getMenuComponents())
 			if (comp instanceof JMenu)
-				this.removeMenu((JMenu)comp);
+				removeMenu((JMenu)comp);
 			else if (comp instanceof JMenuItem)
-				this.removeMenuItem((JMenuItem)comp);
+				removeMenuItem((JMenuItem)comp);
 		menu.removeContainerListener(this);
 	}
 
@@ -102,16 +102,16 @@ final class AcceleratorsListener implements ContainerListener, PropertyChangeLis
 	@Override
 	public void componentAdded(ContainerEvent e) {
 		if (e.getSource() instanceof JMenu)
-			this.addMenu((JMenu)e.getSource());
+			addMenu((JMenu)e.getSource());
 		else if (e.getSource() instanceof JMenuItem)
-			this.addMenuItem((JMenuItem)e.getSource());
+			addMenuItem((JMenuItem)e.getSource());
 	}
 	@Override
 	public void componentRemoved(ContainerEvent e) {
 		if (e.getSource() instanceof JMenu)
-			this.removeMenu((JMenu)e.getSource());
+			removeMenu((JMenu)e.getSource());
 		else if (e.getSource() instanceof JMenuItem)
-			this.removeMenuItem((JMenuItem)e.getSource());
+			removeMenuItem((JMenuItem)e.getSource());
 	}
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
