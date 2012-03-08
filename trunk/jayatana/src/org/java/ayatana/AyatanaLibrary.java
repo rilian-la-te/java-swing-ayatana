@@ -111,6 +111,8 @@ final public class AyatanaLibrary {
 					if (!chksumint.equals(chksum)) {
 						targetLibrary.delete();
 						input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
+						if (input != null)
+							throw new Exception("not library exists");
 						FileOutputStream fos = new FileOutputStream(targetLibrary);
 						byte buff[] = new byte[1024];
 						int read;
@@ -123,6 +125,8 @@ final public class AyatanaLibrary {
 				} else {
 					targetDirectory.mkdirs();
 					InputStream input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
+					if (input != null)
+						throw new Exception("not library exists");
 					FileOutputStream fos = new FileOutputStream(targetLibrary);
 					byte buff[] = new byte[1024];
 					int read;
