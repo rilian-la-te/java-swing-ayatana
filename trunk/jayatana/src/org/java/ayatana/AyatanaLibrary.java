@@ -37,7 +37,7 @@ import java.util.Properties;
  * @author Jared González
  */
 final public class AyatanaLibrary {
-	public static final String VERSION = "0.4.0";
+	public static final String VERSION = "0.4.1";
 	private static boolean loaded = false;
 	private static boolean successful = false;
 	
@@ -111,7 +111,7 @@ final public class AyatanaLibrary {
 					if (!chksumint.equals(chksum)) {
 						targetLibrary.delete();
 						input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
-						if (input != null)
+						if (input == null)
 							throw new Exception("not library exists");
 						FileOutputStream fos = new FileOutputStream(targetLibrary);
 						byte buff[] = new byte[1024];
@@ -125,7 +125,7 @@ final public class AyatanaLibrary {
 				} else {
 					targetDirectory.mkdirs();
 					InputStream input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
-					if (input != null)
+					if (input == null)
 						throw new Exception("not library exists");
 					FileOutputStream fos = new FileOutputStream(targetLibrary);
 					byte buff[] = new byte[1024];

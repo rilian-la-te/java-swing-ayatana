@@ -96,12 +96,6 @@
 		<isset property="platform.home"/>
 	</condition>
 	
-	<property name="remote.ssh.user" value="ubuntu"/>
-	<property name="remote.ssh.password" value="ubuntu"/>
-	<property name="remote.ssh.host" value="localhost"/>
-	<property name="remote.ssh.port" value="2222"/>
-	<property name="remote.home" value="/home/ubuntu"/>
-	
 	<target name="-build-jni-local">
 		<exec executable="make" dir="jayatana">
 			<env key="JAVA_HOME" value="${project.java.home}"/>
