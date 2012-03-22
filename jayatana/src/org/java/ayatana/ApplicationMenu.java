@@ -29,8 +29,6 @@ package org.java.ayatana;
 import java.awt.*;
 import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -94,8 +92,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	public static boolean tryInstall(JFrame frame, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
 		if (frame == null || menubar == null || additionalMenuAction == null)
 			throw new NullPointerException();
-		if (!AyatanaDesktop.isSupported())
-			return false;
 		if (!"libappmenu.so".equals(System.getenv("UBUNTU_MENUPROXY")))
 			return false;
 		if (AyatanaLibrary.load()) {
@@ -141,8 +137,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private JFrame frame;
 	private JMenuBar menubar;
 	private boolean tryInstalled = false;
-	private Map<String, JMenuItem> acceleratorsmap;
-	private AcceleratorsListener acceleratorsListener;
 	private ExtraMenuAction extraMenuAction;
 	private long windowxid;
 	
@@ -331,38 +325,23 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * existe un applicationmenu registrado
 	 */
 	private synchronized void install() {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				acceleratorsmap = new TreeMap<String, JMenuItem>();
-				acceleratorsListener = new AcceleratorsListener(
-						menubar, acceleratorsmap);
-				Toolkit.getDefaultToolkit()
-						.addAWTEventListener(ApplicationMenu.this, AWTEvent.KEY_EVENT_MASK);
-				for (Component comp : menubar.getComponents())
-					if (comp instanceof JMenu && comp.isVisible())
-						addMenu((JMenu)comp);
-				menubar.setVisible(false);
-				menubar.addContainerListener(ApplicationMenu.this);
-			}
-		});
+		Toolkit.getDefaultToolkit()
+				.addAWTEventListener(ApplicationMenu.this, AWTEvent.KEY_EVENT_MASK);
+		for (Component comp : menubar.getComponents())
+			if (comp instanceof JMenu && comp.isVisible())
+				addMenu((JMenu)comp);
+		menubar.setVisible(false);
+		menubar.addContainerListener(ApplicationMenu.this);
 	}
 	/**
 	 * Este método es invocado por la interface nativa en caso de que se
 	 * deshabilite al applicationmenu registrado
 	 */
 	private synchronized void uninstall() {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				menubar.removeContainerListener(ApplicationMenu.this);
-				menubar.setVisible(true);
-				Toolkit.getDefaultToolkit()
-						.removeAWTEventListener(ApplicationMenu.this);
-				acceleratorsListener.uninstall();
-				acceleratorsmap.clear();
-			}
-		});
+		menubar.removeContainerListener(ApplicationMenu.this);
+		menubar.setVisible(true);
+		Toolkit.getDefaultToolkit()
+				.removeAWTEventListener(ApplicationMenu.this);
 	}
 	
 	/**
@@ -400,6 +379,49 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		}
 		return null;
 	}
+	
+	/**
+	 * Obtener un menu del del acelerador
+	 * 
+	 * @param keycode codigo de teclado
+	 * @param modifiers modificador
+	 * @return 
+	 */
+	private JMenuItem getJMenuItem(int keycode, int modifiers) {
+		for (Component comp : menubar.getComponents())
+			if (comp instanceof JMenuItem) {
+				JMenuItem item;
+				if ((item = getJMenuItem((JMenuItem)comp, keycode, modifiers)) != null)
+					return item;
+			}
+		return null;
+	}
+	/**
+	 * Obtener un menu del del acelerador
+	 * 
+	 * @param menu menu padre
+	 * @param keycode codigo de teclado
+	 * @param modifiers modificador
+	 * @return 
+	 */
+	private JMenuItem getJMenuItem(JMenuItem menu, int keycode, int modifiers) {
+		if (menu instanceof JMenu) {
+			for (Component comp : ((JMenu)menu).getMenuComponents())
+				if (comp instanceof JMenuItem) {
+					JMenuItem item;
+					if ((item = getJMenuItem((JMenuItem)comp, keycode, modifiers)) != null)
+						return item;
+				}
+		} else {
+			if (menu.getAccelerator() == null)
+				return null;
+			else if (menu.getAccelerator().getKeyCode() == keycode &&
+					menu.getAccelerator().getModifiers() == modifiers)
+				return menu;
+		}
+		return null;
+	}
+	
 	/**
 	 * Invoca el evento de menu basado en el identificador de menu
 	 * 
@@ -532,10 +554,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param keycode 
 	 */
 	private void invokeAccelerator(int modifiers, int keycode) {
-		JMenuItem menuitem = acceleratorsmap.get(
-				KeyEvent.getKeyModifiersText(modifiers)+
-				KeyEvent.getKeyText(keycode));
-		invokeMenuItem(menuitem);
+		invokeMenuItem(getJMenuItem(keycode, modifiers));
 	}
 	
 	/**
