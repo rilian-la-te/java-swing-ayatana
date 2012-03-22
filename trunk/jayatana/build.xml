@@ -142,8 +142,26 @@
 		]]>
 	</scriptdef>
 	
+	<target name="-clean-jni-remote">
+		<property file="remote.properties"/>
+		<if>
+			<equals arg1="${remote.connections}" arg2="$${remote.connections}"/>
+			<then></then>
+			<else>
+				<for list="${remote.connections}" param="remote.connection">
+					<sequential>
+						<remoteproperties remoteconnction="@{remote.connection}"/>
+						<sshexec host="${remote.server}" port="${remote.port}"
+							username="${remote.user}" password="${remote.password}"
+							command="rm -fr ${remote.home}/jayatana"
+							failonerror="false"/>
+					</sequential>
+				</for>
+			</else>
+		</if>
+	</target>
+	
 	<target name="-build-jni-remote">
-		<exec executable="hostname" outputproperty="host.name"/>
 		<property file="remote.properties"/>
 		<if>
 			<equals arg1="${remote.connections}" arg2="$${remote.connections}"/>
@@ -155,12 +173,10 @@
 						<sshexec host="${remote.server}" port="${remote.port}"
 							username="${remote.user}" password="${remote.password}"
 							command="mkdir -p ${remote.home}/jayatana"
-							failonerror="false"
-							verbose="true"/>
+							failonerror="false"/>
 						<scp todir="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana"
 							port="${remote.port}"
-							failonerror="false"
-							verbose="true">
+							failonerror="false">
 							<fileset dir="jayatana">
 								<exclude name="build/**"/>
 								<exclude name="dist/**"/>
@@ -169,19 +185,17 @@
 						<sshexec host="${remote.server}" port="${remote.port}"
 							username="${remote.user}" password="${remote.password}"
 							command="cd ${remote.home}/jayatana ; make"
-							failonerror="false"
-							verbose="true"/>
+							failonerror="false"/>
 						<scp file="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
 							todir="${build.classes.dir}/native/${remote.version}/${remote.arch}"
 							port="${remote.port}"
-							failonerror="false"
-							verbose="true"/>
+							failonerror="false"/>
 					</sequential>
 				</for>
 			</else>
 		</if>
 	</target>
 	
-	<target name="-post-clean" depends="-clean-jni-local"/>
+	<target name="-post-clean" depends="-clean-jni-local, -clean-jni-remote"/>
 	<target name="-pre-jar" depends="-build-jni-local, -build-jni-remote"/>
 </project>

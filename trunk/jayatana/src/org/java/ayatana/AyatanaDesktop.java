@@ -28,21 +28,79 @@ package org.java.ayatana;
 
 import java.io.*;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import javax.swing.ImageIcon;
 
 final public class AyatanaDesktop {
+	/**
+	 * Converite un arreglo de bytes a una cadena hexadecimal
+	 * 
+	 * @param digest arreglo de bytes
+	 * @return cadena hexadecimal
+	 */
+	private static String toHexadecimal(byte[] digest) {
+		String hash = "";
+		for (byte aux : digest) {
+			int b = aux & 0xff;
+			if (Integer.toHexString(b).length() == 1)
+				hash += "0";
+			hash += Integer.toHexString(b);
+		}
+		return hash;
+	}
+	
+	/**
+	 * Generar un checksum de una entrada
+	 * 
+	 * @param input flujo de entrada
+	 * @return checksum hexadecimal
+	 */
+	public static String getMD5Checksum(InputStream input) {
+		try {
+			byte buff[] = new byte[1024];
+			int read;
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			while ((read = input.read(buff)) > 0)
+				md.update(buff, 0, read);
+			return toHexadecimal(md.digest());
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * Incida si el sistema es soportado para uso de Unity
+	 * 
+	 * @return <code>True</code> si es soportado
+	 */
 	public static boolean isSupported() {
 		if (!System.getProperty("os.name").startsWith("Linux"))
 			return false;
-		if (!"gnome".equals(System.getProperty("sun.desktop")))
-			return false;
-		if (!"ubuntu".equals(System.getenv("DESKTOP_SESSION")))
+		if (!"Unity".equals(System.getenv("XDG_CURRENT_DESKTOP")))
 			return false;
 		return true;
 	}
+	/**
+	 * Trata de instalar un icono, en el tema "hicolor".
+	 * 
+	 * @param name nombre del icono
+	 * @param urlIcon url del icono
+	 * @return <Code>True</code> si puede instalar el icono
+	 */
 	public static boolean tryInstallIcon(String name, URL urlIcon) {
 		return tryInstallIcon(name, "hicolor", urlIcon);
 	}
+	/**
+	 * Trata de instalar un icono.
+	 * 
+	 * @param name nombre del icono
+	 * @param theme tema del icono
+	 * @param urlIcon url del icono
+	 * @return 
+	 */
 	public static boolean tryInstallIcon(String name, String theme, URL urlIcon) {
 		if (!AyatanaDesktop.isSupported())
 			return false;
@@ -76,7 +134,7 @@ final public class AyatanaDesktop {
 			String iconTargetMD5;
 			try {
 				FileInputStream fis = new FileInputStream(iconFile);
-				iconTargetMD5 = AyatanaLibrary.getMD5Checksum(fis);
+				iconTargetMD5 = getMD5Checksum(fis);
 				fis.close();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
@@ -85,7 +143,7 @@ final public class AyatanaDesktop {
 			String iconSourceMD5;
 			try {
 				InputStream inputSource = urlIcon.openStream();
-				iconSourceMD5 = AyatanaLibrary.getMD5Checksum(inputSource);
+				iconSourceMD5 = getMD5Checksum(inputSource);
 				inputSource.close();
 			} catch (IOException e) {
 				throw new RuntimeException(e);

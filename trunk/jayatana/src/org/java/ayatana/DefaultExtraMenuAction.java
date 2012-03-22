@@ -29,6 +29,11 @@ package org.java.ayatana;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
+/**
+ * Clase predeterminada para control de acciones del menu global
+ * 
+ * @author Jared González
+ */
 public class DefaultExtraMenuAction implements ExtraMenuAction {
 	@Override
 	public boolean allowDynamicMenuBar() {

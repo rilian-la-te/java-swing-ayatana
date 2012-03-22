@@ -36,9 +36,47 @@ import javax.swing.JMenuItem;
  * @author Jared González
  */
 public interface ExtraMenuAction {
+	/**
+	 * Indica si soporta menus sobre la barra dinamicos, es decir, si se crean menus después
+	 * de haber cargado el programa.
+	 * @return 
+	 */
 	public boolean allowDynamicMenuBar();
+	/**
+	 * Indica si la accion invokada se permite.
+	 * @param frame ventana
+	 * @param menubar barra de menus
+	 * @param menuitem menu
+	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
+	 * cuando se muestra y <code>False</code> cuando se oculta.
+	 * @return 
+	 */
 	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	/**
+	 * Es lanzado antes de ejecutar la accion
+	 * @param frame ventana
+	 * @param menubar barra de menus
+	 * @param menuitem menu
+	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
+	 * cuando se muestra y <code>False</code> cuando se oculta.
+	 */
 	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	/**
+	 * Es lanzado durante la accion
+	 * @param frame ventana
+	 * @param menubar barra de menus
+	 * @param menuitem menu
+	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
+	 * cuando se muestra y <code>False</code> cuando se oculta.
+	 */
 	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	/**
+	 * Es lanzado después de ejecutar la accion
+	 * @param frame ventana
+	 * @param menubar barra de menus
+	 * @param menuitem menu
+	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
+	 * cuando se muestra y <code>False</code> cuando se oculta.
+	 */
 	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
 }
