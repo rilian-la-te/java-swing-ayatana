@@ -35,7 +35,7 @@ import java.util.Properties;
  * @author Jared González
  */
 final public class AyatanaLibrary {
-	public static final String VERSION = "0.5.0";
+	public static final String VERSION = "0.6.0";
 	private static boolean loaded = false;
 	private static boolean successful = false;
 	
@@ -105,6 +105,12 @@ final public class AyatanaLibrary {
 					fos.flush();
 					fos.close();
 					input.close();
+				}
+				try {
+					System.loadLibrary("awt");
+				} catch (UnsatisfiedLinkError e) {
+					if (!e.getMessage().contains("loaded in another classloader"))
+						throw e;
 				}
 				System.load(targetLibrary.getCanonicalPath());
 				successful = true;

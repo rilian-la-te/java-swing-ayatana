@@ -31,7 +31,6 @@
 #include <jawt_md.h>
 #include <stdlib.h>
 #include <strings.h>
-#include <pthread.h>
 #include <glib.h>
 #include <gio/gio.h>
 #include <libdbusmenu-glib/server.h>
@@ -57,30 +56,14 @@ ListIndex *jinstances;
 ListIndex *jinstancesstack;
 
 
-
-// g_main_loop
-GMainLoop *loop;
-// hilo g_main_loop
-void *pthread_g_main_loop(void *ptr) {
-	loop = g_main_loop_new(NULL, FALSE);
-	g_main_loop_run(loop);
-	return NULL;
-}
-
-
 /* control global de integración appmenu */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_nativeInitialize
   (JNIEnv *env, jclass thatclass) {
-	XInitThreads();
-	g_type_init();
 	jinstances = collection_list_index_new();
 	jinstancesstack = collection_list_index_new();
-	pthread_t thread;
-	pthread_create(&thread, NULL, pthread_g_main_loop, NULL);
 }
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_nativeUninitialize
   (JNIEnv *env, jclass thatclass) {
-	g_main_loop_quit(loop);
 	collection_list_index_destory(jinstancesstack);
 	collection_list_index_destory(jinstances);
 }

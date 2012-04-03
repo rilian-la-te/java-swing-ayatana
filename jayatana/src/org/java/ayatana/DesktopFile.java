@@ -47,6 +47,8 @@ final public class DesktopFile {
 	private static DesktopFile desktopFile = null;
 	
 	public static DesktopFile initialize(String desktopFileName, String startupWMClass) throws IOException {
+		if (desktopFileName == null)
+			throw new NullPointerException("desktopFileName can't be null");
 		desktopFile = new DesktopFile(desktopFileName, startupWMClass);
 		return desktopFile;
 	}
@@ -73,8 +75,6 @@ final public class DesktopFile {
 	private boolean changed = false;
 	
 	private DesktopFile(String desktopFileName, String startupWMClass) throws IOException {
-		if (desktopFileName == null)
-			throw new NullPointerException("desktopFileName can't be null");
 		this.desktopFileName = desktopFileName;
 		if (!this.desktopFileName.endsWith(".desktop"))
 			this.desktopFileName += ".desktop";
@@ -141,10 +141,12 @@ final public class DesktopFile {
 	}
 	
 	public void setStartupWMClass(String startupWMClass) {
+		if (startupWMClass == null)
+			throw new NullPointerException("startupWMClass can't be null");
 		if (this.startupWMClass == null ? startupWMClass != null : !this.startupWMClass.equals(startupWMClass))
 			changed = true;
 		this.startupWMClass = startupWMClass;
-		if (AyatanaDesktop.isSupported() && changed) {
+		if (changed) {
 			try {
 				Toolkit xToolkit = Toolkit.getDefaultToolkit();
 				Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
@@ -317,10 +319,16 @@ final public class DesktopFile {
 	}
 	
 	public boolean delete() {
-		return new File(getDesktopFileName()).delete();
+		return new File(System.getProperty("user.home"),
+				"/.local/share/applications/" + getDesktopFileName()).delete();
 	}
 	
 	public String getDesktopFileName() {
 		return desktopFileName;
+	}
+	
+	File getFile() {
+		return new File(System.getProperty("user.home"),
+				"/.local/share/applications/" + getDesktopFileName());
 	}
 }

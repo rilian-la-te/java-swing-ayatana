@@ -122,14 +122,14 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 */
 	private static void initialize() {
 		if (!initialized) {
+			GMainLoop.run();
 			ApplicationMenu.nativeInitialize();
-			Thread shutdownThread = new Thread() {
+			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
 					ApplicationMenu.nativeUninitialize();
 				}
-			};
-			Runtime.getRuntime().addShutdownHook(shutdownThread);
+			});
 			initialized = true;
 		}
 	}
@@ -553,7 +553,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param modifiers
 	 * @param keycode 
 	 */
-	private void invokeAccelerator(int modifiers, int keycode) {
+	private void invokeAccelerator(int keycode, int modifiers) {
 		invokeMenuItem(getJMenuItem(keycode, modifiers));
 	}
 	
@@ -592,7 +592,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				else 
 					currentframe = null;
 				if (frame.equals(currentframe))
-					invokeAccelerator(e.getModifiers(), e.getKeyCode());
+					invokeAccelerator(e.getKeyCode(), e.getModifiersEx() | e.getModifiers());
 			}
 		}
 	}
