@@ -34,13 +34,15 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/org_java_ayatana_Launcher.o \
 	${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o \
 	${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o \
+	${OBJECTDIR}/org_java_ayatana_GMainLoop.o \
 	${OBJECTDIR}/org_java_ayatana_Collections.o
 
 
 # C Compiler Flags
-CFLAGS=`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt` 
+CFLAGS=`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity` 
 
 # CC Compiler Flags
 CCFLAGS=
@@ -53,7 +55,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L${JAVA_HOME}/jre/lib/${JAVA_ARCH} -ljawt `pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`  
+LDLIBSOPTIONS=-L${JAVA_HOME}/jre/lib/${JAVA_ARCH} -ljawt `pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -63,20 +65,30 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -shared -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so -fPIC ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
+${OBJECTDIR}/org_java_ayatana_Launcher.o: org_java_ayatana_Launcher.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_Launcher.o org_java_ayatana_Launcher.c
+
 ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o: org_java_ayatana_ApplicationMenu.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o org_java_ayatana_ApplicationMenu.c
+	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o org_java_ayatana_ApplicationMenu.c
 
 ${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o: org_java_ayatana_JKeyToXKey.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o org_java_ayatana_JKeyToXKey.c
+	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o org_java_ayatana_JKeyToXKey.c
+
+${OBJECTDIR}/org_java_ayatana_GMainLoop.o: org_java_ayatana_GMainLoop.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_GMainLoop.o org_java_ayatana_GMainLoop.c
 
 ${OBJECTDIR}/org_java_ayatana_Collections.o: org_java_ayatana_Collections.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_Collections.o org_java_ayatana_Collections.c
+	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_Collections.o org_java_ayatana_Collections.c
 
 # Subprojects
 .build-subprojects:
