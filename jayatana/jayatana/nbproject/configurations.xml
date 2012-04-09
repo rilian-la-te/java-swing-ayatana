@@ -6,7 +6,9 @@
                    projectFiles="true">
       <itemPath>org_java_ayatana_ApplicationMenu.h</itemPath>
       <itemPath>org_java_ayatana_Collections.h</itemPath>
+      <itemPath>org_java_ayatana_GMainLoop.h</itemPath>
       <itemPath>org_java_ayatana_JKeyToXKey.h</itemPath>
+      <itemPath>org_java_ayatana_Launcher.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -17,7 +19,9 @@
                    projectFiles="true">
       <itemPath>org_java_ayatana_ApplicationMenu.c</itemPath>
       <itemPath>org_java_ayatana_Collections.c</itemPath>
+      <itemPath>org_java_ayatana_GMainLoop.c</itemPath>
       <itemPath>org_java_ayatana_JKeyToXKey.c</itemPath>
+      <itemPath>org_java_ayatana_Launcher.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -45,7 +49,7 @@
             <pElem>${JAVA_HOME}/include</pElem>
             <pElem>${JAVA_HOME}/include/linux</pElem>
           </incDir>
-          <commandLine>`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`</commandLine>
+          <commandLine>`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -63,7 +67,7 @@
           </linkerAddLib>
           <linkerLibItems>
             <linkerLibLibItem>jawt</linkerLibLibItem>
-            <linkerOptionItem>`pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`</linkerOptionItem>
+            <linkerOptionItem>`pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

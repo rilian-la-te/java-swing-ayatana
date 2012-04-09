@@ -1,7 +1,5 @@
 package org.java.ayatana;
 
-import java.awt.EventQueue;
-
 class GMainLoop {
 	private static boolean running = false;
 	
@@ -10,12 +8,7 @@ class GMainLoop {
 	
 	public synchronized static void run() {
 		if (!running) {
-			EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					runGMainLoop();
-				}
-			});
+			runGMainLoop();
 			
 			Thread threadQuit = new Thread() {
 				@Override
