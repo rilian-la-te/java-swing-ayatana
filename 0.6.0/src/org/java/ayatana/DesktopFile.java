@@ -46,12 +46,26 @@ final public class DesktopFile {
 	
 	private static DesktopFile desktopFile = null;
 	
+	/**
+	 * Inicializa el desktopFile para generar un archivo lanzador .desktop además de establecer el
+	 * nombre de ventana (startupWMClass).
+	 * 
+	 * @param desktopFileName nombre del archivo
+	 * @param startupWMClass nombre de la ventana
+	 * @return retorna la instancia única DesktopFile
+	 * @throws IOException 
+	 */
 	public static DesktopFile initialize(String desktopFileName, String startupWMClass) throws IOException {
 		if (desktopFileName == null)
 			throw new NullPointerException("desktopFileName can't be null");
 		desktopFile = new DesktopFile(desktopFileName, startupWMClass);
 		return desktopFile;
 	}
+	/**
+	 * Obtiene una instancia DesktopFile para interacturar.
+	 * 
+	 * @return retorna la instancia única DesktopFile
+	 */
 	public static DesktopFile getInstance() {
 		if (desktopFile == null)
 			throw new IllegalAccessError("DesktopFile is not initialized");
@@ -74,6 +88,13 @@ final public class DesktopFile {
 	
 	private boolean changed = false;
 	
+	/**
+	 * Contructor del archivo Desktop
+	 * 
+	 * @param desktopFileName nombre del archivo .desktop
+	 * @param startupWMClass nombre de la ventana
+	 * @throws IOException en caso de 
+	 */
 	private DesktopFile(String desktopFileName, String startupWMClass) throws IOException {
 		this.desktopFileName = desktopFileName;
 		if (!this.desktopFileName.endsWith(".desktop"))
@@ -84,62 +105,144 @@ final public class DesktopFile {
 		setStartupWMClass(startupWMClass);
 	}
 	
+	/**
+	 * Establece el nombre del programa
+	 * @param name nombre
+	 */
 	public void setName(String name) {
 		defaultName = name;
 	}
+	/**
+	 * Establece el nombre del programa
+	 * @param name nombre
+	 * @param locale region de lenguaje
+	 */
 	public void setName(String name, Locale locale) {
 		String old = names.put(locale, name);
 		if (old == null ? old != null : !old.equals(name))
 			changed = true;
 	}
+	/**
+	 * Obtiene el nombre del programa
+	 * @return nombre
+	 */
 	public String getName() {
 		return defaultName;
 	}
+	/**
+	 * Obtiene el nombre del programa
+	 * @param locale region de lenguaje
+	 * @return 
+	 */
 	public String getName(Locale locale) {
 		return names.get(locale);
 	}
 	
+	/**
+	 * Establece la descripción del programa
+	 * @param comment descripción
+	 */
 	public void setComment(String comment) {
 		defaultComment = comment;
 	}
+	/**
+	 * Establece la descripción del programa
+	 * @param comment descripción
+	 * @param locale region de lenguaje
+	 */
 	public void setComment(String comment, Locale locale) {
 		String old = comments.put(locale, comment);
 		if (old == null ? old != null : !old.equals(old))
 			changed = true;
 	}
+	/**
+	 * Obtiene la descripción del programa
+	 * @return descripción
+	 */
 	public String getComment() {
 		return defaultComment;
 	}
+	/**
+	 * Obtiene la descripción del programa
+	 * @param locale region de lenguaje
+	 * @return descripción
+	 */
 	public String getComment(Locale locale) {
 		return comments.get(locale);
 	}
 	
+	/**
+	 * Establece el comando de invocación
+	 * @param command comando
+	 */
 	public void setCommand(String command) {
 		if (this.command == null ? command != null : !this.command.equals(command))
 			changed = true;
 		this.command = command;
 	}
+	/**
+	 * Obtiene el comando de invocación
+	 * @return comando
+	 */
 	public String getCommand() {
 		return command;
 	}
+	
+	/**
+	 * Establece el nombre del icono
+	 * @param icon nombre icono
+	 */
 	public void setIcon(String icon) {
 		if (this.icon == null ? icon != null : !this.icon.equals(icon))
 			changed = true;
 		this.icon = icon;
 	}
+	/**
+	 * Obtiene el nombre del icono
+	 * @return nombre icono
+	 */
 	public String getIcon() {
 		return icon;
 	}
 	
-	public void setCategories(String categories) {
-		if (this.categories == null ? categories != null : !this.categories.equals(categories))
-			changed = true;
-		this.categories = categories;
+	/**
+	 * Convierte una arreglo a una cadena separada por ","
+	 * @param categories lista de ctegorias
+	 * @return cadena única
+	 */
+	private String toStringCategories(String ...categories) {
+		if (categories == null)
+			return null;
+		if (categories.length == 0)
+			return null;
+		String out = "";
+		for (String c : categories)
+			out += c + ",";
+		out = out.substring(0, out.length()-1);
+		return out;
 	}
-	public String getCategories() {
-		return categories;
+	/**
+	 * Establece Los nombres de las categorias
+	 * @param categories lista de categorias
+	 */
+	public void setCategories(String ...categories) {
+		String stringCategories = toStringCategories(categories);
+		if (this.categories == null ? stringCategories != null : !this.categories.equals(stringCategories))
+			changed = true;
+		this.categories = stringCategories;
+	}
+	/**
+	 * Obtiene los nombres de las categories
+	 * @return lista de categorias
+	 */
+	public String[] getCategories() {
+		return categories.split(",");
 	}
 	
+	/**
+	 * Establece el nombre de clase de ventana
+	 * @param startupWMClass nombre de clase de ventana
+	 */
 	public void setStartupWMClass(String startupWMClass) {
 		if (startupWMClass == null)
 			throw new NullPointerException("startupWMClass can't be null");
@@ -157,35 +260,70 @@ final public class DesktopFile {
 			}
 		}
 	}
+	/**
+	 * Obtiene el nombre de clase de ventana
+	 * @return 
+	 */
 	public String getStartupWMClass() {
 		return startupWMClass;
 	}
 	
+	/**
+	 * Obtiene el modo de notificación de inicio
+	 * @return notificación de inicio
+	 */
 	private String getStartupNotify() {
 		return startupNotify;
 	}
+	/**
+	 * Establece el modo de notificación de inicio
+	 * @param startupNotify notificación de inicio
+	 */
 	private void setStartupNotify(String startupNotify) {
 		if (this.startupNotify == null ? startupNotify != null : !this.startupNotify.equals(startupNotify))
 			changed = true;
 		this.startupNotify = startupNotify;
 	}
+	
+	/**
+	 * Obtiene la visibilidad de terminal
+	 * @return visibilidad de terminal
+	 */
 	private String getTerminal() {
 		return terminal;
 	}
+	/**
+	 * Establece la visivilidad de terminal
+	 * @param terminal visibilidad de terminal
+	 */
 	private void setTerminal(String terminal) {
 		if (this.terminal == null ? terminal != null : !this.terminal.equals(terminal))
 			changed = true;
 		this.terminal = terminal;
 	}
+	
+	/**
+	 * Obtiene el tipo
+	 * @return tipo
+	 */
 	public String getType() {
 		return type;
 	}
+	/**
+	 * Establece el tipo
+	 * @param type tipo
+	 */
 	public void setType(String type) {
 		if (this.type == null ? type != null : !this.type.equals(type))
 			changed = true;
 		this.type = type;
 	}
 	
+	/**
+	 * Resulve el objeto Locale del alias de lenguaje
+	 * @param lang
+	 * @return 
+	 */
 	private Locale resolveLocale(String lang) {
 		Locale locale;
 		if (lang.contains("_")) {
@@ -197,12 +335,15 @@ final public class DesktopFile {
 		return locale;
 	}
 	
+	/**
+	 * Lee la información del archivo Desktop
+	 * @return retorna <code>True</code> si puede leer el archivo
+	 * @throws IOException 
+	 */
 	public boolean load() throws IOException {
-		File deskFile = new File(System.getProperty("user.home"),
-				"/.local/share/applications/" + getDesktopFileName());
-		if (!deskFile.exists()) {
+		File deskFile = getLocalFile();
+		if (!deskFile.exists())
 			deskFile = new File("/usr/share/applications/" + getDesktopFileName());
-		}
 		if (deskFile.exists()) {
 			BufferedReader reader = new BufferedReader(
 					new FileReader(deskFile));
@@ -252,10 +393,14 @@ final public class DesktopFile {
 			return false;
 		}
 	}
+	/**
+	 * Actualiza o crea el archivo .desktop
+	 * @return retorna <code>True</code> si puede crear o actualizar el archivo
+	 * @throws IOException 
+	 */
 	public boolean update() throws IOException {
 		if (changed) {
-			File df = new File(System.getProperty("user.home"),
-				"/.local/share/applications/" + getDesktopFileName());
+			File df = getLocalFile();
 			
 			BufferedWriter writer = new BufferedWriter(
 					new FileWriter(df));
@@ -318,16 +463,27 @@ final public class DesktopFile {
 		}
 	}
 	
+	/**
+	 * Elimina el archivo .desktop
+	 * @return 
+	 */
 	public boolean delete() {
-		return new File(System.getProperty("user.home"),
-				"/.local/share/applications/" + getDesktopFileName()).delete();
+		return getLocalFile().delete();
 	}
 	
+	/**
+	 * Obtiene el nombre del archivo .desktop
+	 * @return 
+	 */
 	public String getDesktopFileName() {
 		return desktopFileName;
 	}
 	
-	File getFile() {
+	/**
+	 * Obtiene el objeto File del archivo .desktop
+	 * @return 
+	 */
+	File getLocalFile() {
 		return new File(System.getProperty("user.home"),
 				"/.local/share/applications/" + getDesktopFileName());
 	}

@@ -35,13 +35,15 @@ public class Launcher {
 				return false;
 			GMainLoop.run();
 			launcher = new Launcher(DesktopFile
-					.getInstance().getFile().getAbsolutePath());
+					.getInstance().getLocalFile().getAbsolutePath());
 		}
 		return true;
 	}
 	public static Launcher getInstance() {
-		if (launcher == null)
-			throw new IllegalAccessError("Launcher is not initialized");
+		if (launcher == null) {
+			if (!initialize())
+				throw new IllegalAccessError("Launcher can't initialized");
+		}
 		return launcher;
 	}
 	
@@ -56,25 +58,27 @@ public class Launcher {
 		initialize(desktopFile);
 	}
 	
-	public void setCount(final long count) {
+	public synchronized void setCount(final long count) {
 		setNativeCount(count);
 	}
 	native public long getCount();
-	public void setCountVisible(final boolean visible) {
+	
+	public synchronized void setCountVisible(final boolean visible) {
 		setNativeCountVisible(visible);
 	};
 	native public boolean isCountVisible();
 	
-	public void setProgress(final double progress) {
+	public synchronized void setProgress(final double progress) {
 		setNativeProgress(progress);
 	}
 	native public double getProgress();
-	public void setProgressVisible(final boolean visible) {
+	
+	public synchronized void setProgressVisible(final boolean visible) {
 		setNativeProgressVisible(visible);
 	}
 	native public boolean isProgressVisible();
 	
-	public void setUrgent(final boolean urgent) {
+	public synchronized void setUrgent(final boolean urgent) {
 		setNativeUrgent(urgent);
 	}
 	native public boolean isUrgent();
