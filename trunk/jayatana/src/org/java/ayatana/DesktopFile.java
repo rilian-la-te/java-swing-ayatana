@@ -236,7 +236,10 @@ final public class DesktopFile {
 	 * @return lista de categorias
 	 */
 	public String[] getCategories() {
-		return categories.split(",");
+		if (categories == null)
+			return null;
+		else
+			return categories.split(",");
 	}
 	
 	/**
