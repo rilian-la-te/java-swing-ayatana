@@ -158,7 +158,7 @@ void on_registrar_available(GDBusConnection *connection, const gchar *name, cons
 				NULL, NULL);
 		g_dbus_proxy_call_sync(
 				proxy, "RegisterWindow",
-				g_variant_new("(uo)", jinstance->windowxid, jinstance->windowxidpath),
+				g_variant_new("(uo)", (guint32)jinstance->windowxid, jinstance->windowxidpath),
 				G_DBUS_CALL_FLAGS_NONE,
 				-1, NULL, NULL);
 		// instalar java
