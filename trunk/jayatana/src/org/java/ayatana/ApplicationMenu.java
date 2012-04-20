@@ -428,7 +428,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param hashcode identificador de menu
 	 */
 	private void itemActivated(int hashcode) {
-		invokeMenuItem(getJMenuItem(hashcode));
+		invokeMenuItem(getJMenuItem(hashcode), false);
 	}
 	/**
 	 * Invoca el evento de menu antes de mostrarse
@@ -451,17 +451,17 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * 
 	 * @param menuitem menu
 	 */
-	private void invokeMenuItem(final JMenuItem menuitem) {
+	private void invokeMenuItem(final JMenuItem menuitem, final boolean shortcut) {
 		if (menuitem != null)
 			if (menuitem.isEnabled() && menuitem.isVisible()) {
 				EventQueue.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						if (extraMenuAction.allowMenuAction(frame, menubar, menuitem, true)) {
+						if (extraMenuAction.allowMenuAction(frame, menubar, menuitem, true, shortcut)) {
 							menuitem.getModel().setArmed(true);
 							menuitem.getModel().setPressed(true);
 							
-							extraMenuAction.invokeMenu(frame, menubar, menuitem, true);
+							extraMenuAction.invokeMenu(frame, menubar, menuitem, true, shortcut);
 							
 							menuitem.getModel().setPressed(false);
 							menuitem.getModel().setArmed(false);
@@ -483,9 +483,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				EventQueue.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						if (extraMenuAction.allowMenuAction(frame, menubar, menu, true)) {
+						if (extraMenuAction.allowMenuAction(frame, menubar, menu, true, false)) {
 							
-							extraMenuAction.beforInvokeMenu(frame, menubar, menu, true);
+							extraMenuAction.beforInvokeMenu(frame, menubar, menu, true, false);
 
 							menu.getModel().setSelected(true);
 
@@ -494,7 +494,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 							for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
 								if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
 
-							extraMenuAction.invokeMenu(frame, menubar, menu, true);
+							extraMenuAction.invokeMenu(frame, menubar, menu, true, false);
 							
 							for (Component comp : popupMenu.getComponents()) {
 								if (comp instanceof JMenu)
@@ -505,7 +505,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 									addSeparator();
 							}
 							
-							extraMenuAction.afterInvokeMenu(frame, menubar, menu, true);
+							extraMenuAction.afterInvokeMenu(frame, menubar, menu, true, false);
 						}
 					}
 				});
@@ -524,10 +524,10 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				EventQueue.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						if (extraMenuAction.allowMenuAction(frame, menubar, menu, false)) {
-							extraMenuAction.beforInvokeMenu(frame, menubar, menu, false);
+						if (extraMenuAction.allowMenuAction(frame, menubar, menu, false, false)) {
+							extraMenuAction.beforInvokeMenu(frame, menubar, menu, false, false);
 							
-							extraMenuAction.invokeMenu(frame, menubar, menu, initialized);
+							extraMenuAction.invokeMenu(frame, menubar, menu, false, false);
 							
 							PopupMenuEvent pevent = new PopupMenuEvent(menu.getPopupMenu());
 							for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
@@ -535,7 +535,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 
 							menu.getModel().setSelected(false);
 							
-							extraMenuAction.afterInvokeMenu(frame, menubar, menu, false);
+							extraMenuAction.afterInvokeMenu(frame, menubar, menu, false, false);
 						}
 					}
 				});
@@ -554,7 +554,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param keycode 
 	 */
 	private void invokeAccelerator(int keycode, int modifiers) {
-		invokeMenuItem(getJMenuItem(keycode, modifiers));
+		invokeMenuItem(getJMenuItem(keycode, modifiers), true);
 	}
 	
 	/**

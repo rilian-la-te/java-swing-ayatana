@@ -51,7 +51,7 @@ public interface ExtraMenuAction {
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 * @return 
 	 */
-	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 	/**
 	 * Es lanzado antes de ejecutar la accion
 	 * @param frame ventana
@@ -60,7 +60,7 @@ public interface ExtraMenuAction {
 	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 */
-	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 	/**
 	 * Es lanzado durante la accion
 	 * @param frame ventana
@@ -69,7 +69,7 @@ public interface ExtraMenuAction {
 	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 */
-	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 	/**
 	 * Es lanzado después de ejecutar la accion
 	 * @param frame ventana
@@ -78,5 +78,5 @@ public interface ExtraMenuAction {
 	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 */
-	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected);
+	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 }
