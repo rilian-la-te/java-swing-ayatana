@@ -40,8 +40,8 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 		return false;
 	}
 	@Override
-	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
-		if (selected) {
+	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+		if (selected && shortcut) {
 			KeyStroke accelerator = menuitem.getAccelerator();
 			if (accelerator != null) {
 				String acceleratorText = accelerator.toString();
@@ -61,15 +61,15 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 	}
 	
 	@Override
-	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
+	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		
 	}
 	@Override
-	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
+	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		
 	}
 	@Override
-	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected) {
+	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		
 	}
 }
