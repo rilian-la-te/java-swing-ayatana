@@ -106,35 +106,13 @@ char *get_windowxid_path(long xid) {
 	sprintf(xid_path, "/com/canonical/menu/%lx", xid);
 	return xid_path;
 }
-/* control para eliminar menus */
-void destroy_menu(DbusmenuMenuitem *parent) {
-	if (parent != NULL) {
-		GList *items = dbusmenu_menuitem_take_children(parent);
-		if (items != NULL) {
-			do {
-				DbusmenuMenuitem *item = (DbusmenuMenuitem *)items->data;
-				destroy_menu(item);
-				items = items->next;
-			} while (items != NULL);
-		}
-		if (dbusmenu_menuitem_get_parent(parent) != NULL)
-			dbusmenu_menuitem_unparent(parent);
-		g_object_unref(parent);
-	}
+
+/* control para eliminar menus*/
+void destroy_menuitem (gpointer data) {
+    g_object_unref(G_OBJECT(data));
+	data = NULL;
 }
-/* control para eliminar menus */
-void destroy_menu_items(DbusmenuMenuitem *parent) {
-	if (parent != NULL) {
-		GList *items = dbusmenu_menuitem_take_children(parent);
-		if (items != NULL) {
-			do {
-				DbusmenuMenuitem *item = (DbusmenuMenuitem *)items->data;
-				destroy_menu(item);
-				items = items->next;
-			} while (items != NULL);
-		}
-	}
-}
+
 /* eventos de existencia del application menu */
 void on_registrar_available(GDBusConnection *connection, const gchar *name, const gchar *name_owner, gpointer user_data) {
 	JavaInstance *jinstance = (JavaInstance *)user_data;
@@ -177,7 +155,8 @@ void on_registrar_unavailable(GDBusConnection *connection, const gchar *name, gp
 	JavaInstance *jinstance = (JavaInstance *)user_data;
 	if (jinstance->installed) {
 		// eliminar menus
-		destroy_menu(jinstance->menuroot);
+		g_list_free_full(dbusmenu_menuitem_take_children(jinstance->menuroot), destroy_menuitem);
+		g_object_unref(jinstance->menuroot);
 		g_object_unref(jinstance->menuserver);
 		// desinstalar java
 		JNIEnv *env = NULL;
@@ -218,7 +197,8 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_unregisterWatcher
 	g_bus_unwatch_name(jinstance->watcher);
 	if (jinstance->installed) {
 		// eliminar menus
-		destroy_menu(jinstance->menuroot);
+		g_list_free_full(dbusmenu_menuitem_take_children(jinstance->menuroot), destroy_menuitem);
+		g_object_unref(jinstance->menuroot);
 		g_object_unref(jinstance->menuserver);
 		// desinstalar
 		jclass thatclass = (*env)->GetObjectClass(env, jinstance->that);
@@ -274,7 +254,7 @@ void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
 	collection_list_index_add_last(jinstancesstack, jinstance);
 	//inicializar menu
 	jinstance->menucurrent = item;
-	destroy_menu_items(item);
+	g_list_free_full(dbusmenu_menuitem_take_children(item), destroy_menuitem);
 	// invocar generacion de menus
 	JNIEnv *env = NULL;
 	(*jinstance->jvm)->AttachCurrentThread(jinstance->jvm, (void**)&env, NULL);
@@ -288,6 +268,7 @@ void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
+	
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -307,20 +288,11 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 	dbusmenu_menuitem_child_append(item, foo);
 }
 /* elimina todos los menu */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeMenu
-  (JNIEnv *env, jobject that, jlong windowxid, jint hashcode) {
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAll
+  (JNIEnv *env, jobject that, jlong windowxid) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	GList *items = dbusmenu_menuitem_take_children(jinstance->menuroot);
-	if (items != NULL) {
-		do {
-			DbusmenuMenuitem *item = (DbusmenuMenuitem *)items->data;
-			if (dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode") == hashcode) {
-				destroy_menu(item);
-				break;
-			}
-			items = items->next;
-		} while (items != NULL);
-	}
+	g_list_free_full(dbusmenu_menuitem_take_children(jinstance->menuroot), destroy_menuitem);
+	jinstance->menucurrent = jinstance->menuroot;
 }
 /* establece el acelerador de menu */
 void set_menuitem_shortcut(DbusmenuMenuitem *item, jint modifiers, jint keycode) {
