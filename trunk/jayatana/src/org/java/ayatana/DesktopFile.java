@@ -226,17 +226,19 @@ final public class DesktopFile {
 	 * @param categories lista de categorias
 	 */
 	public void setCategories(String ...categories) {
-		String stringCategories = toStringCategories(categories);
-		if (this.categories == null ? stringCategories != null : !this.categories.equals(stringCategories))
+		if (categories == null)
+			throw new NullPointerException();
+		if (this.categories == null ? categories.length > 0 :
+				this.categories.length != categories.length)
 			changed = true;
-		this.categories = stringCategories;
+		this.categories = categories;
 	}
 	/**
 	 * Obtiene los nombres de las categories
 	 * @return lista de categorias
 	 */
 	public String[] getCategories() {
-		if (categories == null)
+		if (categories == null && categories.length == 0)
 			return null;
 		else
 			return categories;
