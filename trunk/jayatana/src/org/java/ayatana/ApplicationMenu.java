@@ -29,6 +29,8 @@ package org.java.ayatana;
 import java.awt.*;
 import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -602,7 +604,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 */
 	@Override
 	public void componentAdded(ContainerEvent e) {
-		if (extraMenuAction != null && extraMenuAction.allowDynamicMenuBar()) {
+		if (extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getChild() instanceof JMenu && e.getChild().isVisible()) {
 				removeAll();
 				for (Component comp : menubar.getComponents())
@@ -613,7 +615,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	}
 	@Override
 	public void componentRemoved(ContainerEvent e) {
-		if (extraMenuAction != null && extraMenuAction.allowDynamicMenuBar()) {
+		if (extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getChild() instanceof JMenu && e.getChild().isVisible()) {
 				removeAll();
 				for (Component comp : menubar.getComponents())
