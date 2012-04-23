@@ -79,7 +79,7 @@ final public class DesktopFile {
 	private Map<Locale, String> comments;
 	private String command;
 	private String icon;
-	private String categories[];
+	private String categories;
 	private String startupWMClass;
 	
 	private String startupNotify = BOOLEAN_TRUE;
@@ -229,19 +229,16 @@ final public class DesktopFile {
 		if (categories == null)
 			throw new NullPointerException();
 		if (this.categories == null ? categories.length > 0 :
-				this.categories.length != categories.length)
+				!this.categories.equals(toStringCategories(categories)))
 			changed = true;
-		this.categories = categories;
+		this.categories = toStringCategories(categories);
 	}
 	/**
 	 * Obtiene los nombres de las categories
 	 * @return lista de categorias
 	 */
-	public String[] getCategories() {
-		if (categories == null && categories.length == 0)
-			return null;
-		else
-			return categories;
+	public String getCategories() {
+		return categories;
 	}
 	
 	/**
@@ -441,14 +438,7 @@ final public class DesktopFile {
 				writer.newLine();
 			}
 			if (getCategories() != null) {
-				writer.write("Categories=");
-				String cats[] = getCategories();
-				for (int i=0;i<cats.length;i++) {
-					if (i < cats.length-1)
-						writer.write(cats[i]+",");
-					else
-						writer.write(cats[i]);
-				}
+				writer.write("Categories="+getCategories());
 				writer.newLine();
 			}
 			if (getStartupWMClass() != null) {
