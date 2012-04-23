@@ -28,8 +28,6 @@ package org.java.ayatana;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -41,7 +39,7 @@ import javax.swing.event.PopupMenuListener;
  * 
  * @author Jared González
  */
-final public class ApplicationMenu implements WindowListener, AWTEventListener, ContainerListener, PropertyChangeListener {
+final public class ApplicationMenu implements WindowListener, AWTEventListener, ContainerListener, ComponentListener {
 	/**
 	 * Trata de instalar el menu de aplicaciones globales, si no es posible
 	 * por incompatibilidad del sistema operativo o esta des habilitado el
@@ -332,7 +330,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		for (Component comp : menubar.getComponents())
 			if (comp instanceof JMenu && comp.isVisible()) {
 				addMenu((JMenu)comp);
-				((JMenu)comp).addPropertyChangeListener("visible", this);
+				((JMenu)comp).addComponentListener(this);
 			}
 		menubar.setVisible(false);
 		menubar.addContainerListener(ApplicationMenu.this);
@@ -604,43 +602,50 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	/*
 	 * Eventos sobre la barra de menus
 	 */
+	private void rebuildMenus() {
+		removeAll();
+		for (Component comp : menubar.getComponents())
+			if (comp instanceof JMenu && comp.isVisible())
+				addMenu((JMenu)comp);
+	}
 	@Override
 	public void componentAdded(ContainerEvent e) {
 		if (extraMenuAction.allowDynamicMenuBar()) {
-			if (e.getChild() instanceof JMenu && e.getChild().isVisible()) {
-				((JMenu)e.getChild()).addPropertyChangeListener("visible", this);
-				removeAll();
-				for (Component comp : menubar.getComponents())
-					if (comp instanceof JMenu && comp.isVisible())
-						addMenu((JMenu)comp);
+			if (e.getChild() instanceof JMenu) {
+				((JMenu)e.getChild()).addComponentListener(this);
+				rebuildMenus();
 			}
 		}
 	}
 	@Override
 	public void componentRemoved(ContainerEvent e) {
 		if (extraMenuAction.allowDynamicMenuBar()) {
-			if (e.getChild() instanceof JMenu && e.getChild().isVisible()) {
-				((JMenu)e.getChild()).removePropertyChangeListener("visible", this);
-				removeAll();
-				for (Component comp : menubar.getComponents())
-					if (comp instanceof JMenu && comp.isVisible())
-						addMenu((JMenu)comp);
+			if (e.getChild() instanceof JMenu) {
+				((JMenu)e.getChild()).removeComponentListener(this);
+				rebuildMenus();
 			}
 		}
 	}
 	@Override
-	public void propertyChange(PropertyChangeEvent e) {
+	public void componentShown(ComponentEvent e) {
 		if (extraMenuAction.allowDynamicMenuBar()) {
-			if (e.getSource() instanceof JMenu && ((JMenu)e.getSource()).isVisible() &&
-					!e.getNewValue().equals(e.getOldValue())) {
-				removeAll();
-				for (Component comp : menubar.getComponents())
-					if (comp instanceof JMenu && comp.isVisible())
-						addMenu((JMenu)comp);
+			if (e.getSource() instanceof JMenu) {
+				rebuildMenus();
 			}
 		}
 	}
-	
+	@Override
+	public void componentHidden(ComponentEvent e) {
+		if (extraMenuAction.allowDynamicMenuBar()) {
+			if (e.getSource() instanceof JMenu) {
+				rebuildMenus();
+			}
+		}
+	}
+	@Override
+	public void componentMoved(ComponentEvent e) {}
+	@Override
+	public void componentResized(ComponentEvent e) {}
 	
 	/*
 	 * Controles de evento de ventana
