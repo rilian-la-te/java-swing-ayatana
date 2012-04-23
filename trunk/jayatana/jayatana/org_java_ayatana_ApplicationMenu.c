@@ -110,7 +110,7 @@ char *get_windowxid_path(long xid) {
 /* control para eliminar menus*/
 void destroy_menuitem (gpointer data) {
 	g_list_free_full(dbusmenu_menuitem_take_children((DbusmenuMenuitem *)data), destroy_menuitem);
-    g_object_unref(G_OBJECT(data));
+	g_object_unref(G_OBJECT(data));
 }
 
 /* eventos de existencia del application menu */
@@ -268,31 +268,34 @@ void item_about_to_show(DbusmenuMenuitem *item, gpointer user_data) {
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
   (JNIEnv *env, jobject that, jlong windowxid, jint hashcode, jstring label, jboolean enabled) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	
-	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY,
-			DBUSMENU_MENUITEM_CHILD_DISPLAY_SUBMENU);
-	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
-	dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
-	dbusmenu_menuitem_property_set_bool(item, "jayatana-select", FALSE);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW,
-			G_CALLBACK(item_about_to_show), jinstance);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_EVENT,
-			G_CALLBACK(item_event), NULL);
-	dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
-	
-	DbusmenuMenuitem *foo = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
-	dbusmenu_menuitem_child_append(item, foo);
+	if (jinstance != NULL) {
+		DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+		const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+		dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+		dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY,
+				DBUSMENU_MENUITEM_CHILD_DISPLAY_SUBMENU);
+		dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+		dbusmenu_menuitem_property_set_int(item, "jayatana-hashcode", hashcode);
+		dbusmenu_menuitem_property_set_bool(item, "jayatana-select", FALSE);
+		g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW,
+				G_CALLBACK(item_about_to_show), jinstance);
+		g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_EVENT,
+				G_CALLBACK(item_event), NULL);
+		dbusmenu_menuitem_child_append(jinstance->menucurrent, item);
+
+		DbusmenuMenuitem *foo = dbusmenu_menuitem_new();
+		dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
+		dbusmenu_menuitem_child_append(item, foo);
+	}
 }
 /* elimina todos los menu */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAll
   (JNIEnv *env, jobject that, jlong windowxid) {
 	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
-	g_list_free_full(dbusmenu_menuitem_take_children(jinstance->menuroot), destroy_menuitem);
-	jinstance->menucurrent = jinstance->menuroot;
+	if (jinstance != NULL) {
+		g_list_free_full(dbusmenu_menuitem_take_children(jinstance->menuroot), destroy_menuitem);
+		jinstance->menucurrent = jinstance->menuroot;
+	}
 }
 /* establece el acelerador de menu */
 void set_menuitem_shortcut(DbusmenuMenuitem *item, jint modifiers, jint keycode) {
