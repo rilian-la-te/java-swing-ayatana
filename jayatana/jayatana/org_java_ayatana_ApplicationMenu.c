@@ -109,8 +109,8 @@ char *get_windowxid_path(long xid) {
 
 /* control para eliminar menus*/
 void destroy_menuitem (gpointer data) {
+	g_list_free_full(dbusmenu_menuitem_take_children((DbusmenuMenuitem *)data), destroy_menuitem);
     g_object_unref(G_OBJECT(data));
-	data = NULL;
 }
 
 /* eventos de existencia del application menu */
