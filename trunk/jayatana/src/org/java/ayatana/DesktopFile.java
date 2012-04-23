@@ -217,7 +217,7 @@ final public class DesktopFile {
 			return null;
 		String out = "";
 		for (String c : categories)
-			out += c + ",";
+			out += c + ";";
 		out = out.substring(0, out.length()-1);
 		return out;
 	}
