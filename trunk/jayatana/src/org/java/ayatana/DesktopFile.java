@@ -79,7 +79,7 @@ final public class DesktopFile {
 	private Map<Locale, String> comments;
 	private String command;
 	private String icon;
-	private String categories;
+	private String categories[];
 	private String startupWMClass;
 	
 	private String startupNotify = BOOLEAN_TRUE;
@@ -239,7 +239,7 @@ final public class DesktopFile {
 		if (categories == null)
 			return null;
 		else
-			return categories.split(",");
+			return categories;
 	}
 	
 	/**
@@ -377,7 +377,7 @@ final public class DesktopFile {
 					} else if (key.equals("icon")) {
 						setIcon(value);
 					} else if (key.equals("categories")) {
-						setCategories(value);
+						setCategories(value.split(","));
 					} else if (key.equals("startupwmclass")) {
 						setStartupWMClass(value);
 					} else if (key.equals("startupnotify")) {
@@ -439,7 +439,14 @@ final public class DesktopFile {
 				writer.newLine();
 			}
 			if (getCategories() != null) {
-				writer.write("Categories="+getCategories());
+				writer.write("Categories=");
+				String cats[] = getCategories();
+				for (int i=0;i<cats.length;i++) {
+					if (i < cats.length-1)
+						writer.write(cats[i]+",");
+					else
+						writer.write(cats[i]);
+				}
 				writer.newLine();
 			}
 			if (getStartupWMClass() != null) {
