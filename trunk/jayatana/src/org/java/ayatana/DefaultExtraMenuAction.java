@@ -35,16 +35,18 @@ import javax.swing.text.JTextComponent;
  * @author Jared González
  */
 public class DefaultExtraMenuAction implements ExtraMenuAction {
+	protected String acceleratorText;
+	
 	@Override
 	public boolean allowDynamicMenuBar() {
 		return false;
 	}
 	@Override
 	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
-		if (selected && shortcut) {
+		if (shortcut) {
 			KeyStroke accelerator = menuitem.getAccelerator();
 			if (accelerator != null) {
-				String acceleratorText = accelerator.toString();
+				acceleratorText = accelerator.toString();
 				if (FocusManager.getCurrentManager().getFocusOwner() instanceof JTextComponent) {
 					if (acceleratorText.equals("pressed DELETE") ||
 							acceleratorText.equals("pressed BACK_SPACE") ||
@@ -55,6 +57,8 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 				} else if (acceleratorText.equals("alt pressed F4")) {
 					return false;
 				}
+			} else {
+				acceleratorText = null;
 			}
 		}
 		return true;

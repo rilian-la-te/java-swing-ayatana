@@ -403,6 +403,7 @@ final public class DesktopFile {
 	public boolean update() throws IOException {
 		if (changed) {
 			File df = getLocalFile();
+			df.getParentFile().mkdirs();
 			
 			BufferedWriter writer = new BufferedWriter(
 					new FileWriter(df));
