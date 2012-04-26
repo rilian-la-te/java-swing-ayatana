@@ -188,7 +188,9 @@ final public class AyatanaDesktop {
 			}
 			try {
 				Runtime.getRuntime().exec("xdg-icon-resource forceupdate");
-			} catch (IOException e) {}
+			} catch (IOException e) {
+				//ignorar
+			}
 			return true;
 		}
 	}
