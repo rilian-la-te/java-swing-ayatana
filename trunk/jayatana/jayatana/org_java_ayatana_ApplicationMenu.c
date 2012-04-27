@@ -297,6 +297,43 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAll
 		jinstance->menucurrent = jinstance->menuroot;
 	}
 }
+/* buscar menu */
+DbusmenuMenuitem* search_menu_on_menuitem(DbusmenuMenuitem *item, int hashcode) {
+	if (dbusmenu_menuitem_property_get_int(item, "jayatana-hashcode") == hashcode) {
+		return item;
+	} else {
+		DbusmenuMenuitem *itemtmp;
+		GList *list = dbusmenu_menuitem_get_children(item);
+		while (list != NULL) {
+			itemtmp = (DbusmenuMenuitem *)list->data;
+			if ((itemtmp = search_menu_on_menuitem(itemtmp, hashcode)) != NULL)
+				return itemtmp;
+			list = list->next;
+		}
+		return NULL;
+	}
+}
+DbusmenuMenuitem* search_menu_on_list(GList *list, int hashcode) {
+	DbusmenuMenuitem *item;
+	while (list != NULL) {
+		item = (DbusmenuMenuitem *)list->data;
+		if ((item = search_menu_on_menuitem(item, hashcode)) != NULL)
+			return item;
+		list = list->next;
+	}
+	return NULL;
+}
+/* elimina los menus de un padre */
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAllItems
+  (JNIEnv *env, jobject that, jlong windowxid, jint hashcode) {
+	JavaInstance *jinstance = (JavaInstance *)collection_list_index_get(jinstances, windowxid);
+	if (jinstance != NULL) {
+		DbusmenuMenuitem *item = search_menu_on_list(
+				dbusmenu_menuitem_get_children(jinstance->menuroot), hashcode);
+		g_list_free_full(dbusmenu_menuitem_take_children(item), destroy_menuitem);
+		jinstance->menucurrent = item;
+	}
+}
 /* establece el acelerador de menu */
 void set_menuitem_shortcut(DbusmenuMenuitem *item, jint modifiers, jint keycode) {
 	GVariantBuilder builder;

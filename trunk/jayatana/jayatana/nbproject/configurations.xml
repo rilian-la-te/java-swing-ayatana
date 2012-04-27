@@ -8,7 +8,6 @@
       <itemPath>org_java_ayatana_Collections.h</itemPath>
       <itemPath>org_java_ayatana_GMainLoop.h</itemPath>
       <itemPath>org_java_ayatana_JKeyToXKey.h</itemPath>
-      <itemPath>org_java_ayatana_Launcher.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -21,7 +20,6 @@
       <itemPath>org_java_ayatana_Collections.c</itemPath>
       <itemPath>org_java_ayatana_GMainLoop.c</itemPath>
       <itemPath>org_java_ayatana_JKeyToXKey.c</itemPath>
-      <itemPath>org_java_ayatana_Launcher.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"

@@ -184,7 +184,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * 
 	 * @param menu menu
 	 */
-	private void removeAll() {
+	private void removeAllMenus() {
 		removeAll(windowxid);
 	}
 	/**
@@ -194,6 +194,19 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param hashcode identificador de menu
 	 */
 	native private void removeAll(long windowxid);
+	/**
+	 * Elimina los hijos de un menu.
+	 * @param menu menu
+	 */
+	private void removeAllItemsMenus(JMenu menu) {
+		removeAllItems(windowxid, menu.hashCode());
+	}
+	/**
+	 * Elmina los hijos de un menu.
+	 * @param windowxid indentificador de ventana
+	 * @param hashcode identificador de menu
+	 */
+	native private void removeAllItems(long windowxid, int hashcode);
 	/**
 	 * Crea un menu en el menu de aplicaciones globales
 	 * 
@@ -321,17 +334,41 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	}
 	
 	/**
+	 * Construcción de menus.
+	 * @param menu menu padre
+	 */
+	private void buildMenu(JMenu menu) {
+		removeAllItemsMenus(menu);
+		for (Component comp : menu.getMenuComponents()) {
+			if (comp instanceof JMenuItem)
+				addMenuItem((JMenuItem)comp);
+			else if (comp instanceof JSeparator)
+				addSeparator();
+		}
+	}
+	/**
+	 * Construcción de los menus.
+	 */
+	private void buildMenus() {
+		for (Component comp : menubar.getComponents())
+			if (comp instanceof JMenu && comp.isVisible())
+				addMenu((JMenu)comp);
+		for (Component comp : menubar.getComponents())
+			if (comp instanceof JMenu && comp.isVisible())
+				buildMenu((JMenu)comp);
+	}
+	
+	/**
 	 * Este método es invocado por la interface nativa en caso de que
 	 * existe un applicationmenu registrado
 	 */
 	private synchronized void install() {
 		Toolkit.getDefaultToolkit()
 				.addAWTEventListener(ApplicationMenu.this, AWTEvent.KEY_EVENT_MASK);
+		buildMenus();
 		for (Component comp : menubar.getComponents())
-			if (comp instanceof JMenu && comp.isVisible()) {
-				addMenu((JMenu)comp);
+			if (comp instanceof JMenu && comp.isVisible())
 				((JMenu)comp).addComponentListener(this);
-			}
 		menubar.setVisible(false);
 		menubar.addContainerListener(ApplicationMenu.this);
 	}
@@ -602,18 +639,13 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	/*
 	 * Eventos sobre la barra de menus
 	 */
-	private void rebuildMenus() {
-		removeAll();
-		for (Component comp : menubar.getComponents())
-			if (comp instanceof JMenu && comp.isVisible())
-				addMenu((JMenu)comp);
-	}
 	@Override
 	public void componentAdded(ContainerEvent e) {
 		if (extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getChild() instanceof JMenu) {
 				((JMenu)e.getChild()).addComponentListener(this);
-				rebuildMenus();
+				removeAllMenus();
+				buildMenus();
 			}
 		}
 	}
@@ -622,7 +654,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		if (extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getChild() instanceof JMenu) {
 				((JMenu)e.getChild()).removeComponentListener(this);
-				rebuildMenus();
+				removeAllMenus();
+				buildMenus();
 			}
 		}
 	}
@@ -630,7 +663,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	public void componentShown(ComponentEvent e) {
 		if (extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getSource() instanceof JMenu) {
-				rebuildMenus();
+				removeAllMenus();
+				buildMenus();
 			}
 		}
 	}
@@ -638,7 +672,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	public void componentHidden(ComponentEvent e) {
 		if (extraMenuAction.allowDynamicMenuBar()) {
 			if (e.getSource() instanceof JMenu) {
-				rebuildMenus();
+				removeAllMenus();
+				buildMenus();
 			}
 		}
 	}
