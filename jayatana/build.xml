@@ -130,7 +130,7 @@
 	<scriptdef name="remoteproperties" language="javascript">
 		<attribute name="remoteconnction"/>
 		<![CDATA[
-			var rc = attributes.get("remoteconnction");
+			var rc = attributes.get("remoteconnction").trim();
 			var rcarray = rc.split(":");
 			project.setProperty("remote.user", rcarray[0]);
 			project.setProperty("remote.password", rcarray[1]);
