@@ -140,6 +140,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private ExtraMenuAction extraMenuAction;
 	private long windowxid;
 	
+	native private void setCurrent(long windowxid);
 	/**
 	 * Obtiene el identificador de ventana del sistema ventanas X11
 	 * 
@@ -194,19 +195,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param hashcode identificador de menu
 	 */
 	native private void removeAll(long windowxid);
-	/**
-	 * Elimina los hijos de un menu.
-	 * @param menu menu
-	 */
-	private void removeAllItemsMenus(JMenu menu) {
-		removeAllItems(windowxid, menu.hashCode());
-	}
-	/**
-	 * Elmina los hijos de un menu.
-	 * @param windowxid indentificador de ventana
-	 * @param hashcode identificador de menu
-	 */
-	native private void removeAllItems(long windowxid, int hashcode);
 	/**
 	 * Crea un menu en el menu de aplicaciones globales
 	 * 
@@ -304,17 +292,19 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * este el servicio de applicationmenu
 	 */
 	private synchronized void tryInstall() {
-		if (tryInstalled)
-			return;
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				ApplicationMenu.initialize();
-				windowxid = getWindowXID(frame);
-				registerWatcher(windowxid);
-			}
-		});
-		tryInstalled = true;
+		if (tryInstalled) {
+			setCurrent(windowxid);
+		} else {
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					ApplicationMenu.initialize();
+					windowxid = getWindowXID(frame);
+					registerWatcher(windowxid);
+				}
+			});
+			tryInstalled = true;
+		}
 	}
 	/**
 	 * Tratar de desinstalar el applicationmenu, ya que depende que
@@ -334,28 +324,12 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	}
 	
 	/**
-	 * Construcción de menus.
-	 * @param menu menu padre
-	 */
-	private void buildMenu(JMenu menu) {
-		removeAllItemsMenus(menu);
-		for (Component comp : menu.getMenuComponents()) {
-			if (comp instanceof JMenuItem)
-				addMenuItem((JMenuItem)comp);
-			else if (comp instanceof JSeparator)
-				addSeparator();
-		}
-	}
-	/**
 	 * Construcción de los menus.
 	 */
 	private void buildMenus() {
 		for (Component comp : menubar.getComponents())
 			if (comp instanceof JMenu && comp.isVisible())
 				addMenu((JMenu)comp);
-		for (Component comp : menubar.getComponents())
-			if (comp instanceof JMenu && comp.isVisible())
-				buildMenu((JMenu)comp);
 	}
 	
 	/**

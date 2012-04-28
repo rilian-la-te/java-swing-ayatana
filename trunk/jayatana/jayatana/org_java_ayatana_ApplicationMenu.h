@@ -25,6 +25,14 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_nativeUninitialize
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
+ * Method:    setCurrent
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_setCurrent
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     org_java_ayatana_ApplicationMenu
  * Method:    getWindowXID
  * Signature: (Ljava/awt/Window;)J
  */
@@ -62,14 +70,6 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
  */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAll
   (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     org_java_ayatana_ApplicationMenu
- * Method:    removeAllItems
- * Signature: (JI)V
- */
-JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAllItems
-  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
