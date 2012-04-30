@@ -173,10 +173,10 @@
 						<sshexec host="${remote.server}" port="${remote.port}"
 							username="${remote.user}" password="${remote.password}"
 							command="mkdir -p ${remote.home}/jayatana"
-							failonerror="false"/>
+							failonerror="false" trust="true"/>
 						<scp todir="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana"
 							port="${remote.port}"
-							failonerror="false">
+							failonerror="false" trust="true">
 							<fileset dir="jayatana">
 								<exclude name="build/**"/>
 								<exclude name="dist/**"/>
@@ -185,11 +185,11 @@
 						<sshexec host="${remote.server}" port="${remote.port}"
 							username="${remote.user}" password="${remote.password}"
 							command="cd ${remote.home}/jayatana ; make"
-							failonerror="false"/>
+							failonerror="false" trust="true"/>
 						<scp file="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
 							todir="${build.classes.dir}/native/${remote.version}/${remote.arch}"
 							port="${remote.port}"
-							failonerror="false"/>
+							failonerror="false" trust="true"/>
 					</sequential>
 				</for>
 			</else>
