@@ -169,7 +169,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private void addMenu(JMenu menu) {
 		if (menu.getText() == null || "".equals(menu.getText()))
 			return;
-		addMenu(windowxid, menu.hashCode(), menu.getText(), menu.isEnabled());
+		addMenu(menu.hashCode(), menu.getText(), menu.isEnabled());
 	}
 	/**
 	 * Crear un menu en el menu de aplicaciones globales
@@ -178,7 +178,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param hashcode identificador de menu
 	 * @param label texto de menu
 	 */
-	native private void addMenu(long windowxid, int hashcode, String label, boolean enabled);
+	native private void addMenu(int hashcode, String label, boolean enabled);
 	
 	/**
 	 * Elimina un menu del menu de aplicaciones globales
@@ -212,15 +212,15 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		if (menuitem instanceof JMenu) {
 			addMenu((JMenu)menuitem);
 		} else if (menuitem instanceof JRadioButtonMenuItem) {
-			addMenuItemRadio(windowxid, menuitem.hashCode(),
+			addMenuItemRadio(menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers, keycode,
 					menuitem.isSelected());
 		} else if (menuitem instanceof JCheckBoxMenuItem) {
-			addMenuItemCheck(windowxid, menuitem.hashCode(),
+			addMenuItemCheck(menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers, keycode,
 					menuitem.isSelected());
 		} else {
-			addMenuItem(windowxid, menuitem.hashCode(),
+			addMenuItem(menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers, keycode);
 		}
 	}
@@ -234,7 +234,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param modifiers modificador de accelerador
 	 * @param keycode codigo de accelerador
 	 */
-	native private void addMenuItem(long windowxid, int hashcode, String label, boolean enabled, int modifiers, int keycode);
+	native private void addMenuItem(int hashcode, String label, boolean enabled, int modifiers, int keycode);
 	/**
 	 * Agrega un menu RADIO
 	 * 
@@ -246,7 +246,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param keycode codigo de accelerador
 	 * @param selected estado de selección
 	 */
-	native private void addMenuItemRadio(long windowxid, int hashcode, String label, boolean enabled, int modifiers, int keycode, boolean selected);
+	native private void addMenuItemRadio(int hashcode, String label, boolean enabled, int modifiers, int keycode, boolean selected);
 	/**
 	 * Agrega un menu CHECK
 	 * 
@@ -258,19 +258,19 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param keycode codigo de accelerador
 	 * @param selected estado de selección
 	 */
-	native private void addMenuItemCheck(long windowxid, int hashcode, String label, boolean enabled, int modifiers, int keycode, boolean selected);
+	native private void addMenuItemCheck(int hashcode, String label, boolean enabled, int modifiers, int keycode, boolean selected);
 	/**
 	 * Agrega un separador
 	 */
 	private void addSeparator() {
-		addMenuItemSeparator(windowxid);
+		addMenuItemSeparator();
 	}
 	/**
 	 * Agrega un separador
 	 * 
 	 * @param windowxid identificador de ventana
 	 */
-	native private void addMenuItemSeparator(long windowxid);
+	native private void addMenuItemSeparator();
 	
 	/**
 	 * Contructor de integración de Application Menu
