@@ -186,6 +186,7 @@
 							username="${remote.user}" password="${remote.password}"
 							command="cd ${remote.home}/jayatana ; make"
 							failonerror="false" trust="true"/>
+						<mkdir dir="${build.classes.dir}/native/${remote.version}/${remote.arch}"/>
 						<scp file="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
 							todir="${build.classes.dir}/native/${remote.version}/${remote.arch}"
 							port="${remote.port}"
