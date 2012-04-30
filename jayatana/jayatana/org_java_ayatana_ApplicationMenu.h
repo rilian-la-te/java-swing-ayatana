@@ -58,10 +58,10 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_unregisterWatcher
 /*
  * Class:     org_java_ayatana_ApplicationMenu
  * Method:    addMenu
- * Signature: (JILjava/lang/String;Z)V
+ * Signature: (ILjava/lang/String;Z)V
  */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
-  (JNIEnv *, jobject, jlong, jint, jstring, jboolean);
+  (JNIEnv *, jobject, jint, jstring, jboolean);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
@@ -74,34 +74,34 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAll
 /*
  * Class:     org_java_ayatana_ApplicationMenu
  * Method:    addMenuItem
- * Signature: (JILjava/lang/String;ZII)V
+ * Signature: (ILjava/lang/String;ZII)V
  */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItem
-  (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jint, jint);
+  (JNIEnv *, jobject, jint, jstring, jboolean, jint, jint);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
  * Method:    addMenuItemRadio
- * Signature: (JILjava/lang/String;ZIIZ)V
+ * Signature: (ILjava/lang/String;ZIIZ)V
  */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemRadio
-  (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jint, jint, jboolean);
+  (JNIEnv *, jobject, jint, jstring, jboolean, jint, jint, jboolean);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
  * Method:    addMenuItemCheck
- * Signature: (JILjava/lang/String;ZIIZ)V
+ * Signature: (ILjava/lang/String;ZIIZ)V
  */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemCheck
-  (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jint, jint, jboolean);
+  (JNIEnv *, jobject, jint, jstring, jboolean, jint, jint, jboolean);
 
 /*
  * Class:     org_java_ayatana_ApplicationMenu
  * Method:    addMenuItemSeparator
- * Signature: (J)V
+ * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenuItemSeparator
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }
