@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<!-- By default, only the Clean and Build commands use this build script. -->
+<!-- Commands such as Run, Debug, and Test only use this build script if -->
+<!-- the Compile on Save feature is turned off for the project. -->
+<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
+<!-- in the project's Project Properties dialog box.-->
+<project name="jayatana" default="default" basedir=".">
+	<description>Builds, tests, and runs the project jayatana.</description>
+	<import file="nbproject/build-impl.xml"/>
+    <!--
+
+    There exist several targets which are by default empty and which can be 
+    used for execution of your tasks. These targets are usually executed 
+    before and after some main targets. They are: 
+
+      -pre-init:                 called before initialization of project properties
+      -post-init:                called after initialization of project properties
+      -pre-compile:              called before javac compilation
+      -post-compile:             called after javac compilation
+      -pre-compile-single:       called before javac compilation of single file
+      -post-compile-single:      called after javac compilation of single file
+      -pre-compile-test:         called before javac compilation of JUnit tests
+      -post-compile-test:        called after javac compilation of JUnit tests
+      -pre-compile-test-single:  called before javac compilation of single JUnit test
+      -post-compile-test-single: called after javac compilation of single JUunit test
+      -pre-jar:                  called before JAR building
+      -post-jar:                 called after JAR building
+      -post-clean:               called after cleaning build products
+
+    (Targets beginning with '-' are not intended to be called on their own.)
+
+    Example of inserting an obfuscator after compilation could look like this:
+
+        <target name="-post-compile">
+            <obfuscate>
+                <fileset dir="${build.classes.dir}"/>
+            </obfuscate>
+        </target>
+
+    For list of available properties check the imported 
+    nbproject/build-impl.xml file. 
+
+
+    Another way to customize the build is by overriding existing main targets.
+    The targets of interest are: 
+
+      -init-macrodef-javac:     defines macro for javac compilation
+      -init-macrodef-junit:     defines macro for junit execution
+      -init-macrodef-debug:     defines macro for class debugging
+      -init-macrodef-java:      defines macro for class execution
+      -do-jar-with-manifest:    JAR building (if you are using a manifest)
+      -do-jar-without-manifest: JAR building (if you are not using a manifest)
+      run:                      execution of project 
+      -javadoc-build:           Javadoc generation
+      test-report:              JUnit report generation
+
+    An example of overriding the target for project execution could look like this:
+
+        <target name="run" depends="jayatana-impl.jar">
+            <exec dir="bin" executable="launcher.exe">
+                <arg file="${dist.jar}"/>
+            </exec>
+        </target>
+
+    Notice that the overridden target depends on the jar target and not only on 
+    the compile target as the regular run target does. Again, for a list of available 
+    properties which you can use, check the target you are overriding in the
+    nbproject/build-impl.xml file. 
+
+    -->
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="lib/ant-contrib-1.0b3.jar"/>
+		</classpath>
+	</taskdef>
+
+	<scriptdef name="getubuntuversion" language="javascript">
+		<attribute name="version"/>
+		<![CDATA[
+			importPackage(java.lang);
+			importPackage(java.util);
+			importPackage(java.io);
+			var prop = new Properties();
+			var fis = new FileInputStream("/etc/lsb-release");
+			prop.load(fis);
+			fis.close();
+			project.setProperty(attributes.get("version"), prop.getProperty("DISTRIB_RELEASE"));
+		]]>
+	</scriptdef>
+	<getubuntuversion version="ubuntu.version"/>
+	
+	<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
+		<isset property="platform.home"/>
+	</condition>
+	
+	<target name="-build-jni-local">
+		<exec executable="make" dir="jayatana">
+			<env key="JAVA_HOME" value="${project.java.home}"/>
+			<arg line="build"/>
+		</exec>
+		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
+		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/i386"/>
+		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+			todir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
+	</target>
+	
+	<target name="-clean-jni-local">
+		<exec executable="make" dir="jayatana">
+			<env key="JAVA_HOME" value="${project.java.home}"/>
+			<arg line="clean"/>
+		</exec>
+	</target>
+	
+	<!--
+	
+	Para incluir librerias de otras arquitecturas y versiones, se debe crear
+	el archivo remote.properties en la raíz del proyecto con el siguiente contenido indicando el
+	directorio HOME, version de ubuntu (xx.xx ej: 11.10) y arquitectura (i386 ó amd64) además
+	de que el servidor remoto tiene que tener la variable de ambiente JAVA_HOME
+	
+	remote.connections=usuario:contraseña:servidor32:22:/home/ubuntu:11.10:i386,usuario:contraseña:servidor64:22:/home/ubuntu:11.10:amd64,...
+	
+	Para que el constructor ant incorpore las librerias nativas al jar.
+	
+	-->
+	
+	<scriptdef name="remoteproperties" language="javascript">
+		<attribute name="remoteconnction"/>
+		<![CDATA[
+			var rc = attributes.get("remoteconnction").trim();
+			var rcarray = rc.split(":");
+			project.setProperty("remote.user", rcarray[0]);
+			project.setProperty("remote.password", rcarray[1]);
+			project.setProperty("remote.server", rcarray[2]);
+			project.setProperty("remote.port", rcarray[3]);
+			project.setProperty("remote.home", rcarray[4]);
+			project.setProperty("remote.version", rcarray[5]);
+			project.setProperty("remote.arch", rcarray[6]);
+		]]>
+	</scriptdef>
+	
+	<target name="-clean-jni-remote">
+		<property file="remote.properties"/>
+		<if>
+			<equals arg1="${remote.connections}" arg2="$${remote.connections}"/>
+			<then></then>
+			<else>
+				<for list="${remote.connections}" param="remote.connection">
+					<sequential>
+						<remoteproperties remoteconnction="@{remote.connection}"/>
+						<sshexec host="${remote.server}" port="${remote.port}"
+							username="${remote.user}" password="${remote.password}"
+							command="rm -fr ${remote.home}/jayatana"
+							failonerror="false"/>
+					</sequential>
+				</for>
+			</else>
+		</if>
+	</target>
+	
+	<target name="-build-jni-remote">
+		<property file="remote.properties"/>
+		<if>
+			<equals arg1="${remote.connections}" arg2="$${remote.connections}"/>
+			<then></then>
+			<else>
+				<for list="${remote.connections}" param="remote.connection">
+					<sequential>
+						<remoteproperties remoteconnction="@{remote.connection}"/>
+						<sshexec host="${remote.server}" port="${remote.port}"
+							username="${remote.user}" password="${remote.password}"
+							command="rm -fr ${remote.home}/jayatana ; mkdir -p ${remote.home}/jayatana"
+							failonerror="false" trust="true"/>
+						<scp todir="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana"
+							port="${remote.port}"
+							failonerror="false" trust="true">
+							<fileset dir="jayatana">
+								<exclude name="build/**"/>
+								<exclude name="dist/**"/>
+							</fileset>
+						</scp>
+						<sshexec host="${remote.server}" port="${remote.port}"
+							username="${remote.user}" password="${remote.password}"
+							command="cd ${remote.home}/jayatana ; make"
+							failonerror="false" trust="true"/>
+						<mkdir dir="${build.classes.dir}/native/${remote.version}/${remote.arch}"/>
+						<scp file="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+							todir="${build.classes.dir}/native/${remote.version}/${remote.arch}"
+							port="${remote.port}"
+							failonerror="false" trust="true"/>
+					</sequential>
+				</for>
+			</else>
+		</if>
+	</target>
+	
+	<target name="-post-clean" depends="-clean-jni-local, -clean-jni-remote"/>
+	<target name="-pre-jar" depends="-build-jni-local, -build-jni-remote"/>
+</project>
