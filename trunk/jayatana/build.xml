@@ -172,7 +172,7 @@
 						<remoteproperties remoteconnction="@{remote.connection}"/>
 						<sshexec host="${remote.server}" port="${remote.port}"
 							username="${remote.user}" password="${remote.password}"
-							command="mkdir -p ${remote.home}/jayatana"
+							command="rm -fr ${remote.home}/jayatana ; mkdir -p ${remote.home}/jayatana"
 							failonerror="false" trust="true"/>
 						<scp todir="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana"
 							port="${remote.port}"
