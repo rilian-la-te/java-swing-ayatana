@@ -4,8 +4,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>ayatana_Collections.h</itemPath>
+      <itemPath>ayatana_JVM.h</itemPath>
       <itemPath>org_java_ayatana_ApplicationMenu.h</itemPath>
-      <itemPath>org_java_ayatana_Collections.h</itemPath>
       <itemPath>org_java_ayatana_GMainLoop.h</itemPath>
       <itemPath>org_java_ayatana_JKeyToXKey.h</itemPath>
     </logicalFolder>
@@ -16,8 +17,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>ayatana_Collections.c</itemPath>
+      <itemPath>ayatana_JVM.c</itemPath>
       <itemPath>org_java_ayatana_ApplicationMenu.c</itemPath>
-      <itemPath>org_java_ayatana_Collections.c</itemPath>
       <itemPath>org_java_ayatana_GMainLoop.c</itemPath>
       <itemPath>org_java_ayatana_JKeyToXKey.c</itemPath>
     </logicalFolder>
