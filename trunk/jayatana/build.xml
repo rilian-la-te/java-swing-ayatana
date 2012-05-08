@@ -92,11 +92,10 @@
 	</scriptdef>
 	<getubuntuversion version="ubuntu.version"/>
 	
-	<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
-		<isset property="platform.home"/>
-	</condition>
-	
 	<target name="-build-jni-local">
+		<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
+			<isset property="platform.home"/>
+		</condition>
 		<exec executable="make" dir="jayatana">
 			<env key="JAVA_HOME" value="${project.java.home}"/>
 			<arg line="build"/>
@@ -108,6 +107,9 @@
 	</target>
 	
 	<target name="-clean-jni-local">
+		<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
+			<isset property="platform.home"/>
+		</condition>
 		<exec executable="make" dir="jayatana">
 			<env key="JAVA_HOME" value="${project.java.home}"/>
 			<arg line="clean"/>

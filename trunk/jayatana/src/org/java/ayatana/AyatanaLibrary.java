@@ -35,7 +35,8 @@ import java.util.Properties;
  * @author Jared González
  */
 final public class AyatanaLibrary {
-	public static final String VERSION = "1.1.0";
+	public static final String LIB_VERSION = "1.2.0";
+	public static final String JNI_VERSION = "1.2.0";
 	private static boolean loaded = false;
 	private static boolean successful = false;
 	
@@ -62,7 +63,7 @@ final public class AyatanaLibrary {
 		if (!loaded) {
 			try {
 				final File targetDirectory = new File(
-						System.getProperty("user.home"), ".java/jayatana/"+VERSION+"/"+
+						System.getProperty("user.home"), ".java/jayatana/"+JNI_VERSION+"/"+
 						System.getProperty("os.arch"));
 				final File targetLibrary = new File(targetDirectory, "libjayatana.so");
 				final String sourceLibrary = "/native/"+getUbuntuVersion()+"/"+
@@ -108,6 +109,12 @@ final public class AyatanaLibrary {
 				}
 				try {
 					System.loadLibrary("awt");
+				} catch (UnsatisfiedLinkError e) {
+					if (!e.getMessage().contains("loaded in another classloader"))
+						throw e;
+				}
+				try {
+					System.loadLibrary("jawt");
 				} catch (UnsatisfiedLinkError e) {
 					if (!e.getMessage().contains("loaded in another classloader"))
 						throw e;

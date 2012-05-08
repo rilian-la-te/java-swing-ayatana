@@ -183,6 +183,9 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_registerWatcher
 	JavaInstance *jinstance = (JavaInstance *)malloc(sizeof(JavaInstance));
 	jinstance->windowxid = windowxid;
 	jinstance->installed = FALSE;
+	// agregar instancia
+	current_jinstance = jinstance;
+	collection_list_index_add(jinstances, windowxid, jinstance);
 	// registro de variables java
 	(*env)->GetJavaVM(env, &jinstance->jvm);
 	jinstance->that = (*env)->NewGlobalRef(env, that);
@@ -195,9 +198,6 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_registerWatcher
 			on_registrar_unavailable,
 			jinstance, NULL);
 	jinstance->watcher = watcher;
-	current_jinstance = jinstance;
-	// agregar instancia
-	collection_list_index_add(jinstances, windowxid, jinstance);
 }
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_unregisterWatcher
   (JNIEnv *env, jobject that, jlong windowxid) {
@@ -289,7 +289,7 @@ JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_addMenu
 }
 /* elimina todos los menu */
 JNIEXPORT void JNICALL Java_org_java_ayatana_ApplicationMenu_removeAll
-  (JNIEnv *env, jobject that, jlong windowxid) {
+  (JNIEnv *env, jobject that) {
 	if (current_jinstance != NULL) {
 		g_list_free_full(dbusmenu_menuitem_take_children(current_jinstance->menuroot), destroy_menuitem);
 		current_jinstance->menucurrent = current_jinstance->menuroot;
