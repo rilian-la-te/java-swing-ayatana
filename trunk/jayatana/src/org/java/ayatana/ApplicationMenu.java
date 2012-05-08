@@ -283,7 +283,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		this.menubar = menubar;
 		extraMenuAction = additionalMenuAction;
 		frame.addWindowListener(this);
-		if (frame.isActive())
+		if (frame.isDisplayable())
 			tryInstall();
 	}
 	
@@ -294,14 +294,14 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private synchronized void tryInstall() {
 		if (tryInstalled && windowxid > -1) {
 			setCurrent(windowxid);
-		} else {
+		} else if (!tryInstalled) {
 			EventQueue.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					//frame.addNotify();
 					ApplicationMenu.initialize();
 					windowxid = getWindowXID(frame);
 					registerWatcher(windowxid);
+					System.out.println("register watcher");
 				}
 			});
 			tryInstalled = true;
@@ -312,16 +312,16 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * este el servicio de applicationmenu
 	 */
 	private synchronized void tryUninstall() {
-		if (!tryInstalled)
-			return;
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				unregisterWatcher(windowxid);
-				frame.removeWindowListener(ApplicationMenu.this);
-			}
-		});
-		tryInstalled = false;
+		if (tryInstalled) {
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					unregisterWatcher(windowxid);
+					frame.removeWindowListener(ApplicationMenu.this);
+				}
+			});
+			tryInstalled = false;
+		}
 	}
 	
 	/**

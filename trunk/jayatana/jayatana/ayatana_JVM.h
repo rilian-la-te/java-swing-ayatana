@@ -27,35 +27,24 @@
  * Author: Jared González
  */
 
-#ifndef ORG_JAVA_AYATANA_COLLECTION_H
-#define	ORG_JAVA_AYATANA_COLLECTION_H
+#include <jni.h>
+
+#ifndef AYATANA_JVM_H
+#define	AYATANA_JVM_H
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-	long id;
-	void *data;
-} ListIndexEntry;
+JavaVM *jvm;
+	
+jint JNI_OnLoad(JavaVM *, void *);
+void JNI_OnUnload(JavaVM *, void *);
 
-typedef struct {
-	ListIndexEntry **entries;
-	unsigned long allocated;
-	unsigned long size;
-} ListIndex;
-
-ListIndex *collection_list_index_new();
-void collection_list_index_add(ListIndex *, long, void *);
-void *collection_list_index_get(ListIndex *, long);
-void *collection_list_index_remove(ListIndex *, long);
-void collection_list_index_destory(ListIndex *);
-void collection_list_index_add_last(ListIndex *, void *);
-void *collection_list_index_get_last(ListIndex *);
-void *collection_list_index_remove_last(ListIndex *);
 
 #ifdef	__cplusplus
 }
 #endif
 
-#endif	/* ORG_JAVA_AYATANA_COLLECTION_H */
+#endif	/* AYATANA_JVM_H */
+

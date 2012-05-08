@@ -27,7 +27,7 @@
  * Author: Jared González
  */
 
-#include "org_java_ayatana_Collections.h"
+#include "ayatana_Collections.h"
 #include <stdlib.h>
 
 void collection_list_realloc(ListIndex *list) {
