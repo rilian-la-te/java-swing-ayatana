@@ -23,10 +23,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * File:   org_java_ayatana_JavaKeycodeToDbusmenu.c
+ * File:   ayatana_JKeyToXKey.c
  * Author: Jared González
  */
-#include "org_java_ayatana_JKeyToXKey.h"
+#include "ayatana_JKeyToXKey.h"
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 

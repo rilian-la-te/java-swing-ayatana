@@ -37,7 +37,7 @@
 #include <libdbusmenu-glib/client.h>
 #include "ayatana_JVM.h"
 #include "ayatana_Collections.h"
-#include "org_java_ayatana_JKeyToXKey.h"
+#include "ayatana_JKeyToXKey.h"
 
 
 //propiedades de Jayatana
