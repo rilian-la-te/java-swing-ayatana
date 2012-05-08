@@ -53,7 +53,7 @@ final public class AyatanaLibrary {
 		} finally {
 			fis.close();
 		}
-		return prop.getProperty("DISTRIB_RELEASE");
+		return prop.getProperty("DISTRIB_RELEASE", "UNKNOW");
 	}
 	
 	/**
