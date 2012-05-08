@@ -91,6 +91,16 @@
 		]]>
 	</scriptdef>
 	<getubuntuversion version="ubuntu.version"/>
+	<scriptdef name="getjavaarch" language="javascript">
+		<attribute name="arch"/>
+		<![CDATA[
+			importPackage(java.lang);
+			importPackage(java.util);
+			importPackage(java.io);
+			project.setProperty(attributes.get("arch"), System.getProperty("os.arch"));
+		]]>
+	</scriptdef>
+	<getjavaarch arch="java.arch"/>
 	
 	<target name="-build-jni-local">
 		<condition property="project.java.home" value="${platform.home}" else="${jdk.home}">
@@ -103,7 +113,11 @@
 		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
 		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/i386"/>
 		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
-			todir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
+			todir="${build.classes.dir}/native/${ubuntu.version}/${java.arch}"/>
+		<mkdir dir="${build.classes.dir}/native/UNKNOW/amd64"/>
+		<mkdir dir="${build.classes.dir}/native/UNKNOW/i386"/>
+		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+			todir="${build.classes.dir}/native/UNKNOW/${java.arch}"/>
 	</target>
 	
 	<target name="-clean-jni-local">
