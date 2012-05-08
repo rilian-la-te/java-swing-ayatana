@@ -79,11 +79,12 @@ final public class AyatanaDesktop {
 	public static boolean isSupported() {
 		if (!System.getProperty("os.name").startsWith("Linux"))
 			return false;
-		if (System.getProperty("java.version").contains("1.4.") ||
-				System.getProperty("java.version").contains("1.3."))
+		if (System.getProperty("java.version").startsWith("1.4.") ||
+				System.getProperty("java.version").startsWith("1.3.") ||
+				System.getProperty("java.version").startsWith("1.2."))
 			return false;
 		if (System.getProperty("java.vm.name").contains("OpenJDK") &&
-				System.getProperty("java.version").contains("1.6."))
+				System.getProperty("java.version").startsWith("1.6."))
 			return false;
 		if (!"Unity".equals(System.getenv("XDG_CURRENT_DESKTOP")))
 			return false;
