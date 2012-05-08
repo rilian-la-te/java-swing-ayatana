@@ -15,9 +15,9 @@ void *g_main_loop_thread( void *ptr ) {
 
 JNIEXPORT void JNICALL Java_org_java_ayatana_GMainLoop_runGMainLoop
   (JNIEnv *env, jclass thatclass) {
-	XInitThreads();
 	g_type_init();
 	g_thread_init(NULL);
+	XInitThreads();
 	g_thread_create(g_main_loop_thread, NULL, TRUE, NULL);
 }
 
