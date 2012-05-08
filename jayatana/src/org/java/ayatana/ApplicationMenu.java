@@ -301,7 +301,6 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 					ApplicationMenu.initialize();
 					windowxid = getWindowXID(frame);
 					registerWatcher(windowxid);
-					System.out.println("register watcher");
 				}
 			});
 			tryInstalled = true;
