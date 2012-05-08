@@ -23,7 +23,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * File:   org_java_ayatana_Collection.h
+ * File:   ayatana_Collections.h
  * Author: Jared González
  */
 

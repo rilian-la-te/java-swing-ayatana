@@ -23,12 +23,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * File:   org_java_ayatana_JavaKeycodeToDbusmenu.h
+ * File:  ayatana_JKeyToXKey.h
  * Author: Jared González
  */
 
-#ifndef ORG_JAVA_AYATANA_JAVAKEYCODETODBUSMENU_H
-#define	ORG_JAVA_AYATANA_JAVAKEYCODETODBUSMENU_H
+#ifndef AYATANA_JKEYTOXKEY_H
+#define	AYATANA_JKEYTOXKEY_H
 
 #ifdef	__cplusplus
 extern "C" {
@@ -231,5 +231,5 @@ char *jkeycode_to_xkey(int);
 }
 #endif
 
-#endif	/* ORG_JAVA_AYATANA_JAVAKEYCODETODBUSMENU_H */
+#endif	/* AYATANA_JKEYTOXKEY_H */
 

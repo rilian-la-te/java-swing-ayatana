@@ -37,7 +37,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/ayatana_JVM.o \
 	${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o \
 	${OBJECTDIR}/ayatana_Collections.o \
-	${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o \
+	${OBJECTDIR}/ayatana_JKeyToXKey.o \
 	${OBJECTDIR}/org_java_ayatana_GMainLoop.o
 
 
@@ -80,10 +80,10 @@ ${OBJECTDIR}/ayatana_Collections.o: ayatana_Collections.c
 	${RM} $@.d
 	$(COMPILE.c) -g -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/ayatana_Collections.o ayatana_Collections.c
 
-${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o: org_java_ayatana_JKeyToXKey.c 
+${OBJECTDIR}/ayatana_JKeyToXKey.o: ayatana_JKeyToXKey.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.c) -g -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_JKeyToXKey.o org_java_ayatana_JKeyToXKey.c
+	$(COMPILE.c) -g -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/ayatana_JKeyToXKey.o ayatana_JKeyToXKey.c
 
 ${OBJECTDIR}/org_java_ayatana_GMainLoop.o: org_java_ayatana_GMainLoop.c 
 	${MKDIR} -p ${OBJECTDIR}
