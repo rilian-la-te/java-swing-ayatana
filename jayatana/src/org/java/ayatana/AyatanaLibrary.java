@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) 2012 Jared González
  * 
  * Permission is hereby granted, free of charge, to any
@@ -62,26 +62,42 @@ final public class AyatanaLibrary {
 	public static boolean load() {
 		if (!loaded) {
 			try {
-				final File targetDirectory = new File(
-						System.getProperty("user.home"), ".java/jayatana/"+JNI_VERSION+"/"+
-						System.getProperty("os.arch"));
-				final File targetLibrary = new File(targetDirectory, "libjayatana.so");
-				final String sourceLibrary = "/native/"+getUbuntuVersion()+"/"+
-						System.getProperty("os.arch")+"/libjayatana.so";
-				
-				if (targetLibrary.exists()) {
-					FileInputStream fis = new FileInputStream(targetLibrary);
-					String chksum = AyatanaDesktop.getMD5Checksum(fis);
-					fis.close();
-					InputStream input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
-					if (input == null)
-						throw new Exception("not library exists");
-					String chksumint = AyatanaDesktop.getMD5Checksum(input);
-					input.close();
-					
-					if (!chksumint.equals(chksum)) {
-						targetLibrary.delete();
-						input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
+				File targetLibrary = new File("/usr/lib/jayatana/libjayatana.so");
+				if (!targetLibrary.exists()) {
+					final File targetDirectory = new File(
+							System.getProperty("user.home"), ".java/jayatana/"+JNI_VERSION+"/"+
+							System.getProperty("os.arch"));
+					targetLibrary = new File(targetDirectory, "libjayatana.so");
+					final String sourceLibrary = "/native/"+getUbuntuVersion()+"/"+
+							System.getProperty("os.arch")+"/libjayatana.so";
+
+					if (targetLibrary.exists()) {
+						FileInputStream fis = new FileInputStream(targetLibrary);
+						String chksum = AyatanaDesktop.getMD5Checksum(fis);
+						fis.close();
+						InputStream input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
+						if (input == null)
+							throw new Exception("not library exists");
+						String chksumint = AyatanaDesktop.getMD5Checksum(input);
+						input.close();
+
+						if (!chksumint.equals(chksum)) {
+							targetLibrary.delete();
+							input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
+							if (input == null)
+								throw new Exception("not library exists");
+							FileOutputStream fos = new FileOutputStream(targetLibrary);
+							byte buff[] = new byte[1024];
+							int read;
+							while ((read = input.read(buff)) > 0)
+								fos.write(buff, 0, read);
+							fos.flush();
+							fos.close();
+							input.close();
+						}
+					} else {
+						targetDirectory.mkdirs();
+						InputStream input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
 						if (input == null)
 							throw new Exception("not library exists");
 						FileOutputStream fos = new FileOutputStream(targetLibrary);
@@ -93,19 +109,6 @@ final public class AyatanaLibrary {
 						fos.close();
 						input.close();
 					}
-				} else {
-					targetDirectory.mkdirs();
-					InputStream input = AyatanaLibrary.class.getResourceAsStream(sourceLibrary);
-					if (input == null)
-						throw new Exception("not library exists");
-					FileOutputStream fos = new FileOutputStream(targetLibrary);
-					byte buff[] = new byte[1024];
-					int read;
-					while ((read = input.read(buff)) > 0)
-						fos.write(buff, 0, read);
-					fos.flush();
-					fos.close();
-					input.close();
 				}
 				try {
 					System.loadLibrary("awt");
