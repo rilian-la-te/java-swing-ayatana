@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import javax.swing.UIManager;
+import org.gtk.laf.extended.GTKLookAndFeelExtended;
 import org.java.ayatana.ApplicationMenu;
 import org.java.ayatana.AyatanaDesktop;
 import org.java.ayatana.DesktopFile;
@@ -43,6 +45,11 @@ import org.openide.windows.WindowManager;
 public class Installer extends ModuleInstall {
 @Override
 	public void restored() {
+		if (UIManager.getLookAndFeel().getClass().getName().equals(
+				"com.sun.java.swing.plaf.gtk.GTKLookAndFeel")) {
+			GTKLookAndFeelExtended.applayGTKLookAndFeelExtended();
+		}
+		
 		if (AyatanaDesktop.isSupported()) {
 			try {
 				String productVersion = System.getProperty(
