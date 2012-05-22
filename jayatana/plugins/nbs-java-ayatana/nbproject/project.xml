@@ -44,6 +44,10 @@
                 <runtime-relative-path>ext/jayatana-1.2.0.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/jayatana-1.2.0.jar</binary-origin>
             </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/gtkextended-1.0.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/gtkextended-1.0.jar</binary-origin>
+            </class-path-extension>
         </data>
     </configuration>
 </project>
