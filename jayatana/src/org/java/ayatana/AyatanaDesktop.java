@@ -77,21 +77,23 @@ final public class AyatanaDesktop {
 	 * @return <code>True</code> si es soportado
 	 */
 	public static boolean isSupported() {
-		if (!System.getProperty("os.name").contains("Linux"))
-			return false;
-		if (!"Unity".equals(System.getenv("XDG_CURRENT_DESKTOP")))
-			return false;
-		String version = System.getProperty("java.version");
-		version = version.substring(0, version.indexOf(".", version.indexOf(".")+1));
-		try {
-			float iversion = Float.parseFloat(version);
-			if (System.getProperty("java.vm.name").contains("OpenJDK") &&
-					iversion < 1.7f)
+		if (!"true".equals(System.getProperty("jayatana.force"))) {
+			if (!System.getProperty("os.name").contains("Linux"))
 				return false;
-			else if (iversion < 1.6f)
+			if (!"Unity".equals(System.getenv("XDG_CURRENT_DESKTOP")))
 				return false;
-		} catch (NumberFormatException e) {
-			return false;
+			String version = System.getProperty("java.version");
+			version = version.substring(0, version.indexOf(".", version.indexOf(".")+1));
+			try {
+				float iversion = Float.parseFloat(version);
+				if (System.getProperty("java.vm.name").contains("OpenJDK") &&
+						iversion < 1.7f)
+					return false;
+				else if (iversion < 1.6f)
+					return false;
+			} catch (NumberFormatException e) {
+				return false;
+			}
 		}
 		return true;
 	}
