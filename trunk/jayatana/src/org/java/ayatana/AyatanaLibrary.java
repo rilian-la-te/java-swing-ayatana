@@ -35,7 +35,7 @@ import java.util.Properties;
  * @author Jared González
  */
 final public class AyatanaLibrary {
-	public static final String LIB_VERSION = "1.2.0";
+	public static final String LIB_VERSION = "1.2.1";
 	public static final String JNI_VERSION = "1.2.0";
 	private static boolean loaded = false;
 	private static boolean successful = false;
@@ -47,11 +47,14 @@ final public class AyatanaLibrary {
 	 */
 	private static String getUbuntuVersion() throws IOException {
 		Properties prop = new Properties();
-		FileInputStream fis = new FileInputStream("/etc/lsb-release");
-		try {
-			prop.load(fis);
-		} finally {
-			fis.close();
+		File frel = new File("/etc/lsb-release");
+		if (frel.exists()) {
+			FileInputStream fis = new FileInputStream(frel);
+			try {
+				prop.load(fis);
+			} finally {
+				fis.close();
+			}
 		}
 		return prop.getProperty("DISTRIB_RELEASE", "UNKNOW");
 	}
