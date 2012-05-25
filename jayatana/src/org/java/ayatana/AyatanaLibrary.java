@@ -71,7 +71,10 @@ final public class AyatanaLibrary {
 							System.getProperty("user.home"), ".java/jayatana/"+JNI_VERSION+"/"+
 							System.getProperty("os.arch"));
 					targetLibrary = new File(targetDirectory, "libjayatana.so");
-					final String sourceLibrary = "/native/"+getUbuntuVersion()+"/"+
+					String sourceLibrary = "/native/"+getUbuntuVersion()+"/"+
+							System.getProperty("os.arch")+"/libjayatana.so";
+					if (AyatanaLibrary.class.getResource(sourceLibrary) == null)
+						sourceLibrary = "/native/UNKNOW/"+
 							System.getProperty("os.arch")+"/libjayatana.so";
 
 					if (targetLibrary.exists()) {
