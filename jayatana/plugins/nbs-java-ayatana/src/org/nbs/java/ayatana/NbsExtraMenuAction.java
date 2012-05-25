@@ -27,8 +27,12 @@ package org.nbs.java.ayatana;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import org.java.ayatana.DefaultExtraMenuAction;
 import org.openide.awt.DynamicMenuContent;
 
@@ -58,27 +62,6 @@ public class NbsExtraMenuAction extends DefaultExtraMenuAction {
 		if (!methodDynaModel.isAccessible())
 			methodDynaModel.setAccessible(true);
 	}
-
-	@Override
-	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
-		if (super.allowMenuAction(frame, menubar, menuitem, selected, shortcut)) {
-			if (shortcut) {
-				if (acceleratorText != null) {
-					if (FocusManager.getCurrentManager().getFocusOwner() instanceof JTextComponent) {
-						if (acceleratorText.equals("ctrl pressed Z") ||
-								acceleratorText.equals("ctrl pressed Y") ||
-								acceleratorText.equals("ctrl pressed SPACE") ||
-								acceleratorText.equals("ctrl pressed W") ||
-								acceleratorText.equals("ctrl pressed R"))
-							return false;
-					}
-				}
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
 	
 	@Override
 	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
@@ -94,7 +77,8 @@ public class NbsExtraMenuAction extends DefaultExtraMenuAction {
 					Object objectDynaModel = fieldDynaModel.get(menuitem);
 					methodDynaModel.invoke(objectDynaModel, menuitem);
 				} catch (Exception e) {
-					e.printStackTrace();
+					Logger.getLogger(NbsExtraMenuAction.class.getName())
+							.log(Level.WARNING, "Error invoking LazyMenu", e);
 				}
 			}
 			if (menuitem instanceof DynamicMenuContent) {

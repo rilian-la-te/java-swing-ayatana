@@ -27,7 +27,6 @@
 package org.java.ayatana;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 /**
  * Clase predeterminada para control de acciones del menu global
@@ -47,12 +46,9 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 			KeyStroke accelerator = menuitem.getAccelerator();
 			if (accelerator != null) {
 				acceleratorText = accelerator.toString();
-				if (FocusManager.getCurrentManager().getFocusOwner() instanceof JTextComponent) {
-					if (acceleratorText.equals("pressed DELETE") ||
-							acceleratorText.equals("pressed BACK_SPACE") ||
-							acceleratorText.equals("ctrl pressed C") ||
-							acceleratorText.equals("ctrl pressed X") ||
-							acceleratorText.equals("ctrl pressed V"))
+				if (FocusManager.getCurrentManager().getFocusOwner() instanceof JComponent) {
+					JComponent jcomp = (JComponent)FocusManager.getCurrentManager().getFocusOwner();
+					if (jcomp.getActionForKeyStroke(accelerator) != null)
 						return false;
 				} else if (acceleratorText.equals("alt pressed F4")) {
 					return false;
