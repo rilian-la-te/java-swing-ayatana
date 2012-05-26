@@ -25,6 +25,7 @@
  */
 package org.nbs.java.ayatana;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,8 +59,10 @@ public class Installer extends ModuleInstall {
 				AyatanaDesktop.tryInstallIcon("netbeans",
 						Installer.class.getResource(
 							"/org/nbs/java/ayatana/netbeans.png"));
-				final DesktopFile desktopFile =
-						DesktopFile.initialize(desktopFileName, desktopFileName);
+				if (!new File(System.getProperty("user.home"),
+						".local/share/applications/" + desktopFileName + ".desktop").exists())
+					desktopFileName = "netbeans";
+				final DesktopFile desktopFile = DesktopFile.initialize(desktopFileName, desktopFileName);
 				desktopFile.setIcon("netbeans");
 				desktopFile.update();
 			} catch (IOException e) {

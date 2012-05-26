@@ -45,6 +45,7 @@ final public class DesktopFile {
 	public static final String TYPE_TERMINAL = "Terminal";
 	
 	private static DesktopFile desktopFile = null;
+	private static File localFileDesktop = null;
 	
 	/**
 	 * Inicializa el desktopFile para generar un archivo lanzador .desktop además de establecer el
@@ -362,7 +363,7 @@ final public class DesktopFile {
 						} else {
 							setName(value);
 						}
-					} else if (key.startsWith("description")) {
+					} else if (key.startsWith("comment")) {
 						if (key.endsWith("]")) {
 							String lang = key.substring(key.indexOf("[")+1, key.length()-1);
 							setComment(value, resolveLocale(lang));
@@ -494,7 +495,9 @@ final public class DesktopFile {
 	 * @return 
 	 */
 	File getLocalFile() {
-		return new File(System.getProperty("user.home"),
-				"/.local/share/applications/" + getDesktopFileName());
+		if (localFileDesktop == null)
+			localFileDesktop = new File(System.getProperty("user.home"),
+					"/.local/share/applications/" + getDesktopFileName());
+		return localFileDesktop;
 	}
 }
