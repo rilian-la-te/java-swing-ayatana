@@ -48,7 +48,8 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 				acceleratorText = accelerator.toString();
 				if (FocusManager.getCurrentManager().getFocusOwner() instanceof JComponent) {
 					JComponent jcomp = (JComponent)FocusManager.getCurrentManager().getFocusOwner();
-					if (jcomp.getActionForKeyStroke(accelerator) != null)
+					if (jcomp.getActionForKeyStroke(accelerator) != null ||
+							frame.getRootPane().getActionForKeyStroke(accelerator) != null)
 						return false;
 				} else if (acceleratorText.equals("alt pressed F4")) {
 					return false;

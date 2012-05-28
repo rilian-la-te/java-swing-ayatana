@@ -35,7 +35,7 @@ import java.util.Properties;
  * @author Jared González
  */
 final public class AyatanaLibrary {
-	public static final String LIB_VERSION = "1.2.1";
+	public static final String LIB_VERSION = "1.2.2";
 	public static final String JNI_VERSION = "1.2.0";
 	private static boolean loaded = false;
 	private static boolean successful = false;

@@ -64,6 +64,14 @@ public class NbsExtraMenuAction extends DefaultExtraMenuAction {
 	}
 	
 	@Override
+	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+		if (shortcut)
+			return false;
+		else
+			return super.allowMenuAction(frame, menubar, menuitem, selected, shortcut);
+	}
+	
+	@Override
 	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		super.invokeMenu(frame, menubar, menuitem, selected, shortcut);
 		if (selected) {

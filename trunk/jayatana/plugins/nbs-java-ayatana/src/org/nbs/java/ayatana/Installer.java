@@ -48,7 +48,12 @@ public class Installer extends ModuleInstall {
 	public void restored() {
 		if (UIManager.getLookAndFeel().getClass().getName().equals(
 				"com.sun.java.swing.plaf.gtk.GTKLookAndFeel")) {
-			GTKLookAndFeelExtended.applayGTKLookAndFeelExtended();
+			try {
+				GTKLookAndFeelExtended.applayGTKLookAndFeelExtended();
+			} catch (Throwable e) {
+				Logger.getLogger(Installer.class.getName())
+						.log(Level.INFO, "Error on GTK Look And Feel Extended", e);
+			}
 		}
 		
 		if (AyatanaDesktop.isSupported()) {
