@@ -12,6 +12,11 @@ import javax.swing.UIManager;
 import javax.swing.plaf.synth.Region;
 import javax.swing.plaf.synth.SynthStyleFactory;
 
+/**
+ * Esta clase permite mejorar la apariencia de GTK
+ * 
+ * @author Jared González
+ */
 public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		PropertyChangeListener {
 	private static Font customFont = null;
@@ -29,9 +34,19 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		return "GTK look and feel extended";
 	}
 
+	/**
+	 * Obtiene la fuente personalizada.
+	 * 
+	 * @return fuente
+	 */
 	public static Font getCustomFont() {
 		return customFont;
 	}
+	/**
+	 * Establece la fuente personalizada para el tema GTK
+	 * 
+	 * @param customFont fuente
+	 */
 	public static void setCustomFont(Font customFont) {
 		GTKLookAndFeelExtended.customFont = customFont;
 	}
@@ -56,17 +71,26 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		}
 	}
 	
+	/**
+	 * Aplica los ajustes para el tema GTK.
+	 */
 	public static void applayGTKLookAndFeelExtended() {
 		installGTKMenuBorders();
 		loadDefaultFont();
 		installGTKCustomFonts();
 		installGTKCustomFontAditionals();
 	}
+	/**
+	 * Ajusta los ajustes para el tema GTK.
+	 */
 	private static void applayGTKLookAndFeelExtendImp() {
 		installGTKMenuBorders();
 		loadDefaultFont();
 		installGTKCustomFonts();
 	}
+	/**
+	 * Remueve los ajustes del tema GTK.
+	 */
 	public static void unapplyGTKLookAndFeelExtended() {
 		try {
 			LookAndFeel laf = UIManager.getLookAndFeel();
@@ -83,6 +107,9 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		}
 	}
 	
+	/**
+	 * Instala los bordes de menu y separador.
+	 */
 	private static void installGTKMenuBorders() {
 		if (!"false".equals(System.getProperty("laf.extended.gtkmenuborder")))
 			try {
@@ -93,7 +120,9 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 				throw new RuntimeException(e);
 			}
 	}
-	
+	/**
+	 * instala las fuentes personalizadas.
+	 */
 	private static void installGTKCustomFonts() {
 		if (getCustomFont() != null) {
 			try {
@@ -160,6 +189,9 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		}
 	}
 	
+	/**
+	 * Instala las fuentes adicionales sobre algunos objetos.
+	 */
 	private static void installGTKCustomFontAditionals() {
 		if (getCustomFont() != null) {
 			try {
@@ -174,6 +206,9 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 			}
 		}
 	}
+	/**
+	 * Carga las fuentes de las propiedades de sistema.
+	 */
 	private static void loadDefaultFont() {
 		if (System.getProperty("laf.extended.gtkfont") != null && customFont == null) {
 			try {
@@ -188,6 +223,12 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		}
 	}
 	
+	/**
+	 * Modifica la propiedad de YThikcness.
+	 * @param style stilo
+	 * @param border ancho de borde
+	 * @throws Exception 
+	 */
 	private static void changeGtkYThikcness(Object style, int border)
 			throws Exception {
 		Field field = style.getClass().getDeclaredField("yThickness");
@@ -195,6 +236,12 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		field.setInt(style, Math.max(border, field.getInt(style)));
 		field.setAccessible(false);
 	}
+	/**
+	 * Modifica la propiedad de XThikcness.
+	 * @param style stilo
+	 * @param border ancho de borde
+	 * @throws Exception 
+	 */
 	private static void changeGtkXThikcness(Object style, int border)
 			throws Exception {
 		Field field = style.getClass().getDeclaredField("xThickness");
@@ -202,6 +249,12 @@ public class GTKLookAndFeelExtended extends GTKLookAndFeel implements
 		field.setInt(style, Math.max(border, field.getInt(style)));
 		field.setAccessible(false);
 	}
+	/**
+	 * Modifica la fuente de GTK.
+	 * @param style stilo
+	 * @param newFont nueva fuente
+	 * @throws Exception 
+	 */
 	private static void changeGtkFont(Object style, Font newFont)
 			throws Exception {
 		Field fieldFont = style.getClass().getDeclaredField("font");
