@@ -253,14 +253,21 @@ final public class DesktopFile {
 			changed = true;
 		this.startupWMClass = startupWMClass;
 		if (changed) {
-			try {
-				Toolkit xToolkit = Toolkit.getDefaultToolkit();
-				Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
-				awtAppClassNameField.setAccessible(true);
-				awtAppClassNameField.set(xToolkit, startupWMClass);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			forceUpdateStartupWMClass();
+		}
+	}
+	
+	/**
+	 * Permite forzar la actualización del StartupWMClass.
+	 */
+	public void forceUpdateStartupWMClass() {
+		try {
+			Toolkit xToolkit = Toolkit.getDefaultToolkit();
+			Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
+			awtAppClassNameField.setAccessible(true);
+			awtAppClassNameField.set(xToolkit, startupWMClass);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 	/**

@@ -56,23 +56,25 @@ public class Installer extends ModuleInstall {
 			}
 		}
 		
-		if (AyatanaDesktop.isSupported()) {
-			try {
-				String productVersion = System.getProperty(
-						"netbeans.productversion", "Netbeans IDE 7.0");
-				String desktopFileName = "netbeans-"+productVersion.split(" +")[2];
-				AyatanaDesktop.tryInstallIcon("netbeans",
-						Installer.class.getResource(
-							"/org/nbs/java/ayatana/netbeans.png"));
-				if (!new File(System.getProperty("user.home"),
-						".local/share/applications/" + desktopFileName + ".desktop").exists())
-					desktopFileName = "netbeans";
-				final DesktopFile desktopFile = DesktopFile.initialize(desktopFileName, desktopFileName);
-				desktopFile.setIcon("netbeans");
-				desktopFile.update();
-			} catch (IOException e) {
-				Logger.getLogger(Installer.class.getName())
-						.log(Level.WARNING, "Can't install desktop file", e);
+		if (!"false".equals(System.getProperty("jayatana.launcher"))) {
+			if (AyatanaDesktop.isSupported()) {
+				try {
+					String productVersion = System.getProperty(
+							"netbeans.productversion", "Netbeans IDE 7.1.2");
+					String desktopFileName = "netbeans-"+productVersion.split(" +")[2];
+					AyatanaDesktop.tryInstallIcon("netbeans",
+							Installer.class.getResource(
+								"/org/nbs/java/ayatana/netbeans.png"));
+					if (!new File(System.getProperty("user.home"),
+							".local/share/applications/" + desktopFileName + ".desktop").exists())
+						desktopFileName = "netbeans";
+					final DesktopFile desktopFile = DesktopFile.initialize(desktopFileName, desktopFileName);
+					desktopFile.setIcon("netbeans");
+					desktopFile.update();
+				} catch (IOException e) {
+					Logger.getLogger(Installer.class.getName())
+							.log(Level.WARNING, "Can't install desktop file", e);
+				}
 			}
 		}
 		
@@ -82,37 +84,6 @@ public class Installer extends ModuleInstall {
 				if (AyatanaDesktop.isSupported()) {
 					JFrame frame = (JFrame)WindowManager.getDefault().getMainWindow();
 					ApplicationMenu.tryInstall(frame, new NbsExtraMenuAction());
-					
-					/*final LauncherAdapter launcherAdapter = new LauncherAdapter();
-					ProgressHandle handle = ProgressHandleFactory.createHandle("JAyatana");
-					handle.start(100);
-					handle.progress(50);
-					Controller controller = Controller.getDefault();
-					Component component = controller.getVisualComponent();
-					if (component instanceof JPanel) {
-						JPanel panel = (JPanel)component;
-						panel.addContainerListener(new ContainerListener() {
-							@Override
-							public void componentAdded(ContainerEvent e) {
-								if(e.getChild() instanceof JProgressBar) {
-									JProgressBar progress = (JProgressBar)e.getChild();
-									progress.addChangeListener(launcherAdapter);
-									progress.addPropertyChangeListener(launcherAdapter);
-									Launcher.getInstance().setProgressVisible(true);
-								}
-							}
-							@Override
-							public void componentRemoved(ContainerEvent e) {
-								if(e.getChild() instanceof JProgressBar) {
-									Launcher.getInstance().setProgressVisible(false);
-									JProgressBar progress = (JProgressBar)e.getChild();
-									progress.removePropertyChangeListener(launcherAdapter);
-									progress.removeChangeListener(launcherAdapter);
-								}
-							}
-						});
-					}
-					handle.finish();*/
 				}
 			}
 		});
