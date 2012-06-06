@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.nbs.java.ayatana
+OpenIDE-Module-Install: org/nbs/java/ayatana/Installer.class
+OpenIDE-Module-Layer: org/nbs/java/ayatana/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/nbs/java/ayatana/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.2.3
+

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="80">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>ayatana_Collections.h</itemPath>
+      <itemPath>ayatana_JKeyToXKey.h</itemPath>
+      <itemPath>ayatana_JVM.h</itemPath>
+      <itemPath>org_java_ayatana_ApplicationMenu.h</itemPath>
+      <itemPath>org_java_ayatana_GMainLoop.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>ayatana_Collections.c</itemPath>
+      <itemPath>ayatana_JKeyToXKey.c</itemPath>
+      <itemPath>ayatana_JVM.c</itemPath>
+      <itemPath>org_java_ayatana_ApplicationMenu.c</itemPath>
+      <itemPath>org_java_ayatana_GMainLoop.c</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>${JAVA_HOME}/include</pElem>
+            <pElem>${JAVA_HOME}/include/linux</pElem>
+          </incDir>
+          <commandLine>`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`</commandLine>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>${JAVA_HOME}/jre/lib/${JAVA_ARCH}</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerLibLibItem>jawt</linkerLibLibItem>
+            <linkerOptionItem>`pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>${JAVA_HOME}/include</pElem>
+            <pElem>${JAVA_HOME}/include/linux</pElem>
+          </incDir>
+          <commandLine>`pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`</commandLine>
+        </cTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>${JAVA_HOME}/jre/lib/${JAVA_ARCH}</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerLibLibItem>jawt</linkerLibLibItem>
+            <linkerOptionItem>`pkg-config --libs glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt`</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
