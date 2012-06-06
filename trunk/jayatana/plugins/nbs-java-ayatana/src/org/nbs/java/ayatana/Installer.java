@@ -56,20 +56,36 @@ public class Installer extends ModuleInstall {
 			}
 		}
 		
-		if (!"false".equals(System.getProperty("jayatana.launcher"))) {
+		if (!"false".equals(System.getProperty("netbeans.jayatana.desktopfile"))) {
 			if (AyatanaDesktop.isSupported()) {
 				try {
-					String productVersion = System.getProperty(
+					String desktopFileId;
+					if ((desktopFileId = System.getProperty("netbeans.jayatana.desktopfile.id")) == null) {
+						String productVersion = System.getProperty(
 							"netbeans.productversion", "Netbeans IDE 7.1.2");
-					String desktopFileName = "netbeans-"+productVersion.split(" +")[2];
-					AyatanaDesktop.tryInstallIcon("netbeans",
-							Installer.class.getResource(
-								"/org/nbs/java/ayatana/netbeans.png"));
+						desktopFileId = "netbeans-"+productVersion.split(" +")[2];
+					}
+					String iconName;
+					if ((iconName = System.getProperty("netbeans.jayatana.desktopfile.icon")) == null) {
+						AyatanaDesktop.tryInstallIcon("netbeans",
+								Installer.class.getResource(
+									"/org/nbs/java/ayatana/netbeans.png"));
+						iconName = "netbeans";
+					}
 					if (!new File(System.getProperty("user.home"),
-							".local/share/applications/" + desktopFileName + ".desktop").exists())
-						desktopFileName = "netbeans";
-					final DesktopFile desktopFile = DesktopFile.initialize(desktopFileName, desktopFileName);
-					desktopFile.setIcon("netbeans");
+							".local/share/applications/" + desktopFileId + ".desktop").exists())
+						desktopFileId = "netbeans";
+					final DesktopFile desktopFile = DesktopFile
+							.initialize(desktopFileId, desktopFileId);
+					desktopFile.setIcon(iconName);
+					if (System.getProperty("netbeans.jayatana.desktopfile.name") != null)
+						desktopFile.setName(System.getProperty("netbeans.jayatana.desktopfile.name"));
+					if (System.getProperty("netbeans.jayatana.desktopfile.comment") != null)
+						desktopFile.setComment(System.getProperty("netbeans.jayatana.desktopfile.comment"));
+					if (System.getProperty("netbeans.jayatana.desktopfile.categories") != null)
+						desktopFile.setCategories(System.getProperty("netbeans.jayatana.desktopfile.categories").split(","));
+					if (System.getProperty("netbeans.jayatana.desktopfile.command") != null)
+						desktopFile.setCommand(System.getProperty("netbeans.jayatana.desktopfile.command"));
 					desktopFile.update();
 				} catch (IOException e) {
 					Logger.getLogger(Installer.class.getName())
