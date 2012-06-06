@@ -25,6 +25,9 @@
  */
 package org.nbs.java.ayatana;
 
+import java.awt.EventQueue;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -44,7 +47,7 @@ import org.openide.windows.WindowManager;
  * @author Jared González
  */
 public class Installer extends ModuleInstall {
-@Override
+	@Override
 	public void restored() {
 		if (UIManager.getLookAndFeel().getClass().getName().equals(
 				"com.sun.java.swing.plaf.gtk.GTKLookAndFeel")) {
@@ -94,6 +97,18 @@ public class Installer extends ModuleInstall {
 			}
 		}
 		
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				JFrame frame = (JFrame)WindowManager.getDefault().getMainWindow();
+				frame.addPropertyChangeListener("iconImage", new PropertyChangeListener() {
+					@Override
+					public void propertyChange(PropertyChangeEvent evt) {
+						DesktopFile.setStartupWMClassToToolKit();
+					}
+				});
+			}
+		});
 		WindowManager.getDefault().invokeWhenUIReady(new Runnable() {
 			@Override
 			public void run() {
