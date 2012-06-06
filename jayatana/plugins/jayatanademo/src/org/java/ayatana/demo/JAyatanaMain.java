@@ -19,11 +19,13 @@ import org.java.ayatana.DesktopFile;
  * @author Jared González
  */
 public class JAyatanaMain extends JFrame {
-	public static void main(String args[]) {
-		installGTKExtended();
-		installDesktopFile();
-		JAyatanaMain ayatanamain = new JAyatanaMain();
-		ayatanamain.setVisible(true);
+	/**
+	 * Instalar menu global.
+	 */
+	private void installUnityGlobalMenu() {
+		if (AyatanaDesktop.isSupported()) {
+			ApplicationMenu.tryInstall(this);
+		}
 	}
 	
 	/**
@@ -39,7 +41,7 @@ public class JAyatanaMain extends JFrame {
 			}
 		} catch (Throwable e) {
 			Logger.getLogger(JAyatanaMain.class.getName())
-				.log(Level.INFO, "Error on GTK Look And Feel Extended", e);
+				.log(Level.WARNING, "Error on GTK Look And Feel Extended", e);
 		}
 	}
 	
@@ -57,10 +59,12 @@ public class JAyatanaMain extends JFrame {
 				df.setName("JAyatana Demo");
 				df.setCategories("Application,Development,IDE");
 				df.setIcon("javaswing");
+				// necesita especificar un comando de ejecución de la aplicación
+				df.setCommand("foo");
 				df.update();
 			} catch (IOException e) {
 				Logger.getLogger(JAyatanaMain.class.getName())
-					.log(Level.INFO, "Error on DesktopFile", e);
+					.log(Level.WARNING, "Error on DesktopFile", e);
 			}
 		}
 	}
@@ -70,18 +74,22 @@ public class JAyatanaMain extends JFrame {
 	 */
 	public static void uninstallDesktopFile() {
 		DesktopFile.getInstance().delete();
-		
 	}
 	
 	/**
-	 * Instalar menu global.
+	 * Ejecución de la aplicación
+	 * @param args argumentos de linea de comando
 	 */
-	private void installUnityGlobalMenu() {
-		if (AyatanaDesktop.isSupported()) {
-			ApplicationMenu.tryInstall(this);
-		}
+	public static void main(String args[]) {
+		installGTKExtended();
+		installDesktopFile();
+		JAyatanaMain ayatanamain = new JAyatanaMain();
+		ayatanamain.setVisible(true);
 	}
 	
+	/**
+	 * Contructor de la ventana
+	 */
 	public JAyatanaMain() throws HeadlessException {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
