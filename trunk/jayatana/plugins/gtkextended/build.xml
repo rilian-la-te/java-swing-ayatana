@@ -8,7 +8,7 @@
 <!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
 <!-- in the project's Project Properties dialog box.-->
 <project name="GTK_Extended" default="default" basedir=".">
-    <description>Builds, tests, and runs the project GTK_Extended.</description>
+    <description>Builds, tests, and runs the project GTK Extended.</description>
     <import file="nbproject/build-impl.xml"/>
     <!--
 

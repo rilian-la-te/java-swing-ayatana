@@ -253,19 +253,47 @@ final public class DesktopFile {
 			changed = true;
 		this.startupWMClass = startupWMClass;
 		if (changed) {
-			forceUpdateStartupWMClass();
+			setStartupWMClassToToolKit(startupWMClass);
+		}
+	}
+	
+	/**
+	 * Obtiene el valor real de WMClass de la clase ToolKit.
+	 * 
+	 * @return StartupWMClass
+	 */
+	public static String getStartupWMClassFromToolKit() {
+		try {
+			Toolkit xToolkit = Toolkit.getDefaultToolkit();
+			Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
+			awtAppClassNameField.setAccessible(true);
+			String out = (String)awtAppClassNameField.get(xToolkit);
+			awtAppClassNameField.setAccessible(false);
+			return out;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 	
 	/**
 	 * Permite forzar la actualización del StartupWMClass.
 	 */
-	public void forceUpdateStartupWMClass() {
+	public static void setStartupWMClassToToolKit() {
+		setStartupWMClassToToolKit(DesktopFile.getInstance().getStartupWMClass());
+	}
+	
+	/**
+	 * Permite forzar la actualización del StartupWMClass.
+	 * @param startupWMClass nombre
+	 */
+	public static void setStartupWMClassToToolKit(String startupWMClass) {
 		try {
+			System.setProperty("java.awt.WM_CLASS", startupWMClass);
 			Toolkit xToolkit = Toolkit.getDefaultToolkit();
 			Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
 			awtAppClassNameField.setAccessible(true);
 			awtAppClassNameField.set(xToolkit, startupWMClass);
+			awtAppClassNameField.setAccessible(false);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
