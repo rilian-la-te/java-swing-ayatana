@@ -90,6 +90,21 @@ public class Installer extends ModuleInstall {
 					if (System.getProperty("netbeans.jayatana.desktopfile.command") != null)
 						desktopFile.setCommand(System.getProperty("netbeans.jayatana.desktopfile.command"));
 					desktopFile.update();
+					
+					EventQueue.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							JFrame frame = (JFrame)WindowManager.getDefault().getMainWindow();
+							frame.addPropertyChangeListener("iconImage", new PropertyChangeListener() {
+								@Override
+								public void propertyChange(PropertyChangeEvent evt) {
+									if (AyatanaDesktop.isSupported()) {
+										DesktopFile.setStartupWMClassToToolKit();
+									}
+								}
+							});
+						}
+					});
 				} catch (IOException e) {
 					Logger.getLogger(Installer.class.getName())
 							.log(Level.WARNING, "Can't install desktop file", e);
@@ -97,18 +112,6 @@ public class Installer extends ModuleInstall {
 			}
 		}
 		
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				JFrame frame = (JFrame)WindowManager.getDefault().getMainWindow();
-				frame.addPropertyChangeListener("iconImage", new PropertyChangeListener() {
-					@Override
-					public void propertyChange(PropertyChangeEvent evt) {
-						DesktopFile.setStartupWMClassToToolKit();
-					}
-				});
-			}
-		});
 		WindowManager.getDefault().invokeWhenUIReady(new Runnable() {
 			@Override
 			public void run() {
