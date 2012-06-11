@@ -51,7 +51,7 @@ CCADMIN=CCadmin
 
 # Environment Java
 ifndef JAVA_HOME
-JAVA_HOME=/opt/java/jdk1.6.0_32
+JAVA_HOME=/opt/java/java64/jdk1.6.0_32
 endif
 ARCH=$(shell getconf LONG_BIT)
 ifeq (${ARCH},64)
@@ -135,6 +135,7 @@ javah:
 	export LD_LIBRARY_PATH=${JAVA_HOME}/jre/lib/${JAVA_ARCH}
 	${JAVA_HOME}/bin/javah -classpath ../build/classes org.java.ayatana.GMainLoop
 	${JAVA_HOME}/bin/javah -classpath ../build/classes org.java.ayatana.ApplicationMenu
+	${JAVA_HOME}/bin/javah -classpath ../build/classes org.java.ayatana.Launcher
 
 # include project implementation makefile
 include nbproject/Makefile-impl.mk

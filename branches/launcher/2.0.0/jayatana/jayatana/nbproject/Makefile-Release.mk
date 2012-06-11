@@ -34,6 +34,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/org_java_ayatana_Launcher.o \
 	${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o \
 	${OBJECTDIR}/ayatana_JVM.o \
 	${OBJECTDIR}/ayatana_Collections.o \
@@ -64,6 +65,11 @@ LDLIBSOPTIONS=-L${JAVA_HOME}/jre/lib/${JAVA_ARCH} -ljawt `pkg-config --libs glib
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -shared -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so -fPIC ${OBJECTFILES} ${LDLIBSOPTIONS} 
+
+${OBJECTDIR}/org_java_ayatana_Launcher.o: org_java_ayatana_Launcher.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -O2 -Wall -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux `pkg-config --cflags glib-2.0 gio-2.0 dbusmenu-glib-0.4 xt unity`    -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/org_java_ayatana_Launcher.o org_java_ayatana_Launcher.c
 
 ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o: org_java_ayatana_ApplicationMenu.c 
 	${MKDIR} -p ${OBJECTDIR}

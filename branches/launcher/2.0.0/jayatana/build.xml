@@ -210,12 +210,12 @@
 	</target>
 	
 	<target name="-build-unknow">
-		<mkdir dir="${build.classes.dir}/native/UNKNOW/amd64"/>
-		<mkdir dir="${build.classes.dir}/native/UNKNOW/i386"/>
+		<mkdir dir="${build.classes.dir}/native/DEFAULT/amd64"/>
+		<mkdir dir="${build.classes.dir}/native/DEFAULT/i386"/>
 		<copy file="${build.classes.dir}/native/${ubuntu.version}/amd64/libjayatana.so"
-			todir="${build.classes.dir}/native/UNKNOW/amd64" failonerror="false"/>
+			todir="${build.classes.dir}/native/DEFAULT/amd64" failonerror="false"/>
 		<copy file="${build.classes.dir}/native/${ubuntu.version}/i386/libjayatana.so"
-			todir="${build.classes.dir}/native/UNKNOW/i386" failonerror="false"/>
+			todir="${build.classes.dir}/native/DEFAULT/i386" failonerror="false"/>
 	</target>
 	
 	<target name="-post-clean" depends="-clean-jni-local, -clean-jni-remote"/>

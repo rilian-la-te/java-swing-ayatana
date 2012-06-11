@@ -35,8 +35,8 @@ import java.util.Properties;
  * @author Jared González
  */
 final public class AyatanaLibrary {
-	public static final String LIB_VERSION = "1.2.3";
-	public static final String JNI_VERSION = "1.2.0";
+	public static final String LIB_VERSION = "2.0.0";
+	public static final String JNI_VERSION = "2.0.0";
 	private static boolean loaded = false;
 	private static boolean successful = false;
 	
@@ -46,17 +46,21 @@ final public class AyatanaLibrary {
 	 * @throws IOException 
 	 */
 	private static String getUbuntuVersion() throws IOException {
-		Properties prop = new Properties();
-		File frel = new File("/etc/lsb-release");
-		if (frel.exists()) {
-			FileInputStream fis = new FileInputStream(frel);
-			try {
-				prop.load(fis);
-			} finally {
-				fis.close();
+		String ubuntuVersion;
+		if ((ubuntuVersion = System.getProperty("jayatana.distrib.release")) == null) {
+			Properties prop = new Properties();
+			File frel = new File("/etc/lsb-release");
+			if (frel.exists()) {
+				FileInputStream fis = new FileInputStream(frel);
+				try {
+					prop.load(fis);
+				} finally {
+					fis.close();
+				}
 			}
+			ubuntuVersion = prop.getProperty("DISTRIB_RELEASE", "DEFAULT");
 		}
-		return prop.getProperty("DISTRIB_RELEASE", "UNKNOW");
+		return ubuntuVersion;
 	}
 	
 	/**
@@ -74,7 +78,7 @@ final public class AyatanaLibrary {
 					String sourceLibrary = "/native/"+getUbuntuVersion()+"/"+
 							System.getProperty("os.arch")+"/libjayatana.so";
 					if (AyatanaLibrary.class.getResource(sourceLibrary) == null)
-						sourceLibrary = "/native/UNKNOW/"+
+						sourceLibrary = "/native/DEFAULT/"+
 							System.getProperty("os.arch")+"/libjayatana.so";
 
 					if (targetLibrary.exists()) {
