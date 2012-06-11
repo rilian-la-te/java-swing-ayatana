@@ -9,6 +9,7 @@
       <itemPath>ayatana_JVM.h</itemPath>
       <itemPath>org_java_ayatana_ApplicationMenu.h</itemPath>
       <itemPath>org_java_ayatana_GMainLoop.h</itemPath>
+      <itemPath>org_java_ayatana_Launcher.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -22,6 +23,7 @@
       <itemPath>ayatana_JVM.c</itemPath>
       <itemPath>org_java_ayatana_ApplicationMenu.c</itemPath>
       <itemPath>org_java_ayatana_GMainLoop.c</itemPath>
+      <itemPath>org_java_ayatana_Launcher.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
