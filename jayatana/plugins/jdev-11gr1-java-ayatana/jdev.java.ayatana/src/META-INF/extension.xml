@@ -1,4 +1,4 @@
-<extension id="jdev.java.ayatana" version="1.2.3" esdk-version="1.0"
+<extension id="jdev.java.ayatana" version="1.2.4" esdk-version="1.0"
            rsbundle-class="jdev.java.ayatana.Res"
            xmlns="http://jcp.org/jsr/198/extension-manifest">
   <name>${EXTENSION_NAME}</name>
@@ -7,7 +7,7 @@
     <import>oracle.ide</import>
   </dependencies>
   <classpaths>
-    <classpath>jdev.java.ayatana/jayatana-1.2.3.jar</classpath>
+    <classpath>jdev.java.ayatana/jayatana-1.2.4.jar</classpath>
   </classpaths>
   <hooks>
     <feature-hook>

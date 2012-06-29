@@ -53,13 +53,7 @@ public class JAyatanaAddin implements Addin {
             EventQueue.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    ApplicationMenu.tryInstall((JFrame)Ide.getMainWindow(),
-                            new DefaultExtraMenuAction() {
-                                @Override
-                                public boolean allowDynamicMenuBar() {
-                                    return true;
-                                }
-                            });
+                    ApplicationMenu.tryInstall((JFrame)Ide.getMainWindow());
                 }
             });
         }

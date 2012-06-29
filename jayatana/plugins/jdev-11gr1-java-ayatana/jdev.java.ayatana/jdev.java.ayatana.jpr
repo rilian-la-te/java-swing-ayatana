@@ -103,7 +103,7 @@
    <hash n="oracle.jdevimpl.config.JProjectLibraries">
       <list n="exportedReferences">
          <hash>
-            <value n="id" v="Jayatana-1.2.3.jar"/>
+            <value n="id" v="jayatana-1.2.4.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -111,18 +111,18 @@
          <list n="libraryDefinitions">
             <hash>
                <list n="classPath">
-                  <url path="../../../dist/jayatana-1.2.3.jar" jar-entry=""/>
+                  <url path="../../../dist/jayatana-1.2.4.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Jayatana-1.2.3.jar"/>
-               <value n="id" v="Jayatana-1.2.3.jar"/>
+               <value n="description" v="jayatana-1.2.4.jar"/>
+               <value n="id" v="jayatana-1.2.4.jar"/>
                <value n="locked" v="true"/>
             </hash>
          </list>
       </hash>
       <list n="libraryReferences">
          <hash>
-            <value n="id" v="Jayatana-1.2.3.jar"/>
+            <value n="id" v="jayatana-1.2.4.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
