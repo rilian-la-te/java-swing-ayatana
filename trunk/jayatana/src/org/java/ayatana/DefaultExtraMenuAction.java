@@ -38,7 +38,10 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 	
 	@Override
 	public boolean allowDynamicMenuBar() {
-		return false;
+		if (System.getProperties().containsKey("jayatana.dynamicMenuBar"))
+			return "true".equals(System.getProperty("jayatana.dynamicMenuBar"));
+		else
+			return true;
 	}
 	@Override
 	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
@@ -51,8 +54,6 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 					if (jcomp.getActionForKeyStroke(accelerator) != null ||
 							frame.getRootPane().getActionForKeyStroke(accelerator) != null)
 						return false;
-				} else if (acceleratorText.equals("alt pressed F4")) {
-					return false;
 				}
 			} else {
 				acceleratorText = null;
