@@ -8,6 +8,7 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.reflect.Method;
 
 import javax.accessibility.*;
 import org.java.ayatana.ApplicationMenu;
@@ -246,7 +247,13 @@ public class JFrame  extends Frame implements WindowConstants,
                 getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
             }
         }
-        sun.awt.SunToolkit.checkAndSetPolicy(this, true);
+        try {
+			Method m = Class.forName("sun.awt.SunToolkit")
+					.getDeclaredMethod("checkAndSetPolicy", Container.class, boolean.class);
+			m.invoke(null, new Object[] {this, true});
+		} catch (Exception e) {
+			// ignorar
+		}
     }
 
     /**
