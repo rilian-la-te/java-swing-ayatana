@@ -220,4 +220,16 @@
 	
 	<target name="-post-clean" depends="-clean-jni-local, -clean-jni-remote"/>
 	<target name="-pre-jar" depends="-build-jni-local, -build-jni-remote, -build-unknow"/>
+	
+	<target name="-post-jar">
+		<zip destfile="${dist.dir}/jayatana-1.2.4-src.zip" basedir="src">
+			<exclude name=".svn"/>
+		</zip>
+		
+		<zip destfile="${dist.dir}/JAyatanaDemoProject.zip" basedir="plugins/jayatanademo">
+			<exclude name=".svn"/>
+			<exclude name="build"/>
+			<exclude name="dist"/>
+		</zip>
+	</target>
 </project>
