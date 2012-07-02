@@ -100,6 +100,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	public static boolean tryInstall(JFrame frame, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
 		if (frame == null || menubar == null || additionalMenuAction == null)
 			throw new NullPointerException();
+		if (frames.contains(frame))
+			return false;
 		if (!"libappmenu.so".equals(System.getenv("UBUNTU_MENUPROXY")))
 			return false;
 		if (AyatanaLibrary.load()) {
@@ -287,15 +289,13 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * @param menubar 
 	 */
 	private ApplicationMenu(JFrame frame, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
-		if (!frames.contains(frame)) {
-			frames.add(frame);
-			this.frame = frame;
-			this.menubar = menubar;
-			extraMenuAction = additionalMenuAction;
-			frame.addWindowListener(this);
-			if (frame.isDisplayable())
-				tryInstall();
-		}
+		frames.add(frame);
+		this.frame = frame;
+		this.menubar = menubar;
+		extraMenuAction = additionalMenuAction;
+		frame.addWindowListener(this);
+		if (frame.isDisplayable())
+			tryInstall();
 	}
 	
 	/**
@@ -645,13 +645,13 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private long approveRebuild = -1;
 	private void rebuildMenuBar() {
 		if (approveRebuild == -1) {
-			approveRebuild = System.currentTimeMillis()+600;
+			approveRebuild = System.currentTimeMillis()+400;
 			new Thread() {
 				@Override
 				public void run() {
 					try {
 						while (System.currentTimeMillis() < approveRebuild)
-							Thread.sleep(200);
+							Thread.sleep(100);
 					} catch (InterruptedException e) {
 						Logger.getLogger(ApplicationMenu.class.getName())
 								.log(Level.WARNING, "Can't wait approve rebuild", e);
@@ -663,7 +663,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				}
 			}.start();
 		} else {
-			approveRebuild = System.currentTimeMillis()+600;
+			approveRebuild = System.currentTimeMillis()+400;
 		}
 	}
 	@Override
