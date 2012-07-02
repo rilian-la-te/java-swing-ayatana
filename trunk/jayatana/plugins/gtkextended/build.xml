@@ -71,4 +71,9 @@
     nbproject/build-impl.xml file. 
 
     -->
+	<target name="-post-jar">
+		<zip destfile="${dist.dir}/gtkextended-1.2-src.zip" basedir="src">
+			<exclude name=".svn"/>
+		</zip>
+	</target>
 </project>

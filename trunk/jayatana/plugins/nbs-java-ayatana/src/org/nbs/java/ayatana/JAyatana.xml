@@ -10,11 +10,11 @@ and open the template in the editor.
 	<localizing-bundle>org.nbs.java.ayatana.Bundle</localizing-bundle>
 	<volume>
 		<type>classpath</type>
-		<resource>jar:nbinst://org.nbs.java.ayatana/libs/jayatana-1.2.3.jar!/</resource>
+		<resource>jar:nbinst://org.nbs.java.ayatana/libs/jayatana-1.2.4.jar!/</resource>
 	</volume>
 	<volume>
 		<type>src</type>
-		<resource>jar:nbinst://org.nbs.java.ayatana/sources/jayatana-1.2.3-src.jar!/</resource>
+		<resource>jar:nbinst://org.nbs.java.ayatana/sources/jayatana-1.2.4-src.jar!/</resource>
 	</volume>
 	<volume>
 		<type>javadoc</type>
