@@ -27,14 +27,16 @@ package javax.swing;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
+import java.io.*;
 import java.util.Locale;
 import java.util.Vector;
-import java.io.Serializable;
 import java.lang.reflect.Method;
 
 import javax.accessibility.*;
 import org.java.ayatana.ApplicationMenu;
 import org.java.ayatana.AyatanaDesktop;
+import org.java.ayatana.ExtraMenuAction;
+import org.java.ayatana.RulesLoader;
 
 
 /**
@@ -947,11 +949,19 @@ public class JFrame  extends Frame implements WindowConstants,
         }
     } // inner class AccessibleJFrame
 	
+	private boolean ayatanaRegister = false;
 	@Override
 	public void setVisible(boolean b) {
 		if (b) {
-			if (AyatanaDesktop.isSupported() && getJMenuBar() != null) {
-				ApplicationMenu.tryInstall(JFrame.this);
+			if (AyatanaDesktop.isSupported() && getJMenuBar() != null && !ayatanaRegister) {
+				String menuActionClass = RulesLoader.load(this.getTitle());
+				try {
+					ApplicationMenu.tryInstall(JFrame.this,
+							(ExtraMenuAction)Class.forName(menuActionClass).newInstance());
+				} catch (Exception e) {
+					// ignorar
+				}
+				ayatanaRegister = true;
 			}
 		}
 		super.setVisible(b);
