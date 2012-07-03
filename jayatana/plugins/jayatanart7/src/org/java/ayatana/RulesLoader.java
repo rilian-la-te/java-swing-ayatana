@@ -94,27 +94,27 @@ public class RulesLoader {
 		if (titleWindow == null)
 			titleWindow = "unknow";
 		String menuActionClass = null;
+		File frulesDir = new File(System.getProperty("user.home"),".jayatana.rules.d");
+		if (frulesDir.exists() && frulesDir.isDirectory() && frulesDir.canRead())
+			for (File fr : frulesDir.listFiles()) {
+				if (fr.isFile() && fr.canRead()) {
+					if ((menuActionClass = testRule(fr, titleWindow)) != null)
+						return menuActionClass;
+				}
+			}
+		frulesDir = new File("/etc/jayatana.rules.d");
+		if (frulesDir.exists() && frulesDir.isDirectory() && frulesDir.canRead())
+			for (File fr : frulesDir.listFiles()) {
+				if (fr.isFile() && fr.canRead()) {
+					if ((menuActionClass = testRule(fr, titleWindow)) != null)
+						return menuActionClass;
+				}
+			}
 		File frules = new File("/etc/jayatana.rules");
 		if (frules.exists() && frules.isFile() && frules.canRead()) {
 			if ((menuActionClass = testRule(frules, titleWindow)) != null)
 				return menuActionClass;
 		}
-		File frulesDir = new File("/etc/jayatana.rules.d");
-		if (frulesDir.exists() && frulesDir.isDirectory() && frulesDir.canRead())
-			for (File fr : frulesDir.listFiles()) {
-				if (fr.isFile() && fr.canRead()) {
-					if ((menuActionClass = testRule(fr, titleWindow)) != null)
-						return menuActionClass;
-				}
-			}
-		frulesDir = new File(System.getProperty("user.home"),".jayatana.rules.d");
-		if (frulesDir.exists() && frulesDir.isDirectory() && frulesDir.canRead())
-			for (File fr : frulesDir.listFiles()) {
-				if (fr.isFile() && fr.canRead()) {
-					if ((menuActionClass = testRule(fr, titleWindow)) != null)
-						return menuActionClass;
-				}
-			}
 		if (menuActionClass == null)
 			menuActionClass = DEFAULT_MENU_ACTION_CLASS;
 		return menuActionClass;
