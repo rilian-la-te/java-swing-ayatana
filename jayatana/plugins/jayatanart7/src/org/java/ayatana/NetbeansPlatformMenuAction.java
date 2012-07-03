@@ -32,6 +32,7 @@ public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
 	
 	private void initializeDynamicMenu(Class<?> classMenu) throws NoSuchMethodException {
 		methodSynchMenuPresenters = classMenu.getDeclaredMethod("synchMenuPresenters", JComponent[].class);
+		methodSynchMenuPresenters.setAccessible(true);
 	}
 	
 	@Override
