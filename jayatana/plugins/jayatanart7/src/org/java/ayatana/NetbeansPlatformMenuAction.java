@@ -36,6 +36,11 @@ public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
 	}
 	
 	@Override
+	public boolean allowDynamicMenuBar() {
+		return false;
+	}
+	
+	@Override
 	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		if (shortcut)
 			return false;
