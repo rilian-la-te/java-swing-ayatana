@@ -149,6 +149,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private boolean tryInstalled = false;
 	private ExtraMenuAction extraMenuAction;
 	private long windowxid = -1;
+	private boolean allowDynamicMenuBar;
 	
 	native private void setCurrent(long windowxid);
 	/**
@@ -293,6 +294,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		this.frame = frame;
 		this.menubar = menubar;
 		extraMenuAction = additionalMenuAction;
+		allowDynamicMenuBar = extraMenuAction.allowDynamicMenuBar();
 		frame.addWindowListener(this);
 		if (frame.isDisplayable())
 			tryInstall();
@@ -350,7 +352,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 			if (comp instanceof JMenu) {
 				if (comp.isVisible())
 					addMenu((JMenu)comp);
-				if (first) {
+				if (first && allowDynamicMenuBar) {
 					((JMenu)comp).addComponentListener(this);
 					((JMenu)comp).addPropertyChangeListener(this);
 				}
@@ -365,7 +367,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		Toolkit.getDefaultToolkit()
 				.addAWTEventListener(ApplicationMenu.this, AWTEvent.KEY_EVENT_MASK);
 		buildMenuBar(true);
-		menubar.addContainerListener(ApplicationMenu.this);
+		if (allowDynamicMenuBar)
+			menubar.addContainerListener(ApplicationMenu.this);
 		menubar.setVisible(false);
 	}
 	/**
@@ -373,14 +376,16 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * deshabilite al applicationmenu registrado
 	 */
 	private synchronized void uninstall() {
-		for (Component comp : menubar.getComponents())
-			if (comp instanceof JMenu) {
-				((JMenu)comp).removeComponentListener(this);
-				((JMenu)comp).removePropertyChangeListener(this);
+		if (allowDynamicMenuBar) {
+			for (Component comp : menubar.getComponents()) {
+				if (comp instanceof JMenu) {
+					((JMenu)comp).removeComponentListener(this);
+					((JMenu)comp).removePropertyChangeListener(this);
+				}
 			}
-		menubar.removeContainerListener(ApplicationMenu.this);
-		Toolkit.getDefaultToolkit()
-				.removeAWTEventListener(ApplicationMenu.this);
+			menubar.removeContainerListener(ApplicationMenu.this);
+		}
+		Toolkit.getDefaultToolkit().removeAWTEventListener(ApplicationMenu.this);
 		menubar.setVisible(true);
 	}
 	
@@ -645,7 +650,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	private long approveRebuild = -1;
 	private void rebuildMenuBar() {
 		if (approveRebuild == -1) {
-			approveRebuild = System.currentTimeMillis()+400;
+			approveRebuild = System.currentTimeMillis()+500;
 			new Thread() {
 				@Override
 				public void run() {
@@ -663,52 +668,42 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				}
 			}.start();
 		} else {
-			approveRebuild = System.currentTimeMillis()+400;
+			approveRebuild = System.currentTimeMillis()+500;
 		}
 	}
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if ("enabled".equals(evt.getPropertyName()))
-			if (extraMenuAction.allowDynamicMenuBar()) {
-				if (evt.getSource() instanceof JMenu) {
-					rebuildMenuBar();
-				}
+			if (evt.getSource() instanceof JMenu) {
+				rebuildMenuBar();
 			}
 	}
 	@Override
 	public void componentAdded(ContainerEvent e) {
-		if (extraMenuAction.allowDynamicMenuBar()) {
-			if (e.getChild() instanceof JMenu) {
-				((JMenu)e.getChild()).addComponentListener(this);
-				((JMenu)e.getChild()).addPropertyChangeListener(this);
-				rebuildMenuBar();
-			}
+		if (e.getChild() instanceof JMenu) {
+			((JMenu)e.getChild()).addComponentListener(this);
+			((JMenu)e.getChild()).addPropertyChangeListener(this);
+			rebuildMenuBar();
 		}
 	}
 	@Override
 	public void componentRemoved(ContainerEvent e) {
-		if (extraMenuAction.allowDynamicMenuBar()) {
-			if (e.getChild() instanceof JMenu) {
-				((JMenu)e.getChild()).removeComponentListener(this);
-				((JMenu)e.getChild()).removePropertyChangeListener(this);
-				rebuildMenuBar();
-			}
+		if (e.getChild() instanceof JMenu) {
+			((JMenu)e.getChild()).removeComponentListener(this);
+			((JMenu)e.getChild()).removePropertyChangeListener(this);
+			rebuildMenuBar();
 		}
 	}
 	@Override
 	public void componentShown(ComponentEvent e) {
-		if (extraMenuAction.allowDynamicMenuBar()) {
-			if (e.getSource() instanceof JMenu) {
-				rebuildMenuBar();
-			}
+		if (e.getSource() instanceof JMenu) {
+			rebuildMenuBar();
 		}
 	}
 	@Override
 	public void componentHidden(ComponentEvent e) {
-		if (extraMenuAction.allowDynamicMenuBar()) {
-			if (e.getSource() instanceof JMenu) {
-				rebuildMenuBar();
-			}
+		if (e.getSource() instanceof JMenu) {
+			rebuildMenuBar();
 		}
 	}
 	@Override

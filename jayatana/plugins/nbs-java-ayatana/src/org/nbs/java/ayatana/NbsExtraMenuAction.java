@@ -62,6 +62,10 @@ public class NbsExtraMenuAction extends DefaultExtraMenuAction {
 		if (!methodDynaModel.isAccessible())
 			methodDynaModel.setAccessible(true);
 	}
+	@Override
+	public boolean allowDynamicMenuBar() {
+		return false;
+	}
 	
 	@Override
 	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
