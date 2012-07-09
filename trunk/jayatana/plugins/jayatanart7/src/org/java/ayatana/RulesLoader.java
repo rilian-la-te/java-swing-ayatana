@@ -57,20 +57,18 @@ public class RulesLoader {
 							param = input.split("\t");
 							if (param[0].startsWith("T:")) {
 								if (testTitle(param[0].substring(2), titleWindow)) {
-									if (!"*".equals(param[1])) {
+									if (!"*".equals(param[1]))
 										menuActionClass = param[1];
-									}
 									if (param.length == 3)
-										startupWMClass = param[2];
+										DesktopFile.setStartupWMClassToToolKit(param[2]);
 									return menuActionClass;
 								}
 							} else if (param[0].startsWith("P:")) {
 								if (testProperty(param[0].substring(2))) {
-									if (!"*".equals(param[1])) {
+									if (!"*".equals(param[1]))
 										menuActionClass = param[1];
-									}
 									if (param.length == 3)
-										startupWMClass = param[2];
+										DesktopFile.setStartupWMClassToToolKit(param[2]);
 									return menuActionClass;
 								}
 							}
@@ -82,9 +80,10 @@ public class RulesLoader {
 			} catch (IOException e) {
 				// ignorar
 			}
+		} else {
+			if (startupWMClass != null)
+				DesktopFile.setStartupWMClassToToolKit(startupWMClass);
 		}
-		if (startupWMClass != null)
-			DesktopFile.setStartupWMClassToToolKit(startupWMClass);
 		return menuActionClass;
 	}
 	

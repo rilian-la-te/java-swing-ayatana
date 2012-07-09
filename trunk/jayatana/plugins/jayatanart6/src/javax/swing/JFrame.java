@@ -33,10 +33,7 @@ import java.util.Vector;
 import java.lang.reflect.Method;
 
 import javax.accessibility.*;
-import org.java.ayatana.ApplicationMenu;
-import org.java.ayatana.AyatanaDesktop;
-import org.java.ayatana.ExtraMenuAction;
-import org.java.ayatana.RulesLoader;
+import org.java.ayatana.*;
 
 
 /**
@@ -957,11 +954,13 @@ public class JFrame  extends Frame implements WindowConstants,
 				if (AyatanaDesktop.isSupported() && getJMenuBar() != null &&
 						!System.getProperties().containsKey("jayatana.ignoreEndorsed")) {
 					String menuActionClass = RulesLoader.load(this.getTitle());
+					ExtraMenuAction extraMenuAction = null;
 					try {
-						ApplicationMenu.tryInstall(JFrame.this,
-								(ExtraMenuAction)Class.forName(menuActionClass).newInstance());
+						extraMenuAction = (ExtraMenuAction)Class.forName(menuActionClass).newInstance();
 					} catch (Exception e) {
-						// ignorar
+						extraMenuAction = new DefaultExtraMenuAction();
+					} finally {
+						ApplicationMenu.tryInstall(JFrame.this, extraMenuAction);
 					}
 				}
 				ayatanaRegister = true;
