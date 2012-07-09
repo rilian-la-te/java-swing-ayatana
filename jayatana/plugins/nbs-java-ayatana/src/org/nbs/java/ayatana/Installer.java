@@ -47,6 +47,10 @@ import org.openide.windows.WindowManager;
  * @author Jared González
  */
 public class Installer extends ModuleInstall {
+	static {
+		System.setProperty("jayatana.ignoreEndorsed", "true");
+	}
+	
 	@Override
 	public void restored() {
 		if (UIManager.getLookAndFeel().getClass().getName().equals(
