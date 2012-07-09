@@ -42,51 +42,50 @@ public class RulesLoader {
 	private static String testRule(File frules, String titleWindow) {
 		String menuActionClass = System.getProperty("jayatana.menuActionClass");
 		String startupWMClass = System.getProperty("jayatana.startupWMClass");
-		try {
-			BufferedReader reader = new BufferedReader(
-					new FileReader(frules));
+		if (startupWMClass == null && menuActionClass == null) {
+			menuActionClass = DEFAULT_MENU_ACTION_CLASS;
 			try {
-				String line;
-				String input;
-				String param[];
-				while ((line = reader.readLine()) != null) {
-					if (!line.startsWith("#") && line.contains("\t")) {
-						input = line.replaceAll("\t+", "\t");
-						param = input.split("\t");
-						if (param[0].startsWith("T:")) {
-							if (testTitle(param[0].substring(2), titleWindow)) {
-								if ("*".equals(param[1])) {
-									menuActionClass = DEFAULT_MENU_ACTION_CLASS;
-								} else {
-									menuActionClass = param[1];
+				BufferedReader reader = new BufferedReader(
+						new FileReader(frules));
+				try {
+					String line;
+					String input;
+					String param[];
+					while ((line = reader.readLine()) != null) {
+						if (!line.startsWith("#") && line.contains("\t")) {
+							input = line.replaceAll("\t+", "\t");
+							param = input.split("\t");
+							if (param[0].startsWith("T:")) {
+								if (testTitle(param[0].substring(2), titleWindow)) {
+									if (!"*".equals(param[1])) {
+										menuActionClass = param[1];
+									}
+									if (param.length == 3) {
+										if (!"*".equals(param[2]))
+											startupWMClass = param[2];
+									}
+									return menuActionClass;
 								}
-								if (param.length == 3) {
-									if (!"*".equals(param[2]))
-										startupWMClass = param[2];
+							} else if (param[0].startsWith("P:")) {
+								if (testProperty(param[0].substring(2))) {
+									if (!"*".equals(param[1])) {
+										menuActionClass = param[1];
+									}
+									if (param.length == 3) {
+										if (!"*".equals(param[2]))
+											startupWMClass = param[2];
+									}
+									return menuActionClass;
 								}
-								return menuActionClass;
-							}
-						} else if (param[0].startsWith("P:")) {
-							if (testProperty(param[0].substring(2))) {
-								if ("*".equals(param[1])) {
-									menuActionClass = DEFAULT_MENU_ACTION_CLASS;
-								} else {
-									menuActionClass = param[1];
-								}
-								if (param.length == 3) {
-									if (!"*".equals(param[2]))
-										startupWMClass = param[2];
-								}
-								return menuActionClass;
 							}
 						}
 					}
+				} finally {
+					reader.close();
 				}
-			} finally {
-				reader.close();
+			} catch (IOException e) {
+				// ignorar
 			}
-		} catch (IOException e) {
-			// ignorar
 		}
 		if (startupWMClass != null)
 			DesktopFile.setStartupWMClassToToolKit(startupWMClass);
