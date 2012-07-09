@@ -15,6 +15,10 @@ import org.java.ayatana.DefaultExtraMenuAction;
 import org.java.ayatana.DesktopFile;
 
 public class JAyatanaAddin implements Addin {
+	static {
+		System.setProperty("jayatana.ignoreEndorsed", "true");
+	}
+	
     public void initialize() {
         if (AyatanaDesktop.isSupported()) {
             try {
