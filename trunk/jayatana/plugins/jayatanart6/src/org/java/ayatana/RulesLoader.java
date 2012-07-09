@@ -60,10 +60,8 @@ public class RulesLoader {
 									if (!"*".equals(param[1])) {
 										menuActionClass = param[1];
 									}
-									if (param.length == 3) {
-										if (!"*".equals(param[2]))
-											startupWMClass = param[2];
-									}
+									if (param.length == 3)
+										startupWMClass = param[2];
 									return menuActionClass;
 								}
 							} else if (param[0].startsWith("P:")) {
@@ -71,10 +69,8 @@ public class RulesLoader {
 									if (!"*".equals(param[1])) {
 										menuActionClass = param[1];
 									}
-									if (param.length == 3) {
-										if (!"*".equals(param[2]))
-											startupWMClass = param[2];
-									}
+									if (param.length == 3)
+										startupWMClass = param[2];
 									return menuActionClass;
 								}
 							}
