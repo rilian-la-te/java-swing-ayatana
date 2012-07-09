@@ -65,7 +65,7 @@ final public class AyatanaLibrary {
 	public static boolean load() {
 		if (!loaded) {
 			try {
-				File targetLibrary = new File("/usr/lib/jayatana/libjayatana.so");
+				File targetLibrary = new File("/usr/lib/jayatana/libjayatana.so."+JNI_VERSION);
 				if (!targetLibrary.exists()) {
 					final File targetDirectory = new File(
 							System.getProperty("user.home"), ".java/jayatana/"+JNI_VERSION+"/"+

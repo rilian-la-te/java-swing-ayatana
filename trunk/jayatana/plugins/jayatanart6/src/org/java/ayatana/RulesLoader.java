@@ -40,7 +40,8 @@ public class RulesLoader {
 	}
 	
 	private static String testRule(File frules, String titleWindow) {
-		String menuActionClass = null;
+		String menuActionClass = System.getProperty("jayatana.menuActionClass");
+		String startupWMClass = System.getProperty("jayatana.startupWMClass");
 		try {
 			BufferedReader reader = new BufferedReader(
 					new FileReader(frules));
@@ -61,7 +62,7 @@ public class RulesLoader {
 								}
 								if (param.length == 3) {
 									if (!"*".equals(param[2]))
-										DesktopFile.setStartupWMClassToToolKit(param[2]);
+										startupWMClass = param[2];
 								}
 								return menuActionClass;
 							}
@@ -74,7 +75,7 @@ public class RulesLoader {
 								}
 								if (param.length == 3) {
 									if (!"*".equals(param[2]))
-										DesktopFile.setStartupWMClassToToolKit(param[2]);
+										startupWMClass = param[2];
 								}
 								return menuActionClass;
 							}
@@ -87,6 +88,8 @@ public class RulesLoader {
 		} catch (IOException e) {
 			// ignorar
 		}
+		if (startupWMClass != null)
+			DesktopFile.setStartupWMClassToToolKit(startupWMClass);
 		return menuActionClass;
 	}
 	
