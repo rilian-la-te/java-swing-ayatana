@@ -953,13 +953,16 @@ public class JFrame  extends Frame implements WindowConstants,
 	@Override
 	public void setVisible(boolean b) {
 		if (b) {
-			if (AyatanaDesktop.isSupported() && getJMenuBar() != null && !ayatanaRegister) {
-				String menuActionClass = RulesLoader.load(this.getTitle());
-				try {
-					ApplicationMenu.tryInstall(JFrame.this,
-							(ExtraMenuAction)Class.forName(menuActionClass).newInstance());
-				} catch (Exception e) {
-					// ignorar
+			if (!ayatanaRegister) {
+				if (AyatanaDesktop.isSupported() && getJMenuBar() != null &&
+						!System.getProperties().containsKey("jayatana.ignoreEndorsed")) {
+					String menuActionClass = RulesLoader.load(this.getTitle());
+					try {
+						ApplicationMenu.tryInstall(JFrame.this,
+								(ExtraMenuAction)Class.forName(menuActionClass).newInstance());
+					} catch (Exception e) {
+						// ignorar
+					}
 				}
 				ayatanaRegister = true;
 			}
