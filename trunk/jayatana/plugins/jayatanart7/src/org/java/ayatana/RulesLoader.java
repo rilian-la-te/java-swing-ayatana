@@ -43,7 +43,6 @@ public class RulesLoader {
 		String menuActionClass = System.getProperty("jayatana.menuActionClass");
 		String startupWMClass = System.getProperty("jayatana.startupWMClass");
 		if (startupWMClass == null && menuActionClass == null) {
-			menuActionClass = DEFAULT_MENU_ACTION_CLASS;
 			try {
 				BufferedReader reader = new BufferedReader(
 						new FileReader(frules));
