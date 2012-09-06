@@ -652,18 +652,20 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	}
 	
 	/**
-	 * Buscar el JFrame contenedor
+	 * Buscar una ventana en el contenedor
 	 * 
 	 * @param comp componente
-	 * @return JFrame contenedor
+	 * @return Window contenedor
 	 */
-	private JFrame getFrame(Component comp) {
+	private Window getWindow(Component comp) {
 		if (comp == null)
 			return null;
 		else if (comp instanceof JFrame)
-			return (JFrame)comp;
+			return (Window)comp;
+		else if (comp instanceof JDialog)
+			return (Window)comp;
 		else
-			return getFrame(comp.getParent());
+			return getWindow(comp.getParent());
 	}
 	/*
 	 * Control de eventos de acceleradores
@@ -678,14 +680,16 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 					e.getKeyCode() != KeyEvent.VK_META &&
 					e.getKeyCode() != KeyEvent.VK_ALT_GRAPH &&
 					window.isActive()) {
-				JFrame currentframe;
+				Window currwindow;
 				if (event.getSource() instanceof Component)
-					currentframe = getFrame((Component)event.getSource());
+					currwindow = getWindow((Component)event.getSource());
 				else if (event.getSource() instanceof JFrame)
-					currentframe = (JFrame)event.getSource();
+					currwindow = (Window)event.getSource();
+				else if (event.getSource() instanceof JDialog)
+					currwindow = (Window)event.getSource();
 				else 
-					currentframe = null;
-				if (window.equals(currentframe))
+					currwindow = null;
+				if (window.equals(currwindow))
 					invokeAccelerator(e.getKeyCode(), e.getModifiersEx() | e.getModifiers());
 			}
 		}
