@@ -8,6 +8,7 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.reflect.Method;
 import javax.accessibility.*;
 import org.java.ayatana.RulesLoader;
 
@@ -601,7 +602,14 @@ public class JDialog extends Dialog implements WindowConstants,
                 getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
             }
         }
-        sun.awt.SunToolkit.checkAndSetPolicy(this, true);
+		
+        try {
+			Method m = Class.forName("sun.awt.SunToolkit")
+					.getDeclaredMethod("checkAndSetPolicy", Container.class);
+			m.invoke(null, new Object[] {this});
+		} catch (Exception e) {
+			// ignorar
+		}
     }
 
     /**
