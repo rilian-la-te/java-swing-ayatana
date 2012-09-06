@@ -47,18 +47,89 @@ import javax.swing.event.PopupMenuListener;
  */
 final public class ApplicationMenu implements WindowListener, AWTEventListener, ContainerListener,
 		ComponentListener, PropertyChangeListener {
-	private final static List<JFrame> frames = new ArrayList<JFrame>();
+	
+	/**
+	 * Obtiene la barra de menus de la ventana
+	 * 
+	 * @param window ventan
+	 * @return barra de menus
+	 */
+	public static JMenuBar getWindowMenuBar(Window window) {
+		if (window instanceof JFrame)
+			return ((JFrame)window).getJMenuBar();
+		else if (window instanceof JDialog)
+			return ((JDialog)window).getJMenuBar();
+		else
+			return null;
+	}
+	/**
+	 * Obtiene el titulo de la ventana
+	 * 
+	 * @param window ventana
+	 * @return titulo de ventana
+	 */
+	public static String getWindowTitle(Window window) {
+		if (window instanceof JFrame)
+			return ((JFrame)window).getTitle();
+		else if (window instanceof JDialog)
+			return ((JDialog)window).getTitle();
+		else
+			return null;
+	}
+	/**
+	 * Obtiene el panel raíz de la ventana
+	 * @param window ventana
+	 * @return panel raíz
+	 */
+	public static JRootPane getWindowRootPane(Window window) {
+		if (window instanceof JFrame)
+			return ((JFrame)window).getRootPane();
+		else if (window instanceof JDialog)
+			return ((JDialog)window).getRootPane();
+		else
+			return null;
+	}
+	/**
+	 * Lista de ventanas cargadas
+	 */
+	private final static List<Window> windows = new ArrayList<Window>();
 	/**
 	 * Trata de instalar el menu de aplicaciones globales, si no es posible
 	 * por incompatibilidad del sistema operativo o esta des habilitado el
 	 * menu global retornara <code>False</code>.
 	 * 
-	 * @param frame Ventana que contiene la barra de menus
+	 * @param window Ventana que contiene la barra de menus
 	 * @return retorna <code>True</code> si se puede instalar el menu global
 	 * de lo contrario retorna <code>False</code>.
 	 */
-	public static boolean tryInstall(JFrame frame) {
-		return ApplicationMenu.tryInstall(frame, frame.getJMenuBar(), new DefaultExtraMenuAction());
+	public static boolean tryInstall(Window window) {
+		return ApplicationMenu.tryInstall(window, getWindowMenuBar(window), new DefaultExtraMenuAction());
+	}
+	/**
+	 * Trata de instalar el menu de aplicaciones globales, si no es posible
+	 * por incompatibilidad del sistema operativo o esta des habilitado el
+	 * menu global retornara <code>False</code>.
+	 * 
+	 * @param window Ventana que contiene la barra de menus
+	 * @param menubar La barra de menus en caso de que este contenida entro panel
+	 * @return retorna <code>True</code> si se puede instalar el menu global
+	 * de lo contrario retorna <code>False</code>.
+	 */
+	public static boolean tryInstall(Window window, JMenuBar menubar) {
+		return ApplicationMenu.tryInstall(window, getWindowMenuBar(window), new DefaultExtraMenuAction());
+	}
+	/**
+	 * Trata de instalar el menu de aplicaciones globales, si no es posible
+	 * por incompatibilidad del sistema operativo o esta des habilitado el
+	 * menu global retornara <code>False</code>.
+	 * 
+	 * @param window Ventana que contiene la barra de menus
+	 * @param additionalMenuAction interface para acciones adicionales
+	 * @return retorna <code>True</code> si se puede instalar el menu global
+	 * de lo contrario retorna <code>False</code>.
+	 */
+	public static boolean tryInstall(Window window, ExtraMenuAction additionalMenuAction) {
+		return ApplicationMenu.tryInstall(window, getWindowMenuBar(window), additionalMenuAction);
 	}
 	/**
 	 * Trata de instalar el menu de aplicaciones globales, si no es posible
@@ -67,45 +138,21 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	 * 
 	 * @param frame Ventana que contiene la barra de menus
 	 * @param menubar La barra de menus en caso de que este contenida entro panel
-	 * @return retorna <code>True</code> si se puede instalar el menu global
-	 * de lo contrario retorna <code>False</code>.
-	 */
-	public static boolean tryInstall(JFrame frame, JMenuBar menubar) {
-		return ApplicationMenu.tryInstall(frame, menubar, new DefaultExtraMenuAction());
-	}
-	/**
-	 * Trata de instalar el menu de aplicaciones globales, si no es posible
-	 * por incompatibilidad del sistema operativo o esta des habilitado el
-	 * menu global retornara <code>False</code>.
-	 * 
-	 * @param frame Ventana que contiene la barra de menus
 	 * @param additionalMenuAction interface para acciones adicionales
 	 * @return retorna <code>True</code> si se puede instalar el menu global
 	 * de lo contrario retorna <code>False</code>.
 	 */
-	public static boolean tryInstall(JFrame frame, ExtraMenuAction additionalMenuAction) {
-		return ApplicationMenu.tryInstall(frame, frame.getJMenuBar(), additionalMenuAction);
-	}
-	/**
-	 * Trata de instalar el menu de aplicaciones globales, si no es posible
-	 * por incompatibilidad del sistema operativo o esta des habilitado el
-	 * menu global retornara <code>False</code>.
-	 * 
-	 * @param frame Ventana que contiene la barra de menus
-	 * @param menubar La barra de menus en caso de que este contenida entro panel
-	 * @param additionalMenuAction interface para acciones adicionales
-	 * @return retorna <code>True</code> si se puede instalar el menu global
-	 * de lo contrario retorna <code>False</code>.
-	 */
-	public static boolean tryInstall(JFrame frame, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
-		if (frame == null || menubar == null || additionalMenuAction == null)
+	public static boolean tryInstall(Window window, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
+		if (window == null || additionalMenuAction == null)
 			throw new NullPointerException();
-		if (frames.contains(frame))
+		if (menubar == null)
+			return false;
+		if (windows.contains(window))
 			return false;
 		if (!"libappmenu.so".equals(System.getenv("UBUNTU_MENUPROXY")))
 			return false;
 		if (AyatanaLibrary.load()) {
-			new ApplicationMenu(frame, menubar, additionalMenuAction);
+			new ApplicationMenu(window, menubar, additionalMenuAction);
 			return true;
 		} else {
 			return false;
@@ -144,7 +191,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 		}
 	}
 	
-	private JFrame frame;
+	private Window window;
 	private JMenuBar menubar;
 	private boolean tryInstalled = false;
 	private ExtraMenuAction extraMenuAction;
@@ -286,17 +333,17 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 	/**
 	 * Contructor de integración de Application Menu
 	 * 
-	 * @param frame
+	 * @param window
 	 * @param menubar 
 	 */
-	private ApplicationMenu(JFrame frame, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
-		frames.add(frame);
-		this.frame = frame;
+	private ApplicationMenu(Window window, JMenuBar menubar, ExtraMenuAction additionalMenuAction) {
+		windows.add(window);
+		this.window = window;
 		this.menubar = menubar;
 		extraMenuAction = additionalMenuAction;
 		allowDynamicMenuBar = extraMenuAction.allowDynamicMenuBar();
-		frame.addWindowListener(this);
-		if (frame.isDisplayable())
+		window.addWindowListener(this);
+		if (window.isDisplayable())
 			tryInstall();
 	}
 	
@@ -312,7 +359,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				@Override
 				public void run() {
 					ApplicationMenu.initialize();
-					windowxid = getWindowXID(frame);
+					windowxid = getWindowXID(window);
 					registerWatcher(windowxid);
 				}
 			});
@@ -329,8 +376,8 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				@Override
 				public void run() {
 					unregisterWatcher(windowxid);
-					frame.removeWindowListener(ApplicationMenu.this);
-					frames.remove(frame);
+					window.removeWindowListener(ApplicationMenu.this);
+					windows.remove(window);
 				}
 			});
 			tryInstalled = false;
@@ -502,11 +549,11 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				EventQueue.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						if (extraMenuAction.allowMenuAction(frame, menubar, menuitem, true, shortcut)) {
+						if (extraMenuAction.allowMenuAction(window, menubar, menuitem, true, shortcut)) {
 							menuitem.getModel().setArmed(true);
 							menuitem.getModel().setPressed(true);
 							
-							extraMenuAction.invokeMenu(frame, menubar, menuitem, true, shortcut);
+							extraMenuAction.invokeMenu(window, menubar, menuitem, true, shortcut);
 							
 							menuitem.getModel().setPressed(false);
 							menuitem.getModel().setArmed(false);
@@ -528,9 +575,9 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				EventQueue.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						if (extraMenuAction.allowMenuAction(frame, menubar, menu, true, false)) {
+						if (extraMenuAction.allowMenuAction(window, menubar, menu, true, false)) {
 							
-							extraMenuAction.beforInvokeMenu(frame, menubar, menu, true, false);
+							extraMenuAction.beforInvokeMenu(window, menubar, menu, true, false);
 
 							menu.getModel().setSelected(true);
 
@@ -539,7 +586,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 							for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
 								if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
 
-							extraMenuAction.invokeMenu(frame, menubar, menu, true, false);
+							extraMenuAction.invokeMenu(window, menubar, menu, true, false);
 							
 							for (Component comp : popupMenu.getComponents()) {
 								if (comp.isVisible()) {
@@ -552,7 +599,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 								}
 							}
 							
-							extraMenuAction.afterInvokeMenu(frame, menubar, menu, true, false);
+							extraMenuAction.afterInvokeMenu(window, menubar, menu, true, false);
 						}
 					}
 				});
@@ -571,10 +618,10 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 				EventQueue.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						if (extraMenuAction.allowMenuAction(frame, menubar, menu, false, false)) {
-							extraMenuAction.beforInvokeMenu(frame, menubar, menu, false, false);
+						if (extraMenuAction.allowMenuAction(window, menubar, menu, false, false)) {
+							extraMenuAction.beforInvokeMenu(window, menubar, menu, false, false);
 							
-							extraMenuAction.invokeMenu(frame, menubar, menu, false, false);
+							extraMenuAction.invokeMenu(window, menubar, menu, false, false);
 							
 							PopupMenuEvent pevent = new PopupMenuEvent(menu.getPopupMenu());
 							for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
@@ -582,7 +629,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 
 							menu.getModel().setSelected(false);
 							
-							extraMenuAction.afterInvokeMenu(frame, menubar, menu, false, false);
+							extraMenuAction.afterInvokeMenu(window, menubar, menu, false, false);
 						}
 					}
 				});
@@ -630,7 +677,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 					e.getKeyCode() != KeyEvent.VK_CONTROL &&
 					e.getKeyCode() != KeyEvent.VK_META &&
 					e.getKeyCode() != KeyEvent.VK_ALT_GRAPH &&
-					frame.isActive()) {
+					window.isActive()) {
 				JFrame currentframe;
 				if (event.getSource() instanceof Component)
 					currentframe = getFrame((Component)event.getSource());
@@ -638,7 +685,7 @@ final public class ApplicationMenu implements WindowListener, AWTEventListener, 
 					currentframe = (JFrame)event.getSource();
 				else 
 					currentframe = null;
-				if (frame.equals(currentframe))
+				if (window.equals(currentframe))
 					invokeAccelerator(e.getKeyCode(), e.getModifiersEx() | e.getModifiers());
 			}
 		}

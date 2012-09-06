@@ -26,7 +26,7 @@
 
 package org.java.ayatana;
 
-import javax.swing.JFrame;
+import java.awt.Window;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
@@ -44,39 +44,39 @@ public interface ExtraMenuAction {
 	public boolean allowDynamicMenuBar();
 	/**
 	 * Indica si la accion invokada se permite.
-	 * @param frame ventana
+	 * @param window ventana
 	 * @param menubar barra de menus
 	 * @param menuitem menu
 	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 * @return 
 	 */
-	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
+	public boolean allowMenuAction(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 	/**
 	 * Es lanzado antes de ejecutar la accion
-	 * @param frame ventana
+	 * @param window ventana
 	 * @param menubar barra de menus
 	 * @param menuitem menu
 	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 */
-	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
+	public void beforInvokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 	/**
 	 * Es lanzado durante la accion
-	 * @param frame ventana
+	 * @param window ventana
 	 * @param menubar barra de menus
 	 * @param menuitem menu
 	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 */
-	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
+	public void invokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 	/**
 	 * Es lanzado después de ejecutar la accion
-	 * @param frame ventana
+	 * @param window ventana
 	 * @param menubar barra de menus
 	 * @param menuitem menu
 	 * @param selected si el objeto es <code>JMenu</code> entonces retorna <code>True</code>
 	 * cuando se muestra y <code>False</code> cuando se oculta.
 	 */
-	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
+	public void afterInvokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut);
 }

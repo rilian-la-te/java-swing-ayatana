@@ -25,11 +25,11 @@
  */
 package org.nbs.java.ayatana;
 
+import java.awt.Window;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -68,16 +68,16 @@ public class NbsExtraMenuAction extends DefaultExtraMenuAction {
 	}
 	
 	@Override
-	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+	public boolean allowMenuAction(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		if (shortcut)
 			return false;
 		else
-			return super.allowMenuAction(frame, menubar, menuitem, selected, shortcut);
+			return super.allowMenuAction(window, menubar, menuitem, selected, shortcut);
 	}
 	
 	@Override
-	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
-		super.invokeMenu(frame, menubar, menuitem, selected, shortcut);
+	public void invokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+		super.invokeMenu(window, menubar, menuitem, selected, shortcut);
 		if (selected) {
 			if ("org.openide.awt.MenuBar$LazyMenu".equals(menuitem.getClass().getName())) {
 				try {
