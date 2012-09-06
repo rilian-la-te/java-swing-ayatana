@@ -1,13 +1,31 @@
 package org.java.ayatana;
 
+import java.awt.Window;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
+import javax.swing.JFrame;
 
 public class RulesLoader {
 	private static final String DEFAULT_MENU_ACTION_CLASS = "org.java.ayatana.DefaultExtraMenuAction";
+	
+	public static void rulesLoad(Window window) {
+		if (AyatanaDesktop.isSupported() && ApplicationMenu.getWindowMenuBar(window) != null &&
+				!System.getProperties().containsKey("jayatana.ignoreEndorsed")) {
+			String menuActionClass = rolesLoad(ApplicationMenu.getWindowTitle(window),
+					window instanceof JFrame);
+			ExtraMenuAction extraMenuAction = null;
+			try {
+				extraMenuAction = (ExtraMenuAction)Class.forName(menuActionClass).newInstance();
+			} catch (Exception e) {
+				extraMenuAction = new DefaultExtraMenuAction();
+			} finally {
+				ApplicationMenu.tryInstall(window, extraMenuAction);
+			}
+		}
+	}
 	
 	private static boolean testTitle(String rule, String titleWindow) {
 		Pattern patter = Pattern.compile(rule, Pattern.CASE_INSENSITIVE);
@@ -84,9 +102,18 @@ public class RulesLoader {
 		return menuActionClass;
 	}
 	
-	public static String load(String titleWindow) {
-		String menuActionClass = System.getProperty("jayatana.menuActionClass");
-		String startupWMClass = System.getProperty("jayatana.startupWMClass");
+	private static String rolesLoad(String titleWindow, boolean updateStartupWMClass) {
+		String menuActionClass = System.getenv("JAYATANA_MENUACTIONCLASS");
+		if (menuActionClass == null)
+			System.getProperty("jayatana.menuActionClass");
+		
+		String startupWMClass = null;
+		if (updateStartupWMClass) {
+			startupWMClass = System.getenv("JAYATANA_STARTUPWMCLASS");
+			if (startupWMClass == null)
+				System.getProperty("jayatana.startupWMClass");
+		}
+		
 		if (startupWMClass == null && menuActionClass == null) {
 			if (titleWindow == null)
 				titleWindow = "unknow";

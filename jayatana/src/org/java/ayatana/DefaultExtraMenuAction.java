@@ -26,6 +26,7 @@
 
 package org.java.ayatana;
 
+import java.awt.Window;
 import javax.swing.*;
 
 /**
@@ -44,7 +45,7 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 			return true;
 	}
 	@Override
-	public boolean allowMenuAction(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+	public boolean allowMenuAction(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		if (shortcut) {
 			KeyStroke accelerator = menuitem.getAccelerator();
 			if (accelerator != null) {
@@ -52,7 +53,7 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 				if (FocusManager.getCurrentManager().getFocusOwner() instanceof JComponent) {
 					JComponent jcomp = (JComponent)FocusManager.getCurrentManager().getFocusOwner();
 					if (jcomp.getActionForKeyStroke(accelerator) != null ||
-							frame.getRootPane().getActionForKeyStroke(accelerator) != null)
+							ApplicationMenu.getWindowRootPane(window).getActionForKeyStroke(accelerator) != null)
 						return false;
 				}
 			} else {
@@ -63,15 +64,15 @@ public class DefaultExtraMenuAction implements ExtraMenuAction {
 	}
 	
 	@Override
-	public void beforInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+	public void beforInvokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		
 	}
 	@Override
-	public void invokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+	public void invokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		
 	}
 	@Override
-	public void afterInvokeMenu(JFrame frame, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+	public void afterInvokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
 		
 	}
 }
