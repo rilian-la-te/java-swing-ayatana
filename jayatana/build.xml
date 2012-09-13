@@ -71,6 +71,9 @@
     nbproject/build-impl.xml file. 
 
     -->
+	<property name="jayatana-version" value="1.2.4"/>
+	<property name="jayatana-jni-version" value="1.2.0"/>
+
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
 			<pathelement location="lib/ant-contrib-1.0b3.jar"/>
@@ -222,7 +225,7 @@
 	<target name="-pre-jar" depends="-build-jni-local, -build-jni-remote, -build-unknow"/>
 	
 	<target name="-post-jar">
-		<zip destfile="${dist.dir}/jayatana-1.2.4-src.zip" basedir="src">
+		<zip destfile="${dist.dir}/jayatana-${jayatana-version}-src.zip" basedir="src">
 			<exclude name=".svn"/>
 		</zip>
 		
@@ -233,25 +236,286 @@
 		</zip>
 	</target>
 
-	<target name="install">
-		<property name="platform.java" value="${JAVA_HOME_6}/bin/java"/>
-		<property name="platform.javac" value="${JAVA_HOME_6}/bin/javac"/>
-		<property name="javac.debug" value="false"/>
-		<antcall target="jar"/>
-		<ant dir="plugins/gtkextended" antfile="build.xml" target="jar">
-			<property name="platform.java" value="${JAVA_HOME_6}/bin/java"/>
-			<property name="platform.javac" value="${JAVA_HOME_6}/bin/javac"/>
-		</ant>
-		<!--
-		<ant dir="plugins/jayatanart6" antfile="build.xml" target="jar">
-			<property name="platform.java" value="${JAVA_HOME_6}/bin/java"/>
-			<property name="platform.javac" value="${JAVA_HOME_6}/bin/javac"/>
-		</ant>
-		-->
+	<target name="-installer-properties">
+		<property name="build.dir" value="${user.home}/.jayatana-build"/>
+		<property name="build.classes.dir" value="${build.dir}/classes"/>
+		<property name="jayatana.classes" value="${build.classes.dir}/jayatana"/>
+		<property name="gtkextended.classes" value="${build.classes.dir}/gtkextended"/>
+		<property name="jayatanart6.classes" value="${build.classes.dir}/jayatanart6"/>
+		<property name="jayatanart7.classes" value="${build.classes.dir}/jayatanart7"/>
+		<property name="build.jar.dir" value="${build.dir}/lib"/>
+		<property name="jayatana.jar" value="${build.jar.dir}/jayatana-${jayatana-version}.jar"/>
+		<property name="gtkextended.jar" value="${build.jar.dir}/gtkextended-1.2.jar"/>
+		<property name="jayatanart6.jar" value="${build.jar.dir}/jayatanart6-${jayatana-version}.jar"/>
+		<property name="jayatanart7.jar" value="${build.jar.dir}/jayatanart7-${jayatana-version}.jar"/>
 	</target>
 
-	<target name="uninstall">
-		<antcall target="clean"/>
-		<ant dir="plugins/gtkextended" antfile="build.xml" target="clean"/>
+	<target name="-installer-build-libraries">
+		<if>
+			<isset property="java.home.6"/>
+			<then>
+				<property name="current.java.home" value="${java.home.6}"/>
+			</then>
+			<elseif>
+				<isset property="java.home.6"/>
+				<then>
+					<property name="current.java.home" value="${java.home.7}"/>
+				</then>
+			</elseif>
+			<else>
+				<property name="current.java.home" value="${java.home}/../"/>
+				<if>
+					<contains string="${java.version}" substring="1.7."/>
+					<then>
+						<property name="java.home.7" value="${java.home}/../"/>
+					</then>
+					<else>
+						<property name="java.home.6" value="${java.home}/../"/>
+					</else>
+				</if>
+			</else>
+		</if>
+		<!-- crear directorio de librerias -->
+		<mkdir dir="${build.jar.dir}"/>
+		<!-- crear libreria jayatana -->
+		<exec executable="make" dir="jayatana">
+			<env key="JAVA_HOME" value="${current.java.home}"/>
+			<arg line="build"/>
+		</exec>
+		<mkdir dir="${jayatana.classes}"/>
+		<copy file="jayatana/dist/Release/libjayatana.so"
+			  todir="${build.jar.dir}"/>
+		<javac srcdir="src" destdir="${jayatana.classes}" executable="${current.java.home}/bin/javac"
+			   debug="false" includeantruntime="false" fork="yes"/>
+		<jar basedir="${jayatana.classes}" jarfile="${jayatana.jar}"/>
+		
+		<!-- crear libreria gtkextended -->
+		<mkdir dir="${gtkextended.classes}"/>
+		<javac srcdir="plugins/gtkextended/src" destdir="${gtkextended.classes}" executable="${current.java.home}/bin/javac"
+			   debug="false" includeantruntime="false" fork="yes"/>
+		<jar basedir="${gtkextended.classes}" jarfile="${gtkextended.jar}"/>
+
+		<!-- crear libreria jayatanart6 -->
+		<if>
+			<isset property="java.home.6"/>
+			<then>
+				<mkdir dir="${jayatanart6.classes}"/>
+				<javac srcdir="plugins/jayatanart6/src" destdir="${jayatanart6.classes}" executable="${java.home.6}/bin/javac"
+					   debug="false" includeantruntime="false" fork="yes">
+					<classpath>
+						<pathelement path="${jayatana.jar}"/>
+						<pathelement path="${gtkextended.jar}"/>
+						<pathelement path="lib/Netbeans Platform Libraries/org-openide-awt.jar"/>
+						<pathelement path="lib/Netbeans Platform Libraries/org-openide-filesystems.jar"/>
+					</classpath>
+				</javac>
+				<jar basedir="${jayatanart6.classes}" jarfile="${jayatanart6.jar}"/>
+			</then>
+		</if>
+		
+		<!-- crear libreria jayatanart7 -->
+		<if>
+			<isset property="java.home.7"/>
+			<then>
+				<mkdir dir="${jayatanart7.classes}"/>
+				<javac srcdir="plugins/jayatanart7/src" destdir="${jayatanart7.classes}" executable="${java.home.7}/bin/javac"
+					   debug="false" includeantruntime="false" fork="yes">
+					<classpath>
+						<pathelement path="${jayatana.jar}"/>
+						<pathelement path="${gtkextended.jar}"/>
+						<pathelement path="lib/Netbeans Platform Libraries/org-openide-awt.jar"/>
+						<pathelement path="lib/Netbeans Platform Libraries/org-openide-filesystems.jar"/>
+					</classpath>
+				</javac>
+				<jar basedir="${jayatanart7.classes}" jarfile="${jayatanart7.jar}"/>
+			</then>
+		</if>
+	</target>
+
+	<target name="install" depends="-installer-properties, -installer-build-libraries">
+		<!-- instalar componentes -->
+		<copy file="${build.jar.dir}/libjayatana.so" todir="/usr/lib/jayatana"/>
+			<copy file="${jayatana.jar}" todir="/usr/lib/jayatana"/>
+		<copy file="${gtkextended.jar}" todir="/usr/lib/jayatana"/>
+		<if>
+			<available file="${jayatanart6.jar}"/>
+			<then>
+				<copy file="${jayatanart6.jar}" todir="/usr/lib/jayatana"/>
+			</then>
+		</if>
+		<if>
+			<available file="${jayatanart7.jar}"/>
+			<then>
+				<copy file="${jayatanart7.jar}" todir="/usr/lib/jayatana"/>
+			</then>
+		</if>
+		<symlink link="/usr/lib/jayatana/libjayatana.so.${jayatana-jni-version}"
+			resource="/usr/lib/jayatana/libjayatana.so"/>
+
+		<mkdir dir="/etc/jayatana.rules.d"/>
+		<echo file="/etc/jayatana.rules.d/00netbeansplatform.rules"><![CDATA[# Filtro		clase personalizada de control de menu		startupWMClass
+T:.*netbeans.*		org.java.ayatana.NetbeansPlatformMenuAction	netbeans
+T:.*visualvm.*		org.java.ayatana.NetbeansPlatformMenuAction	visualvm]]></echo>
+		
+		<delete dir="${build.dir}"/>
+	</target>
+
+	<target name="deinstall" depends="-installer-properties">
+		<delete dir="/usr/lib/jayatana"/>
+		<delete dir="/etc/jayatana.rules.d"/>
+	</target>
+
+	<target name="config">
+		<if>
+			<and>
+				<not><isset property="java.home.7"/></not>
+				<not><isset property="java.home.6"/></not>
+			</and>
+			<then>
+				<if>
+					<contains string="${java.version}" substring="1.7."/>
+					<then>
+						<property name="java.home.7" value="${java.home}/../"/>
+					</then>
+					<else>
+						<property name="java.home.6" value="${java.home}/../"/>
+					</else>
+				</if>
+			</then>
+		</if>
+
+		<if>
+			<isset property="java.home.7"/>
+			<then>
+				<if>
+					<available file="${java.home.7}/lib/rt.jar"/>
+					<then>
+						<mkdir dir="${java.home.7}/lib/endorsed"/>
+						<symlink link="${java.home.7}/lib/endorsed/jayatana-${jayatana-version}.jar"
+							resource="/usr/lib/jayatana/jayatana-${jayatana-version}.jar"/>
+						<symlink link="${java.home.7}/lib/endorsed/gtkextended-1.2.jar"
+							resource="/usr/lib/jayatana/gtkextended-1.2.jar"/>
+						<symlink link="${java.home.7}/lib/endorsed/jayatanart7-${jayatana-version}.jar"
+							resource="/usr/lib/jayatana/jayatanart7-${jayatana-version}.jar"/>
+					</then>
+					<elseif>
+						<available file="${java.home.7}/jre/lib/rt.jar"/>
+						<then>
+							<mkdir dir="${java.home.7}/jre/lib/endorsed"/>
+							<symlink link="${java.home.7}/jre/lib/endorsed/jayatana-${jayatana-version}.jar"
+								resource="/usr/lib/jayatana/jayatana-${jayatana-version}.jar"/>
+							<symlink link="${java.home.7}/jre/lib/endorsed/gtkextended-1.2.jar"
+								resource="/usr/lib/jayatana/gtkextended-1.2.jar"/>
+							<symlink link="${java.home.7}/jre/lib/endorsed/jayatanart7-${jayatana-version}.jar"
+								resource="/usr/lib/jayatana/jayatanart7-${jayatana-version}.jar"/>
+						</then>
+					</elseif>
+					<else>
+						<echo message="Invalid JAVA_HOME_7=${java.home.7}"/>
+					</else>
+				</if>
+			</then>
+		</if>
+		<if>
+			<isset property="java.home.6"/>
+			<then>
+				<if>
+					<available file="${java.home.6}/lib/rt.jar"/>
+					<then>
+						<mkdir dir="${java.home.6}/lib/endorsed"/>
+						<symlink link="${java.home.6}/lib/endorsed/jayatana-${jayatana-version}.jar"
+							resource="/usr/lib/jayatana/jayatana-${jayatana-version}.jar"/>
+						<symlink link="${java.home.6}/lib/endorsed/gtkextended-1.2.jar"
+							resource="/usr/lib/jayatana/gtkextended-1.2.jar"/>
+						<symlink link="${java.home.6}/lib/endorsed/jayatanart6-${jayatana-version}.jar"
+							resource="/usr/lib/jayatana/jayatanart7-${jayatana-version}.jar"/>
+					</then>
+					<elseif>
+						<available file="${java.home.6}/jre/lib/rt.jar"/>
+						<then>
+							<mkdir dir="${java.home.6}/jre/lib/endorsed"/>
+							<symlink link="${java.home.6}/jre/lib/endorsed/jayatana-${jayatana-version}.jar"
+								resource="/usr/lib/jayatana/jayatana-${jayatana-version}.jar"/>
+							<symlink link="${java.home.6}/jre/lib/endorsed/gtkextended-1.2.jar"
+								resource="/usr/lib/jayatana/gtkextended-1.2.jar"/>
+							<symlink link="${java.home.6}/jre/lib/endorsed/jayatanart6-${jayatana-version}.jar"
+								resource="/usr/lib/jayatana/jayatanart7-${jayatana-version}.jar"/>
+						</then>
+					</elseif>
+					<else>
+						<echo message="Invalid JAVA_HOME_6=${java.home.6}"/>
+					</else>
+				</if>
+			</then>
+		</if>
+	</target>
+
+	<target name="deconfig">
+		<if>
+			<and>
+				<not><isset property="java.home.7"/></not>
+				<not><isset property="java.home.6"/></not>
+			</and>
+			<then>
+				<if>
+					<contains string="${java.version}" substring="1.7."/>
+					<then>
+						<property name="java.home.7" value="${java.home}/../"/>
+					</then>
+					<else>
+						<property name="java.home.6" value="${java.home}/../"/>
+					</else>
+				</if>
+			</then>
+		</if>
+
+		<if>
+			<isset property="java.home.7"/>
+			<then>
+				<if>
+					<available file="${java.home.7}/lib/rt.jar"/>
+					<then>
+						<symlink link="${java.home.7}/lib/endorsed/jayatana-${jayatana-version}.jar" action="delete"/>
+						<symlink link="${java.home.7}/lib/endorsed/gtkextended-1.2.jar" action="delete"/>
+						<symlink link="${java.home.7}/lib/endorsed/jayatanart7-${jayatana-version}.jar" action="delete"/>
+					</then>
+					<elseif>
+						<available file="${java.home.7}/jre/lib/rt.jar"/>
+						<then>
+							<symlink link="${java.home.7}/jre/lib/endorsed/jayatana-${jayatana-version}.jar" action="delete"/>
+							<symlink link="${java.home.7}/jre/lib/endorsed/gtkextended-1.2.jar" action="delete"/>
+							<symlink link="${java.home.7}/jre/lib/endorsed/jayatanart7-${jayatana-version}.jar" action="delete"/>
+						</then>
+					</elseif>
+					<else>
+						<echo message="Invalid JAVA_HOME_7=${java.home.7}"/>
+					</else>
+				</if>
+			</then>
+		</if>
+		<if>
+			<isset property="java.home.6"/>
+			<then>
+				<if>
+					<available file="${java.home.6}/lib/rt.jar"/>
+					<then>
+						<symlink link="${java.home.6}/lib/endorsed/jayatana-${jayatana-version}.jar" action="delete"/>
+						<symlink link="${java.home.6}/lib/endorsed/gtkextended-1.2.jar" action="delete"/>
+						<symlink link="${java.home.6}/lib/endorsed/jayatanart7-${jayatana-version}.jar" action="delete"/>
+					</then>
+					<elseif>
+						<available file="${java.home.6}/jre/lib/rt.jar"/>
+						<then>
+							<symlink link="${java.home.6}/jre/lib/endorsed/jayatana-${jayatana-version}.jar" action="delete"/>
+							<symlink link="${java.home.6}/jre/lib/endorsed/gtkextended-1.2.jar" action="delete"/>
+							<symlink link="${java.home.6}/jre/lib/endorsed/jayatanart7-${jayatana-version}.jar" action="delete"/>
+						</then>
+					</elseif>
+					<else>
+						<echo message="Invalid JAVA_HOME_6=${java.home.6}"/>
+					</else>
+				</if>
+			</then>
+		</if>
 	</target>
 </project>
