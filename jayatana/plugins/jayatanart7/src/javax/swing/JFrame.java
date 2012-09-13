@@ -26,14 +26,8 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeListener;
-import java.io.*;
-import java.util.Locale;
-import java.util.Vector;
-import java.lang.reflect.Method;
-
 import javax.accessibility.*;
-import org.java.ayatana.*;
+import org.java.ayatana.RulesLoader;
 
 
 /**
@@ -268,13 +262,7 @@ public class JFrame  extends Frame implements WindowConstants,
                 getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
             }
         }
-		try {
-			Method m = Class.forName("sun.awt.SunToolkit")
-					.getDeclaredMethod("checkAndSetPolicy", Container.class);
-			m.invoke(null, new Object[] {this});
-		} catch (Exception e) {
-			// ignorar
-		}
+        //sun.awt.SunToolkit.checkAndSetPolicy(this);
     }
 
     /**
@@ -945,7 +933,7 @@ public class JFrame  extends Frame implements WindowConstants,
             return states;
         }
     } // inner class AccessibleJFrame
-	
+
 	private boolean ayatanaRegister = false;
 	@Override
 	public void setVisible(boolean b) {
