@@ -69,7 +69,7 @@ public class Installer extends ModuleInstall {
 					String desktopFileId;
 					if ((desktopFileId = System.getProperty("netbeans.jayatana.desktopfile.id")) == null) {
 						String productVersion = System.getProperty(
-							"netbeans.productversion", "Netbeans IDE 7.1.2");
+							"netbeans.productversion", "Netbeans IDE 7.0");
 						desktopFileId = "netbeans-"+productVersion.split(" +")[2];
 					}
 					String iconName;

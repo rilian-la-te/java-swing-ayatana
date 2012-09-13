@@ -38,7 +38,7 @@ public class RulesLoader {
 	
 	public static void rulesLoad(Window window) {
 		if (AyatanaDesktop.isSupported() && ApplicationMenu.getWindowMenuBar(window) != null &&
-				!System.getProperties().containsKey("jayatana.ignoreEndorsed")) {
+				!"true".equals(System.getProperty("jayatana.ignoreEndorsed"))) {
 			String menuActionClass = rolesLoad(ApplicationMenu.getWindowTitle(window),
 					window instanceof JFrame);
 			ExtraMenuAction extraMenuAction = null;
@@ -128,15 +128,15 @@ public class RulesLoader {
 	}
 	
 	private static String rolesLoad(String titleWindow, boolean updateStartupWMClass) {
-		String menuActionClass = System.getenv("JAYATANA_MENUACTIONCLASS");
+		String menuActionClass = System.getProperty("jayatana.menuActionClass");
 		if (menuActionClass == null)
-			System.getProperty("jayatana.menuActionClass");
+			menuActionClass = System.getenv("JAYATANA_MENUACTIONCLASS");
 		
 		String startupWMClass = null;
 		if (updateStartupWMClass) {
-			startupWMClass = System.getenv("JAYATANA_STARTUPWMCLASS");
+			startupWMClass = System.getProperty("jayatana.startupWMClass");
 			if (startupWMClass == null)
-				System.getProperty("jayatana.startupWMClass");
+				startupWMClass = System.getenv("JAYATANA_STARTUPWMCLASS");
 		}
 		
 		if (startupWMClass == null && menuActionClass == null) {
