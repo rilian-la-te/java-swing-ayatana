@@ -22,6 +22,7 @@ AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
+CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
 CND_BUILDDIR=build
@@ -59,11 +60,11 @@ LDLIBSOPTIONS=-L${JAVA_HOME}/jre/lib/${JAVA_ARCH} -ljawt `pkg-config --libs glib
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/libjayatana.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -shared -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so -fPIC ${OBJECTFILES} ${LDLIBSOPTIONS} 
+${CND_DISTDIR}/${CND_CONF}/libjayatana.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}
+	${LINK.c} -shared -o ${CND_DISTDIR}/${CND_CONF}/libjayatana.${CND_DLIB_EXT} -fPIC ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/org_java_ayatana_ApplicationMenu.o: org_java_ayatana_ApplicationMenu.c 
 	${MKDIR} -p ${OBJECTDIR}
@@ -96,7 +97,7 @@ ${OBJECTDIR}/org_java_ayatana_GMainLoop.o: org_java_ayatana_GMainLoop.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjayatana.so
+	${RM} ${CND_DISTDIR}/${CND_CONF}/libjayatana.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:
