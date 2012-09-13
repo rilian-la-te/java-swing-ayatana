@@ -374,12 +374,8 @@ T:.*visualvm.*		org.java.ayatana.NetbeansPlatformMenuAction	visualvm]]></echo>
 			<then>
 				<if>
 					<contains string="${java.version}" substring="1.7."/>
-					<then>
-						<property name="java.home.7" value="${java.home}/../"/>
-					</then>
-					<else>
-						<property name="java.home.6" value="${java.home}/../"/>
-					</else>
+					<then><property name="java.home.7" value="${java.home}"/></then>
+					<else><property name="java.home.6" value="${java.home}"/></else>
 				</if>
 			</then>
 		</if>
@@ -459,12 +455,8 @@ T:.*visualvm.*		org.java.ayatana.NetbeansPlatformMenuAction	visualvm]]></echo>
 			<then>
 				<if>
 					<contains string="${java.version}" substring="1.7."/>
-					<then>
-						<property name="java.home.7" value="${java.home}/../"/>
-					</then>
-					<else>
-						<property name="java.home.6" value="${java.home}/../"/>
-					</else>
+					<then><property name="java.home.7" value="${java.home}"/></then>
+					<else><property name="java.home.6" value="${java.home}"/></else>
 				</if>
 			</then>
 		</if>
