@@ -112,7 +112,7 @@
 		</exec>
 		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/amd64"/>
 		<mkdir dir="${build.classes.dir}/native/${ubuntu.version}/i386"/>
-		<copy file="jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+		<copy file="jayatana/dist/Release/libjayatana.so"
 			todir="${build.classes.dir}/native/${ubuntu.version}/${java.arch}"/>
 	</target>
 	
@@ -199,7 +199,7 @@
 							command="cd ${remote.home}/jayatana ; make"
 							failonerror="false" trust="true"/>
 						<mkdir dir="${build.classes.dir}/native/${remote.version}/${remote.arch}"/>
-						<scp file="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana/dist/Release/GNU-Linux-x86/libjayatana.so"
+						<scp file="${remote.user}:${remote.password}@${remote.server}:${remote.home}/jayatana/dist/Release/libjayatana.so"
 							todir="${build.classes.dir}/native/${remote.version}/${remote.arch}"
 							port="${remote.port}"
 							failonerror="false" trust="true"/>
@@ -231,5 +231,27 @@
 			<exclude name="build"/>
 			<exclude name="dist"/>
 		</zip>
+	</target>
+
+	<target name="install">
+		<property name="platform.java" value="${JAVA_HOME_6}/bin/java"/>
+		<property name="platform.javac" value="${JAVA_HOME_6}/bin/javac"/>
+		<property name="javac.debug" value="false"/>
+		<antcall target="jar"/>
+		<ant dir="plugins/gtkextended" antfile="build.xml" target="jar">
+			<property name="platform.java" value="${JAVA_HOME_6}/bin/java"/>
+			<property name="platform.javac" value="${JAVA_HOME_6}/bin/javac"/>
+		</ant>
+		<!--
+		<ant dir="plugins/jayatanart6" antfile="build.xml" target="jar">
+			<property name="platform.java" value="${JAVA_HOME_6}/bin/java"/>
+			<property name="platform.javac" value="${JAVA_HOME_6}/bin/javac"/>
+		</ant>
+		-->
+	</target>
+
+	<target name="uninstall">
+		<antcall target="clean"/>
+		<ant dir="plugins/gtkextended" antfile="build.xml" target="clean"/>
 	</target>
 </project>
