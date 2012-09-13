@@ -8,7 +8,6 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.lang.reflect.Method;
 import javax.accessibility.*;
 import org.java.ayatana.RulesLoader;
 
@@ -490,7 +489,7 @@ public class JDialog extends Dialog implements WindowConstants,
      * 
      * @since 1.6
      */
-    public JDialog(Window owner, Dialog.ModalityType modalityType) {
+    public JDialog(Window owner, ModalityType modalityType) {
         this(owner, null, modalityType);
     }
     
@@ -602,14 +601,7 @@ public class JDialog extends Dialog implements WindowConstants,
                 getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
             }
         }
-		
-        try {
-			Method m = Class.forName("sun.awt.SunToolkit")
-					.getDeclaredMethod("checkAndSetPolicy", Container.class);
-			m.invoke(null, new Object[] {this});
-		} catch (Exception e) {
-			// ignorar
-		}
+        //sun.awt.SunToolkit.checkAndSetPolicy(this, true);
     }
 
     /**
@@ -1189,7 +1181,7 @@ public class JDialog extends Dialog implements WindowConstants,
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
-            accessibleContext = new JDialog.AccessibleJDialog();
+            accessibleContext = new AccessibleJDialog();
         }
         return accessibleContext;
     }
@@ -1200,7 +1192,7 @@ public class JDialog extends Dialog implements WindowConstants,
      * Java Accessibility API appropriate to dialog user-interface 
      * elements.
      */
-    protected class AccessibleJDialog extends Dialog.AccessibleAWTDialog { 
+    protected class AccessibleJDialog extends AccessibleAWTDialog { 
         
         // AccessibleContext methods
         //
