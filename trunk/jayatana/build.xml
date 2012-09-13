@@ -364,6 +364,7 @@ T:.*visualvm.*		org.java.ayatana.NetbeansPlatformMenuAction	visualvm]]></echo>
 		<delete dir="/usr/lib/jayatana"/>
 		<delete dir="/etc/jayatana.rules.d"/>
 	</target>
+	<target name="uninstall" depends="deinstall"/>
 
 	<target name="config">
 		<if>
@@ -424,7 +425,7 @@ T:.*visualvm.*		org.java.ayatana.NetbeansPlatformMenuAction	visualvm]]></echo>
 						<symlink link="${java.home.6}/lib/endorsed/gtkextended-1.2.jar"
 							resource="/usr/lib/jayatana/gtkextended-1.2.jar"/>
 						<symlink link="${java.home.6}/lib/endorsed/jayatanart6-${jayatana-version}.jar"
-							resource="/usr/lib/jayatana/jayatanart7-${jayatana-version}.jar"/>
+							resource="/usr/lib/jayatana/jayatanart6-${jayatana-version}.jar"/>
 					</then>
 					<elseif>
 						<available file="${java.home.6}/jre/lib/rt.jar"/>
@@ -435,7 +436,7 @@ T:.*visualvm.*		org.java.ayatana.NetbeansPlatformMenuAction	visualvm]]></echo>
 							<symlink link="${java.home.6}/jre/lib/endorsed/gtkextended-1.2.jar"
 								resource="/usr/lib/jayatana/gtkextended-1.2.jar"/>
 							<symlink link="${java.home.6}/jre/lib/endorsed/jayatanart6-${jayatana-version}.jar"
-								resource="/usr/lib/jayatana/jayatanart7-${jayatana-version}.jar"/>
+								resource="/usr/lib/jayatana/jayatanart6-${jayatana-version}.jar"/>
 						</then>
 					</elseif>
 					<else>
@@ -493,14 +494,14 @@ T:.*visualvm.*		org.java.ayatana.NetbeansPlatformMenuAction	visualvm]]></echo>
 					<then>
 						<symlink link="${java.home.6}/lib/endorsed/jayatana-${jayatana-version}.jar" action="delete"/>
 						<symlink link="${java.home.6}/lib/endorsed/gtkextended-1.2.jar" action="delete"/>
-						<symlink link="${java.home.6}/lib/endorsed/jayatanart7-${jayatana-version}.jar" action="delete"/>
+						<symlink link="${java.home.6}/lib/endorsed/jayatanart6-${jayatana-version}.jar" action="delete"/>
 					</then>
 					<elseif>
 						<available file="${java.home.6}/jre/lib/rt.jar"/>
 						<then>
 							<symlink link="${java.home.6}/jre/lib/endorsed/jayatana-${jayatana-version}.jar" action="delete"/>
 							<symlink link="${java.home.6}/jre/lib/endorsed/gtkextended-1.2.jar" action="delete"/>
-							<symlink link="${java.home.6}/jre/lib/endorsed/jayatanart7-${jayatana-version}.jar" action="delete"/>
+							<symlink link="${java.home.6}/jre/lib/endorsed/jayatanart6-${jayatana-version}.jar" action="delete"/>
 						</then>
 					</elseif>
 					<else>
