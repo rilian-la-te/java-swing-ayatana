@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<jws:workspace xmlns:jws="http://xmlns.oracle.com/ide/project">
+   <value n="appTemplateId" v="#genericApplicationTemplate"/>
+   <hash n="component-versions">
+      <value n="oracle.ide.model.Project" v="11.1.1.1.0"/>
+   </hash>
+   <list n="listOfChildren">
+      <hash><url n="URL" path="jdev.java.ayatana/jdev.java.ayatana.jpr"/></hash>
+   </list>
+   <hash n="oracle.jdeveloper.extensiondt.PlatformDefinitions">
+      <hash n="b60076b069f94460dd8ab3ee79734e3a">
+         <url n="installRoot" protocol="file" path="/opt/oracle/sqldeveloper/"/>
+         <value n="productBootFile" v="sqldeveloper/bin/sqldeveloper.boot"/>
+      </hash>
+   </hash>
+</jws:workspace>
