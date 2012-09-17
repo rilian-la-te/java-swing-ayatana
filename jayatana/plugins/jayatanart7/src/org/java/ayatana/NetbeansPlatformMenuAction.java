@@ -13,9 +13,6 @@ public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
 	private Method methodDynaModel;
 	private Field fieldDynaModel;
 	
-	private boolean initializeDynamicMenu = false;
-	private Method methodSynchMenuPresenters;
-	
 	private void initializeLazyMenu(Class<?> classMenu) throws NoSuchMethodException, NoSuchFieldException {
 		methodDoInitialize = classMenu.getDeclaredMethod("doInitialize", new Class<?>[] {});
 		if (!methodDoInitialize.isAccessible())
@@ -29,11 +26,6 @@ public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
 		methodDynaModel = classDynaModel.getMethod("checkSubmenu", new Class<?>[] {JMenu.class});
 		if (!methodDynaModel.isAccessible())
 			methodDynaModel.setAccessible(true);
-	}
-	
-	private void initializeDynamicMenu(Class<?> classMenu) throws NoSuchMethodException {
-		methodSynchMenuPresenters = classMenu.getDeclaredMethod("synchMenuPresenters", JComponent[].class);
-		methodSynchMenuPresenters.setAccessible(true);
 	}
 	
 	@Override
@@ -78,12 +70,11 @@ public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
 							.log(Level.WARNING, "Error invoking LazyMenu", e);
 				}
 			}
+			
 			if (instanceOf(menuitem.getClass(), "org.openide.awt.DynamicMenuContent")) {
 				try {
-					if (!initializeDynamicMenu) {
-						initializeDynamicMenu(menuitem.getClass());
-						initializeDynamicMenu = true;
-					}
+					Method methodSynchMenuPresenters = menuitem.getClass()
+							.getDeclaredMethod("synchMenuPresenters", JComponent[].class);
 					methodSynchMenuPresenters.invoke(menuitem, new Object[] {null});
 				} catch (Exception e) {
 					Logger.getLogger(NetbeansPlatformMenuAction.class.getName())
