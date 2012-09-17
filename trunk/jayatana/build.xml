@@ -248,6 +248,12 @@
 		<property name="gtkextended.jar" value="${build.jar.dir}/gtkextended-1.2.jar"/>
 		<property name="jayatanart6.jar" value="${build.jar.dir}/jayatanart6-${jayatana-version}.jar"/>
 		<property name="jayatanart7.jar" value="${build.jar.dir}/jayatanart7-${jayatana-version}.jar"/>
+		<if>
+			<not><isset property="javac.debug"/></not>
+			<then>
+				<property name="javac.debug" value="false"/>
+			</then>
+		</if>
 	</target>
 
 	<target name="-installer-build-libraries">
@@ -286,13 +292,13 @@
 		<copy file="jayatana/dist/Release/libjayatana.so"
 			  todir="${build.jar.dir}"/>
 		<javac srcdir="src" destdir="${jayatana.classes}" executable="${current.java.home}/bin/javac"
-			   debug="false" includeantruntime="false" fork="yes"/>
+			   debug="${javac.debug}" includeantruntime="false" fork="yes"/>
 		<jar basedir="${jayatana.classes}" jarfile="${jayatana.jar}"/>
 		
 		<!-- crear libreria gtkextended -->
 		<mkdir dir="${gtkextended.classes}"/>
 		<javac srcdir="plugins/gtkextended/src" destdir="${gtkextended.classes}" executable="${current.java.home}/bin/javac"
-			   debug="false" includeantruntime="false" fork="yes"/>
+			   debug="${javac.debug}" includeantruntime="false" fork="yes"/>
 		<jar basedir="${gtkextended.classes}" jarfile="${gtkextended.jar}"/>
 
 		<!-- crear libreria jayatanart6 -->
@@ -301,7 +307,7 @@
 			<then>
 				<mkdir dir="${jayatanart6.classes}"/>
 				<javac srcdir="plugins/jayatanart6/src" destdir="${jayatanart6.classes}" executable="${java.home.6}/bin/javac"
-					   debug="false" includeantruntime="false" fork="yes">
+					   debug="${javac.debug}" includeantruntime="false" fork="yes">
 					<classpath>
 						<pathelement path="${jayatana.jar}"/>
 						<pathelement path="${gtkextended.jar}"/>
@@ -319,7 +325,7 @@
 			<then>
 				<mkdir dir="${jayatanart7.classes}"/>
 				<javac srcdir="plugins/jayatanart7/src" destdir="${jayatanart7.classes}" executable="${java.home.7}/bin/javac"
-					   debug="false" includeantruntime="false" fork="yes">
+					   debug="${javac.debug}" includeantruntime="false" fork="yes">
 					<classpath>
 						<pathelement path="${jayatana.jar}"/>
 						<pathelement path="${gtkextended.jar}"/>

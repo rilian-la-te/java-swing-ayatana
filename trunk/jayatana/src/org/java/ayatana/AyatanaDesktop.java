@@ -77,7 +77,8 @@ final public class AyatanaDesktop {
 	 * @return <code>True</code> si es soportado
 	 */
 	public static boolean isSupported() {
-		if (!"true".equals(System.getProperty("jayatana.force"))) {
+		if (!"true".equals(System.getProperty("jayatana.force")) &&
+				!"true".equals(System.getenv("JAYATANA_FORCE"))) {
 			if (!System.getProperty("os.name").contains("Linux"))
 				return false;
 			if (!"Unity".equals(System.getenv("XDG_CURRENT_DESKTOP")))
