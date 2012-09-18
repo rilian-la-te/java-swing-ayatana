@@ -8,26 +8,6 @@ import java.util.logging.Logger;
 import javax.swing.*;
 
 public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
-	private boolean initializeLazyMenu = false;
-	private Method methodDoInitialize;
-	private Method methodDynaModel;
-	private Field fieldDynaModel;
-	
-	private void initializeLazyMenu(Class<?> classMenu) throws NoSuchMethodException, NoSuchFieldException {
-		methodDoInitialize = classMenu.getDeclaredMethod("doInitialize", new Class<?>[] {});
-		if (!methodDoInitialize.isAccessible())
-			methodDoInitialize.setAccessible(true);
-
-		fieldDynaModel = classMenu.getDeclaredField("dynaModel");
-		if (!fieldDynaModel.isAccessible())
-			fieldDynaModel.setAccessible(true);
-
-		Class<?> classDynaModel = fieldDynaModel.getType();
-		methodDynaModel = classDynaModel.getMethod("checkSubmenu", new Class<?>[] {JMenu.class});
-		if (!methodDynaModel.isAccessible())
-			methodDynaModel.setAccessible(true);
-	}
-	
 	@Override
 	public boolean allowDynamicMenuBar() {
 		return false;
@@ -58,10 +38,21 @@ public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
 		if (selected) {
 			if ("org.openide.awt.MenuBar$LazyMenu".equals(menuitem.getClass().getName())) {
 				try {
-					if (!initializeLazyMenu) {
-						initializeLazyMenu(menuitem.getClass());
-						initializeLazyMenu = true;
-					}
+					Method methodDoInitialize = menuitem.getClass().getDeclaredMethod(
+								   "doInitialize", new Class<?>[] {});
+					if (!methodDoInitialize.isAccessible())
+						methodDoInitialize.setAccessible(true);
+					
+					Field fieldDynaModel = menuitem.getClass().getDeclaredField("dynaModel");
+					if (!fieldDynaModel.isAccessible())
+						fieldDynaModel.setAccessible(true);
+					
+					Class<?> classDynaModel = fieldDynaModel.getType();
+					Method methodDynaModel = classDynaModel.getMethod(
+								   "checkSubmenu", new Class<?>[] {JMenu.class});
+					if (!methodDynaModel.isAccessible())
+						methodDynaModel.setAccessible(true);
+					
 					methodDoInitialize.invoke(menuitem, new Object[] {});
 					Object objectDynaModel = fieldDynaModel.get(menuitem);
 					methodDynaModel.invoke(objectDynaModel, menuitem);
@@ -75,6 +66,8 @@ public class NetbeansPlatformMenuAction extends DefaultExtraMenuAction {
 				try {
 					Method methodSynchMenuPresenters = menuitem.getClass()
 							.getDeclaredMethod("synchMenuPresenters", JComponent[].class);
+					if (!methodSynchMenuPresenters.isAccessible())
+						methodSynchMenuPresenters.setAccessible(true);
 					methodSynchMenuPresenters.invoke(menuitem, new Object[] {null});
 				} catch (Exception e) {
 					Logger.getLogger(NetbeansPlatformMenuAction.class.getName())
