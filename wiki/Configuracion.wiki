@@ -1,0 +1,152 @@
+#labels Featured,Phase-Implementation
+=Configuración del menú global=
+
+No es necesario configurar el menú global puesto que se activa en automático, sin embargo, cuando es ejecutado en un entorno no Unity, por ejemplo el escritorio clásico Gnome, se requiere forzar la compatibilidad. Esto se hace agregando dentro de la aplicación
+
+{{{
+public class MainClass {
+    static {
+        System.setProperty("jayatana.force", "true");
+    }
+
+    public static void main(String args[]) {
+        ...
+    }
+}
+}}}
+
+O exportando la variable de ambiente:
+
+{{{
+$ env JAYATANA_FORCE=true java -cp ... org....MainClass
+}}}
+
+=Integración con el lanzador de Unity=
+
+Para integrar el lanzador de Unity es necesario tener un archivo .desktop para asociar la aplicación Java ha este lanzador y además se requiere de configurar un nombre de clase de ventana. Para hacer lo más fácil les mostrare un ejemplo de un archivo .desktop.
+
+*$HOME/.local/share/applications/miapp.desktop*
+{{{
+[Desktop Entry]
+Name=MiApp
+Comment=Mi aplicación
+Exec=env JAYATANA_STARTUPWMCLASS=identificador_miapp java -jar miapp.jar
+Icon=MiApp
+Categories=Application;Office
+StartupWMClass=identificador_miapp
+StartupNotify=true
+Terminal=0
+Type=Application
+}}}
+
+Para configurar el nombre único de clase de ventana como se ve en el ejemplo anterior puede hacerse uso de la variable de ambiente JAYATANA_STARTUPWMCLASS o desde código fuente:
+
+{{{
+public class MainClass {
+    static {
+        System.setProperty("jayatana.startupWMClass", "identificador_miapp");
+    }
+
+    public static void main(String args[]) {
+        ...
+    }
+}
+}}}
+
+=Extender el funcionamiento de los menus=
+
+También es posible extender el funcionamiento de los menús ya que existen aplicaciones que generan sus propias clases para integrar mayor dinamismo al funcionamiento de estos, como por ejemplo Netbeans que incluye funcionalidades extra.
+
+Para esto puedes compilar una clase derivada de *org.java.ayatana.ExtraMenuAction* o *org.java.jayatana.DefaultExtraMenuAction*. Ejemplo para Netbeans:
+
+{{{
+public class NbsExtraMenuAction extends DefaultExtraMenuAction {
+    private boolean initializeLazyMenu = false;
+    private Method methodDoInitialize;
+    private Method methodDynaModel;
+    private Field fieldDynaModel;
+    
+    private void initializeLazyMenu(Class<?> classMenu) throws NoSuchMethodException, NoSuchFieldException {
+        methodDoInitialize = classMenu.getDeclaredMethod("doInitialize", new Class<?>[] {});
+        if (!methodDoInitialize.isAccessible())
+            methodDoInitialize.setAccessible(true);
+
+        fieldDynaModel = classMenu.getDeclaredField("dynaModel");
+        if (!fieldDynaModel.isAccessible())
+            fieldDynaModel.setAccessible(true);
+
+        Class<?> classDynaModel = fieldDynaModel.getType();
+        methodDynaModel = classDynaModel.getMethod("checkSubmenu", new Class<?>[] {JMenu.class});
+        if (!methodDynaModel.isAccessible())
+            methodDynaModel.setAccessible(true);
+    }
+    @Override
+    public boolean allowDynamicMenuBar() {
+        return false;
+    }
+    
+    @Override
+    public boolean allowMenuAction(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+        if (shortcut)
+            return false;
+        else
+            return super.allowMenuAction(window, menubar, menuitem, selected, shortcut);
+    }
+    
+    @Override
+    public void invokeMenu(Window window, JMenuBar menubar, JMenuItem menuitem, boolean selected, boolean shortcut) {
+        super.invokeMenu(window, menubar, menuitem, selected, shortcut);
+        if (selected) {
+            if ("org.openide.awt.MenuBar$LazyMenu".equals(menuitem.getClass().getName())) {
+                try {
+                    if (!initializeLazyMenu) {
+                        initializeLazyMenu(menuitem.getClass());
+                        initializeLazyMenu = true;
+                    }
+                    methodDoInitialize.invoke(menuitem, new Object[] {});
+                    Object objectDynaModel = fieldDynaModel.get(menuitem);
+                    methodDynaModel.invoke(objectDynaModel, menuitem);
+                } catch (Exception e) {
+                    Logger.getLogger(NbsExtraMenuAction.class.getName())
+                            .log(Level.WARNING, "Error invoking LazyMenu", e);
+                }
+            }
+            if (menuitem instanceof DynamicMenuContent) {
+                ((DynamicMenuContent)menuitem).synchMenuPresenters(null);
+            }
+        }
+    }
+}
+}}}
+
+Para utilizar esta clase puede utilizarse la variable de ambiente *JAYATANA_MENUACTIONCLASS=paquete.MiClase*
+
+o bien desde código
+
+{{{
+public class MainClass {
+    static {
+        System.setProperty("jayatana.startupWMClass", "identificador_miapp");
+        System.setProperty("jayatana.menuActionClass", "paquete.MiClase");
+    }
+
+    public static void main(String args[]) {
+        ...
+    }
+}
+}}}
+
+=Ejemplo de lanzador para Netbeans=
+
+{{{
+[Desktop Entry]
+Name=NetBeans IDE 7.2
+Comment=The Smarter Way to Code
+Exec=env JAYATANA_STARTUPWMCLASS=netbeans-7.2 JAYATANA_MENUACTIONCLASS=org.java.ayatana.NetbeansPlatformMenuAction "/opt/netbeans-7.2/bin/netbeans"
+Icon=netbeans
+Categories=Application;Development;Java;IDE
+StartupWMClass=netbeans-7.2
+StartupNotify=true
+Terminal=0
+Type=Application
+}}}
