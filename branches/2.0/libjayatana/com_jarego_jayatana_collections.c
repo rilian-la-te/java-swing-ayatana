@@ -1,0 +1,85 @@
+#include "com_jarego_jayatana_collections.h"
+
+#include <stdlib.h>
+
+void collection_list_realloc(ListIndex *list) {
+	if (list->size == list->allocated) {
+		list->allocated *= 2;
+		list->entries = (ListIndexEntry **) realloc(list->entries,
+				sizeof(ListIndexEntry *) * list->allocated);
+	}
+}
+
+ListIndex *collection_list_index_new() {
+	ListIndex *list = (ListIndex *) malloc(sizeof(ListIndex));
+	list->entries = (ListIndexEntry **) malloc(sizeof(ListIndexEntry *));
+	list->allocated = 1;
+	list->size = 0;
+	return list;
+}
+
+void collection_list_index_add(ListIndex *list, long id, void *data) {
+	collection_list_realloc(list);
+	ListIndexEntry *entry = (ListIndexEntry *) malloc(sizeof(ListIndexEntry));
+	entry->id = id;
+	entry->data = data;
+	list->entries[list->size] = entry;
+	list->size++;
+}
+
+void *collection_list_index_get(ListIndex *list, long id) {
+	int i;
+	for (i = 0; i < list->size; i++) {
+		if (list->entries[i]->id == id)
+			return list->entries[i]->data;
+	}
+	return NULL;
+}
+
+void *collection_list_index_remove(ListIndex *list, long id) {
+	int i;
+	for (i = 0; i < list->size; i++) {
+		if (list->entries[i]->id == id) {
+			void *data = list->entries[i]->data;
+			free(list->entries[i]);
+			int j;
+			for (j = i + 1; j < list->size; j++) {
+				list->entries[j - 1] = list->entries[j];
+			}
+			list->size--;
+			return data;
+		}
+	}
+	return NULL;
+}
+
+void collection_list_index_destory(ListIndex *list) {
+	int i;
+	for (i = 0; i < list->size; i++)
+		free(list->entries[i]);
+	free(list->entries);
+	free(list);
+}
+
+void collection_list_index_add_last(ListIndex *list, void *data) {
+	collection_list_realloc(list);
+	ListIndexEntry *entry = (ListIndexEntry *) malloc(sizeof(ListIndexEntry));
+	entry->id = list->size;
+	entry->data = data;
+	list->entries[list->size] = entry;
+	list->size++;
+}
+
+void *collection_list_index_get_last(ListIndex *list) {
+	return list->entries[list->size - 1]->data;
+}
+
+void *collection_list_index_remove_last(ListIndex *list) {
+	if (list->size == 0)
+		return NULL;
+	void *data = collection_list_index_get_last(list);
+	free(list->entries[list->size - 1]);
+	list->entries[list->size - 1] = NULL;
+	list->size--;
+	return data;
+}
