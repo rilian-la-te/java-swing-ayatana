@@ -27,8 +27,11 @@
 package com.jarego.jayatana.test;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Graphics2D;
+import java.awt.SplashScreen;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -71,9 +74,14 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 			.getBundle("com.jarego.jayatana.test.Bundle");
 	
 	public static void main(String args[]) throws Exception {
-		Swing swingDemo = new Swing();
-        swingDemo.loadDefaultText();
-        swingDemo.setVisible(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				Swing swingDemo = new Swing();
+		        swingDemo.loadDefaultText();
+		        swingDemo.setVisible(true);
+			}
+		});
 	}
 
 	private JMenuBar menubar;
@@ -97,6 +105,16 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 	 *            Archivo de texto
 	 */
 	public Swing(File file) {
+		SplashScreen splashScreen = SplashScreen.getSplashScreen();
+		Graphics2D g2d = splashScreen.createGraphics();
+		g2d.setColor(Color.RED);
+		g2d.drawString("Cargnado...", 10, 10);
+		// TODO: Utilizando openjdk6, al actualizar el objeto splashScreen la aplicacion muere.
+		// Existe un conflicto al utilizar XInitThread en el proyecto jayatanaag
+		// Error:
+		//   java: pthread_mutex_lock.c:317: __pthread_mutex_lock_full: La declaración `(-(e)) != 3 || !robust' no se cumple.
+		//splashScreen.update();
+		
 		this.file = file;
 
 		menubar = new JMenuBar();

@@ -35,18 +35,18 @@
 #include "com_jarego_jayatana_Agent.h"
 
 #define CHARSZ(s) (sizeof(char)*(s))
-#define MIN(a,b) ((a)<(b)?(a):(b))
+#define MATHMIN(a,b) ((a)<(b)?(a):(b))
 
 /*
  * Encabezado para validar valor de variable de ambiente
  */
-int com_jarego_java_ayatana_Agent_CheckEnv(const char *envname, const char *envval);
+int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval);
 
 /*
  * Cargar agente para integración con Ubuntu/Linux
  */
 static void JNICALL
-com_jarego_java_ayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread) {
+com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread) {
 	// recuperar información del hilo
 	jvmtiError error;
 	jvmtiThreadInfo info;
@@ -54,18 +54,33 @@ com_jarego_java_ayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, 
 	if (error == JVMTI_ERROR_NONE) {
 		// inicializar XInitThreads para corregir defecto en OpenJDK 6 para los hilos de AWT o
 		// Java 2D
-		if (memcmp(info.name, "AWT-", MIN(CHARSZ(4), strlen(info.name))) == 0 ||
-				memcmp(info.name, "Java2D", MIN(CHARSZ(6), strlen(info.name))) == 0) {
-			// inicializar x
-			XInitThreads();
+		if (memcmp(info.name, "AWT-", MATHMIN(CHARSZ(4), strlen(info.name))) == 0 ||
+				memcmp(info.name, "Java2D", MATHMIN(CHARSZ(6), strlen(info.name))) == 0) {
 			// Cargar librerías e instala integración Ubuntu/Linux para Swing
-			if (memcmp(info.name, "AWT-XAWT", MIN(CHARSZ(8), strlen(info.name))) == 0) {
+			if (memcmp(info.name, "AWT-XAWT", MATHMIN(CHARSZ(8), strlen(info.name))) == 0) {
 				// instala la clase para control de integración Swing
 				jclass clsInstallers = (*jni_env)->FindClass(
 						jni_env, "com/jarego/jayatana/FeatureManager");
-				jmethodID midInstallForSwing = (*jni_env)->GetStaticMethodID(
-						jni_env, clsInstallers, "deployForSwing", "()V");
-				(*jni_env)->CallStaticVoidMethod(jni_env, clsInstallers, midInstallForSwing);
+				if (clsInstallers != NULL) {
+					jmethodID midInstallForSwing = (*jni_env)->GetStaticMethodID(
+							jni_env, clsInstallers, "deployForSwing", "()V");
+					(*jni_env)->CallStaticVoidMethod(jni_env, clsInstallers, midInstallForSwing);
+				}
+			} else {
+				// inicializar hilos de X, solo para OpenJDK 6
+				char *version = 0;
+				if ((*jvmti_env)->GetSystemProperty(
+						jvmti_env, "java.vm.specification.version", &version) == JVMTI_ERROR_NONE) {
+					if (strcmp(version, "1.0") == 0) {
+						// TODO: Utilizando openjdk6, al actualizar el objeto
+						// splashScreen (splashScreen.update) la aplicacion muere.
+						// Existe un conflicto al utilizar XInitThread y pthread.
+						// Error:
+						//   java: pthread_mutex_lock.c:317: __pthread_mutex_lock_full: La declaración `(-(e)) != 3 || !robust' no se cumple.
+						XInitThreads();
+					}
+					(*jvmti_env)->Deallocate(jvmti_env, (unsigned char*)version);
+				}
 			}
 		}
 	}
@@ -76,40 +91,45 @@ com_jarego_java_ayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, 
  */
 JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
-	if ((com_jarego_java_ayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity") ||
-			com_jarego_java_ayatana_Agent_CheckEnv("JAYATANA_FORCE", "true") ||
-			com_jarego_java_ayatana_Agent_CheckEnv("JAYATANA", "1")) &&
-			!com_jarego_java_ayatana_Agent_CheckEnv("JAYATANA", "")) {
+	if ((com_jarego_jayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity") ||
+			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true") ||
+			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1")) &&
+			!com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "")) {
+
 		// inicializar entorno
 		jvmtiEnv *jvmti_env;
 		(*vm)->GetEnv(vm, (void**) &jvmti_env, JVMTI_VERSION);
-		// registrar funciones de eventos
-		jvmtiEventCallbacks callbacks;
-		memset(&callbacks, 0, sizeof(jvmtiEventCallbacks));
-		callbacks.ThreadStart = com_jarego_java_ayatana_Agent_threadStart;
-		(*jvmti_env)->SetEventCallbacks(jvmti_env, &callbacks, sizeof(jvmtiEventCallbacks));
+
 		// activar capacidades
 		jvmtiCapabilities capabilities;
 		memset(&capabilities, 0, sizeof(jvmtiCapabilities));
 		(*jvmti_env)->AddCapabilities(jvmti_env, &capabilities);
+
+		// registrar funciones de eventos
+		jvmtiEventCallbacks callbacks;
+		memset(&callbacks, 0, sizeof(jvmtiEventCallbacks));
+		callbacks.ThreadStart = &com_jarego_jayatana_Agent_threadStart;
+
 		// habilitar gestor de eventos
 		(*jvmti_env)->SetEventNotificationMode(jvmti_env,
-				JVMTI_ENABLE, JVMTI_EVENT_THREAD_START, NULL);
-		// incluir Jayatana al classpath
+				JVMTI_ENABLE, JVMTI_EVENT_THREAD_START, (jthread)NULL);
+
+		// registrar gestor de eventos
+		(*jvmti_env)->SetEventCallbacks(jvmti_env, &callbacks, (jint)sizeof(jvmtiEventCallbacks));
+
+		// cargar ruta de clases jayatana
 		if (getenv("JAYATANA_CLASSPATH") != NULL) // opción para desarrollo
-			(*jvmti_env)->AddToSystemClassLoaderSearch(jvmti_env,
-					getenv("JAYATANA_CLASSPATH"));
+			(*jvmti_env)->AddToSystemClassLoaderSearch(jvmti_env, getenv("JAYATANA_CLASSPATH"));
 		else
-			(*jvmti_env)->AddToSystemClassLoaderSearch(jvmti_env,
-					"/usr/share/java/jayatana.jar");
+			(*jvmti_env)->AddToSystemClassLoaderSearch(jvmti_env, "/usr/share/java/jayatana.jar");
 	}
-	return 0;
+	return JVMTI_ERROR_NONE;
 }
 
 /*
  * Verificar valor de variable de ambiente.
  */
-int com_jarego_java_ayatana_Agent_CheckEnv(const char *envname, const char *envval) {
+int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval) {
 	if (getenv(envname) == NULL) return 0;
 	if (strcmp(getenv(envname), envval) == 0) return 1;
 	else return 0;
