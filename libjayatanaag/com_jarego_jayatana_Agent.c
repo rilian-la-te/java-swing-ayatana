@@ -54,33 +54,29 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 	if (error == JVMTI_ERROR_NONE) {
 		// inicializar XInitThreads para corregir defecto en OpenJDK 6 para los hilos de AWT o
 		// Java 2D
-		if (memcmp(info.name, "AWT-", MATHMIN(CHARSZ(4), strlen(info.name))) == 0 ||
-				memcmp(info.name, "Java2D", MATHMIN(CHARSZ(6), strlen(info.name))) == 0) {
-			// Cargar librerías e instala integración Ubuntu/Linux para Swing
-			if (memcmp(info.name, "AWT-XAWT", MATHMIN(CHARSZ(8), strlen(info.name))) == 0) {
-				// instala la clase para control de integración Swing
-				jclass clsInstallers = (*jni_env)->FindClass(
-						jni_env, "com/jarego/jayatana/FeatureManager");
-				if (clsInstallers != NULL) {
-					jmethodID midInstallForSwing = (*jni_env)->GetStaticMethodID(
-							jni_env, clsInstallers, "deployForSwing", "()V");
-					(*jni_env)->CallStaticVoidMethod(jni_env, clsInstallers, midInstallForSwing);
+		if (memcmp(info.name, "Java2D", MATHMIN(CHARSZ(6), strlen(info.name))) == 0) {
+			// inicializar hilos de X, solo para OpenJDK 6
+			char *version = 0;
+			if ((*jvmti_env)->GetSystemProperty(
+					jvmti_env, "java.vm.specification.version", &version) == JVMTI_ERROR_NONE) {
+				if (strcmp(version, "1.0") == 0) {
+					// TODO: Utilizando openjdk6, al actualizar el objeto
+					// splashScreen (splashScreen.update) la aplicacion muere.
+					// Existe un conflicto al utilizar XInitThread y pthread.
+					// Error:
+					//   java: pthread_mutex_lock.c:317: __pthread_mutex_lock_full: La declaración `(-(e)) != 3 || !robust' no se cumple.
+					XInitThreads();
 				}
-			} else {
-				// inicializar hilos de X, solo para OpenJDK 6
-				char *version = 0;
-				if ((*jvmti_env)->GetSystemProperty(
-						jvmti_env, "java.vm.specification.version", &version) == JVMTI_ERROR_NONE) {
-					if (strcmp(version, "1.0") == 0) {
-						// TODO: Utilizando openjdk6, al actualizar el objeto
-						// splashScreen (splashScreen.update) la aplicacion muere.
-						// Existe un conflicto al utilizar XInitThread y pthread.
-						// Error:
-						//   java: pthread_mutex_lock.c:317: __pthread_mutex_lock_full: La declaración `(-(e)) != 3 || !robust' no se cumple.
-						XInitThreads();
-					}
-					(*jvmti_env)->Deallocate(jvmti_env, (unsigned char*)version);
-				}
+				(*jvmti_env)->Deallocate(jvmti_env, (unsigned char*)version);
+			}
+		} else if (memcmp(info.name, "AWT-XAWT", MATHMIN(CHARSZ(8), strlen(info.name))) == 0) {
+			// instala la clase para control de integración Swing
+			jclass clsInstallers = (*jni_env)->FindClass(
+					jni_env, "com/jarego/jayatana/FeatureManager");
+			if (clsInstallers != NULL) {
+				jmethodID midInstallForSwing = (*jni_env)->GetStaticMethodID(
+						jni_env, clsInstallers, "deployForSwing", "()V");
+				(*jni_env)->CallStaticVoidMethod(jni_env, clsInstallers, midInstallForSwing);
 			}
 		}
 	}
