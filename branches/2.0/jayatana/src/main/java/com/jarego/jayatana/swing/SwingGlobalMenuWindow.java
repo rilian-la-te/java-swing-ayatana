@@ -1,27 +1,36 @@
 package com.jarego.jayatana.swing;
 
+import java.awt.AWTEvent;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.AWTEventListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import com.jarego.jayatana.FeatureManager;
 import com.jarego.jayatana.basic.GlobalMenu;
 
-public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener {
+public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener, AWTEventListener {
 	private long windowXID;
 	private Window window;
 	private JMenuBar menubar;
@@ -43,9 +52,11 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener 
 	protected void register() {
 		createMenuBarMenus();
 		menubar.setVisible(false);
+		Toolkit.getDefaultToolkit().addAWTEventListener(this, KeyEvent.KEY_EVENT_MASK);
 	}
 	@Override
 	protected void unregister() {
+		Toolkit.getDefaultToolkit().removeAWTEventListener(this);
 		menubar.setVisible(true);
 	}
 	
@@ -173,4 +184,47 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener 
 	public void windowActivated(WindowEvent e) {}
 	@Override
 	public void windowDeactivated(WindowEvent e) {}
+	
+	private Window getWindow(Component comp) {
+		if (comp == null)
+			return null;
+		else if (comp instanceof JFrame)
+			return (Window) comp;
+		else if (comp instanceof JDialog)
+			return (Window) comp;
+		else
+			return getWindow(comp.getParent());
+	}
+	
+	@Override
+	public void eventDispatched(AWTEvent event) {
+		KeyEvent e = (KeyEvent) event;
+		if (e.getID() == KeyEvent.KEY_PRESSED && !e.isConsumed()) {
+			if (e.getKeyCode() != KeyEvent.VK_ALT
+					&& e.getKeyCode() != KeyEvent.VK_SHIFT
+					&& e.getKeyCode() != KeyEvent.VK_CONTROL
+					&& e.getKeyCode() != KeyEvent.VK_META
+					&& e.getKeyCode() != KeyEvent.VK_ALT_GRAPH) {
+				if (getWindow((Component)e.getSource()) == window) {
+					try {
+						Class<?> classMenubar = menubar.getClass();
+						Method methodProcessKey = classMenubar.getDeclaredMethod(
+							"processKeyBinding", new Class<?>[] {
+								KeyStroke.class, KeyEvent.class, int.class, boolean.class
+						});
+						if (!methodProcessKey.isAccessible())
+							methodProcessKey.setAccessible(true);
+						Object result = methodProcessKey.invoke(menubar, new Object[] {
+								KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()), e,
+								JComponent.WHEN_IN_FOCUSED_WINDOW, true
+						});
+						if (Boolean.TRUE.equals(result))
+							e.consume();
+					} catch (Exception err) {
+						err.printStackTrace();
+					}
+				}
+			}
+		}
+	}
 }
