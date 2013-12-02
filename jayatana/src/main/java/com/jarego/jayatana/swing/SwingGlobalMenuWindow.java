@@ -278,10 +278,12 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 						});
 						if (!methodProcessKeyBinding.isAccessible())
 							methodProcessKeyBinding.setAccessible(true);
-						methodProcessKeyBinding.invoke(menubar, new Object[] {
+						Object result = methodProcessKeyBinding.invoke(menubar, new Object[] {
 							KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()), e, 	
 							JComponent.WHEN_IN_FOCUSED_WINDOW, true
 						});
+						if (Boolean.TRUE.equals(result))
+							e.consume();
 					} catch (Exception err) {
 						Logger.getLogger(SwingGlobalMenuWindow.class.getName())
 								.log(Level.WARNING, err.getMessage(), err);
