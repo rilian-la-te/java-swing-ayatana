@@ -95,6 +95,7 @@ void jayatana_destroy_menuitem(gpointer data) {
 				dbusmenu_menuitem_take_children((DbusmenuMenuitem *) data),
 				jayatana_destroy_menuitem);
 		g_object_unref(G_OBJECT(data));
+		data = NULL;
 	}
 }
 /**
@@ -260,32 +261,25 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 	free(globalmenu_window);
 }
 
-void jayatana_item_event_open(DbusmenuMenuitem *item) {
+void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 	// recuperar el controlador
 	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
 			collection_list_index_get(jayatana_globalmenu_windows,
 					g_variant_get_int64(dbusmenu_menuitem_property_get_variant(
 							item, "jayatana-windowxid")));
-	// inicializar menu
-	globalmenu_window->dbusMenuCurrent = item;
-	g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
-	// invocar generacion de menus
-	JNIEnv *env = NULL;
-	(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
-	jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-	jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
-	(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
-			dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
-	(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
-}
-
-void jayatana_item_event_close(DbusmenuMenuitem *item, const char *event) {
-	if (strcmp(DBUSMENU_MENUITEM_EVENT_CLOSED, event) == 0) {
-		// recuperar el controlador
-		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-				collection_list_index_get(jayatana_globalmenu_windows,
-						g_variant_get_int64(dbusmenu_menuitem_property_get_variant(
-								item, "jayatana-windowxid")));
+	if (strcmp(DBUSMENU_MENUITEM_EVENT_OPENED, event) == 0) {
+		// inicializar menu
+		globalmenu_window->dbusMenuCurrent = item;
+		g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
+		// invocar generacion de menus
+		JNIEnv *env = NULL;
+		(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
+		jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
+		jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
+		(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+				dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+		(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
+	} else if (strcmp(DBUSMENU_MENUITEM_EVENT_CLOSED, event) == 0) {
 		// invocar cerrado de menu
 		JNIEnv *env = NULL;
 		(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
@@ -332,9 +326,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
 	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 	dbusmenu_menuitem_child_append(globalmenu_window->dbusMenuCurrent, item);
 	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_EVENT,
-			G_CALLBACK(jayatana_item_event_close), NULL);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ABOUT_TO_SHOW,
-			G_CALLBACK(jayatana_item_event_open), NULL);
+			G_CALLBACK(jayatana_item_events), NULL);
 
 	DbusmenuMenuitem *foo = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
@@ -422,5 +414,14 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addSeparator
 	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
 	dbusmenu_menuitem_child_append(globalmenu_window->dbusMenuCurrent, item);
+}
+
+JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_removeAllMenus
+  (JNIEnv *env, jobject that, jlong windowXID) {
+	//recuperar el controlador
+	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+		collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+	g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot), jayatana_destroy_menuitem);
+	globalmenu_window->dbusMenuCurrent = globalmenu_window->dbusMenuRoot;
 }
 

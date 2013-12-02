@@ -95,6 +95,14 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemChec
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addSeparator
   (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     com_jarego_jayatana_basic_GlobalMenu
+ * Method:    removeAllMenus
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_removeAllMenus
+  (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif
