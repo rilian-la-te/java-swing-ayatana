@@ -6,9 +6,15 @@ import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.AWTEventListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +36,8 @@ import javax.swing.event.PopupMenuListener;
 import com.jarego.jayatana.FeatureManager;
 import com.jarego.jayatana.basic.GlobalMenu;
 
-public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener, AWTEventListener {
+public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener, AWTEventListener,
+		ContainerListener, PropertyChangeListener, ComponentListener {
 	private long windowXID;
 	private Window window;
 	private JMenuBar menubar;
@@ -50,27 +57,80 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 	
 	@Override
 	protected void register() {
-		createMenuBarMenus();
-		menubar.setVisible(false);
-		Toolkit.getDefaultToolkit().addAWTEventListener(this, KeyEvent.KEY_EVENT_MASK);
+		try {
+			EventQueue.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					for (int i=0;i<menubar.getMenuCount();i++) {
+						menubar.getMenu(i).addPropertyChangeListener(SwingGlobalMenuWindow.this);
+						menubar.getMenu(i).addComponentListener(SwingGlobalMenuWindow.this);
+					}
+					menubar.addContainerListener(SwingGlobalMenuWindow.this);
+					Toolkit.getDefaultToolkit().addAWTEventListener(SwingGlobalMenuWindow.this, KeyEvent.KEY_EVENT_MASK);
+					menubar.setVisible(false);
+					createMenuBarMenus();
+				}
+			});
+		} catch (Exception e) {
+			Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+					.log(Level.WARNING, e.getMessage(), e);
+		}
 	}
 	@Override
 	protected void unregister() {
-		Toolkit.getDefaultToolkit().removeAWTEventListener(this);
-		menubar.setVisible(true);
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				Toolkit.getDefaultToolkit().removeAWTEventListener(SwingGlobalMenuWindow.this);
+				for (int i=0;i<menubar.getMenuCount();i++) {
+					menubar.getMenu(i).removePropertyChangeListener(SwingGlobalMenuWindow.this);
+					menubar.getMenu(i).removeComponentListener(SwingGlobalMenuWindow.this);
+				}
+				menubar.removeContainerListener(SwingGlobalMenuWindow.this);
+				menubar.setVisible(true);
+			}
+		});
 	}
 	
+	private void destroyMenuBarMenus() {
+		removeAllMenus(windowXID);
+	}
 	private void createMenuBarMenus() {
 		for (int i=0;i<menubar.getMenuCount();i++) {
 			JMenu menu = menubar.getMenu(i);
 			if (menu.isVisible() && menu.getText() != null && !"".equals(menu.getText()))
-				addMenu(menubar.getMenu(i));
+				addMenu(null, menubar.getMenu(i));
+		}
+	}
+	private long approveRecreateMenuBarMenus = -1;
+	private void recreateMenuBarMenus() {
+		if (approveRecreateMenuBarMenus == -1) {
+			approveRecreateMenuBarMenus = System.currentTimeMillis() + 500;
+			new Thread() {
+				@Override
+				public void run() {
+					try {
+						while (System.currentTimeMillis() < approveRecreateMenuBarMenus)
+							Thread.sleep(100);
+					} catch (InterruptedException e) {
+						Logger.getLogger(SwingGlobalMenuWindow.class.getName()).log(
+								Level.WARNING, "Can't wait approve rebuild", e);
+					} finally {
+						menuStack.removeAll();
+						destroyMenuBarMenus();
+						createMenuBarMenus();
+						approveRecreateMenuBarMenus = -1;
+					}
+				}
+			}.start();
+		} else {
+			approveRecreateMenuBarMenus = System.currentTimeMillis() + 500;
 		}
 	}
 	
-	private void addMenu(JMenu menu) {
+	private void addMenu(JMenu parent, JMenu menu) {
 		addMenu(windowXID, menu.hashCode(), menu.getText(), menu.isEnabled());
-		menuStack.put(menu);
+		menuStack.put(parent, menu);
 	}
 	private void addMenuItem(JMenu menu, JMenuItem menuitem) {
 		if (menuitem.getText() == null || "".equals(menuitem.getText()))
@@ -115,55 +175,60 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 	}
 	@Override
 	protected void menuAboutToShow(int menuId) {
-		final JMenu menu = (JMenu)menuStack.findMenu(menuId);
-		if (menu != null && menu.isEnabled() && menu.isVisible()) {
-			try {
-				EventQueue.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						menu.getModel().setSelected(true);
-						JPopupMenu popupMenu = menu.getPopupMenu();
-						menuStack.put(menu, popupMenu);
-						PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
-						for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
-                        	if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
-						for (Component comp : popupMenu.getComponents()) {
-							if (comp.isVisible()) {
-								if (comp instanceof JMenu)
-									addMenu((JMenu)comp);
-								else if (comp instanceof JMenuItem)
-									addMenuItem(menu, (JMenuItem)comp);
-								else if (comp instanceof JSeparator)
-									addSeparator(windowXID);
+		final SwingGlobalMenuStack.MenuStackEntry mse = menuStack.removeMenu(menuId);
+		if (mse != null) {
+			final JMenu menu = mse.getMenu();
+			if (menu != null && menu.isEnabled() && menu.isVisible()) {
+				try {
+					EventQueue.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							menu.getModel().setSelected(true);
+							JPopupMenu popupMenu = menu.getPopupMenu();
+							menuStack.put(menu, popupMenu);
+							PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
+							for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
+	                        	if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
+							for (Component comp : popupMenu.getComponents()) {
+								if (comp.isVisible()) {
+									if (comp instanceof JMenu)
+										addMenu(menu, (JMenu)comp);
+									else if (comp instanceof JMenuItem)
+										addMenuItem(menu, (JMenuItem)comp);
+									else if (comp instanceof JSeparator)
+										addSeparator(windowXID);
+								}
 							}
 						}
-					}
-				});
-			} catch (Exception e) {
-				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
-					.log(Level.SEVERE, e.getMessage(), e);
+					});
+				} catch (Exception e) {
+					Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+						.log(Level.SEVERE, e.getMessage(), e);
+				}
 			}
 		}
 	}
 	@Override
 	protected void menuAfterClose(int menuId) {
-		final SwingGlobalMenuStack.MenuStackEntry mse = menuStack.remove(menuId);
-		final JMenu menu = (JMenu)mse.getMenu();
-		if (menu != null && menu.isEnabled() && menu.isVisible()) {
-			try {
-				EventQueue.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						JPopupMenu popupMenu = mse.getPopupMenu();
-						PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
-						for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
-                        	if (pl != null) pl.popupMenuWillBecomeInvisible(pevent);
-						menu.getModel().setSelected(false);
-					}
-				});
-			} catch (Exception e) {
-				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
-					.log(Level.SEVERE, e.getMessage(), e);
+		final SwingGlobalMenuStack.MenuStackEntry mse = menuStack.findMenu(menuId);
+		if (mse != null) {
+			final JMenu menu = mse.getMenu();
+			if (menu != null && menu.isEnabled() && menu.isVisible()) {
+				try {
+					EventQueue.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							JPopupMenu popupMenu = mse.getPopupMenu();
+							PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
+							for (PopupMenuListener pl : menu.getPopupMenu().getPopupMenuListeners())
+	                        	if (pl != null) pl.popupMenuWillBecomeInvisible(pevent);
+							menu.getModel().setSelected(false);
+						}
+					});
+				} catch (Exception e) {
+					Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+						.log(Level.WARNING, e.getMessage(), e);
+				}
 			}
 		}
 	}
@@ -207,24 +272,58 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 					&& e.getKeyCode() != KeyEvent.VK_ALT_GRAPH) {
 				if (getWindow((Component)e.getSource()) == window) {
 					try {
-						Class<?> classMenubar = menubar.getClass();
-						Method methodProcessKey = classMenubar.getDeclaredMethod(
+						Method methodProcessKeyBinding = JMenuBar.class.getDeclaredMethod(
 							"processKeyBinding", new Class<?>[] {
 								KeyStroke.class, KeyEvent.class, int.class, boolean.class
 						});
-						if (!methodProcessKey.isAccessible())
-							methodProcessKey.setAccessible(true);
-						Object result = methodProcessKey.invoke(menubar, new Object[] {
-								KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()), e,
-								JComponent.WHEN_IN_FOCUSED_WINDOW, true
+						if (!methodProcessKeyBinding.isAccessible())
+							methodProcessKeyBinding.setAccessible(true);
+						methodProcessKeyBinding.invoke(menubar, new Object[] {
+							KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()), e, 	
+							JComponent.WHEN_IN_FOCUSED_WINDOW, true
 						});
-						if (Boolean.TRUE.equals(result))
-							e.consume();
 					} catch (Exception err) {
-						err.printStackTrace();
+						Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+								.log(Level.WARNING, err.getMessage(), err);
 					}
 				}
 			}
 		}
 	}
+
+	@Override
+	public void componentAdded(ContainerEvent e) {
+		if (e.getChild() instanceof JMenu) {
+			((JMenu)e.getChild()).addPropertyChangeListener(this);
+			((JMenu)e.getChild()).addComponentListener(this);
+			recreateMenuBarMenus();
+		}
+	}
+	@Override
+	public void componentRemoved(ContainerEvent e) {
+		if (e.getChild() instanceof JMenu) {
+			((JMenu)e.getChild()).removePropertyChangeListener(this);
+			((JMenu)e.getChild()).removeComponentListener(this);
+			recreateMenuBarMenus();
+		}
+	}
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if ("enabled".equals(evt.getPropertyName()))
+			recreateMenuBarMenus();
+	}
+	@Override
+	public void componentHidden(ComponentEvent e) {
+		if (e.getSource() instanceof JMenu)
+			recreateMenuBarMenus();
+	}
+	@Override
+	public void componentShown(ComponentEvent e) {
+		if (e.getSource() instanceof JMenu)
+			recreateMenuBarMenus();
+	}
+	@Override
+	public void componentMoved(ComponentEvent e) {}
+	@Override
+	public void componentResized(ComponentEvent e) {}
 }

@@ -1,21 +1,23 @@
 package com.jarego.jayatana.swing;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 public class SwingGlobalMenuStack {
 	private Map<Integer, MenuStackEntry> menus;
+	
 	public SwingGlobalMenuStack() {
 		menus = new TreeMap<Integer, MenuStackEntry>();
 	}
-	public MenuStackEntry put(JMenu menu) {
+	public MenuStackEntry put(JMenu parent, JMenu menu) {
 		MenuStackEntry menuStack;
-		menus.put(menu.hashCode(), menuStack = new MenuStackEntry(menu));
+		menus.put(menu.hashCode(), menuStack = new MenuStackEntry(parent, menu));
 		return menuStack;
 	}
 	public void put(JMenu menu, JPopupMenu item) {
@@ -24,17 +26,38 @@ public class SwingGlobalMenuStack {
 	public void put(JMenu menu, JMenuItem item) {
 		menus.get(menu.hashCode()).getMenuItems().put(item.hashCode(), item);
 	}
-	public MenuStackEntry remove(int menuId) {
-		MenuStackEntry mse = menus.get(menuId);
-		if (mse.getMenu().getParent() instanceof JMenuBar) {
-			mse.getMenuItems().clear();
-			return mse;
-		} else {
-			return menus.remove(menuId);
+	private void removeMenu(MenuStackEntry menuEntry) {
+		menuEntry.getMenuItems().clear();
+		
+		List<MenuStackEntry> menusToRemove = new ArrayList<MenuStackEntry>();
+		for (MenuStackEntry msei : menus.values())
+			if (msei.getParentMenu() == menuEntry.getMenu())
+				menusToRemove.add(msei);
+		
+		for (MenuStackEntry msei : menusToRemove) {
+			removeMenu(msei);
+			menus.remove(msei.getId());
 		}
 	}
-	public JMenu findMenu(int menuId) {
-		return menus.get(menuId).getMenu();
+	public MenuStackEntry removeMenu(int menuId) {
+		MenuStackEntry mse = menus.get(menuId);
+		if (mse != null) {
+			mse.getMenuItems().clear();
+			
+			List<MenuStackEntry> menusToRemove = new ArrayList<MenuStackEntry>();
+			for (MenuStackEntry msei : menus.values())
+				if (msei.getParentMenu() == mse.getMenu())
+					menusToRemove.add(msei);
+			
+			for (MenuStackEntry msei : menusToRemove) {
+				removeMenu(msei);
+				menus.remove(msei.getId());
+			}
+		}
+		return mse;
+	}
+	public MenuStackEntry findMenu(int menuId) {
+		return menus.get(menuId);
 	}
 	public JMenuItem findMenuItem(int menuId) {
 		for (MenuStackEntry ms : menus.values()) {
@@ -44,26 +67,43 @@ public class SwingGlobalMenuStack {
 		}
 		return null;
 	}
+	public void removeAll() {
+		for (MenuStackEntry msei : menus.values())
+			msei.getMenuItems().clear();
+		menus.clear();
+	}
 	
 	@Override
 	public String toString() {
 		String out = "";
+		int cmenus = 0;
 		for (MenuStackEntry ms : menus.values()) {
 			out += ms.getMenu().getText() + "\n";
-			for (JMenuItem item : ms.getMenuItems().values())
+			cmenus++;
+			for (JMenuItem item : ms.getMenuItems().values()) {
 				out += ">"+item.getText() + "\n";
+				cmenus++;
+			}
 		}
-		return out;
+		return out+"\nTOTAL: "+cmenus;
 	}
 	
 	public class MenuStackEntry {
+		private JMenu parentMenu;
 		private JMenu menu;
 		private JPopupMenu popupMenu;
 		private Map<Integer, JMenuItem> menuItems;
 		
-		public MenuStackEntry(JMenu menu) {
+		public MenuStackEntry(JMenu parentMenu, JMenu menu) {
 			this.menu = menu;
+			this.parentMenu = parentMenu;
 			menuItems = new TreeMap<Integer, JMenuItem>();
+		}
+		public int getId() {
+			return menu.hashCode();
+		}
+		public JMenu getParentMenu() {
+			return parentMenu;
 		}
 		public JMenu getMenu() {
 			return menu;

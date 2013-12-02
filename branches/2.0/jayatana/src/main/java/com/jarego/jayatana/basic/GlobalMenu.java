@@ -53,6 +53,7 @@ public abstract class GlobalMenu {
 	native public void addMenuItemRadio(long windowXID, int menuId, String label, boolean enabled, int modifiers, int keycode, boolean selected);
 	native public void addMenuItemCheck(long windowXID, int menuId, String label, boolean enabled, int modifiers, int keycode, boolean selected);
 	native public void addSeparator(long windowXID);
+	native public void removeAllMenus(long windowXID);
 	
 	abstract protected void menuActivated(int menuId);
 	abstract protected void menuAboutToShow(int menuId);
