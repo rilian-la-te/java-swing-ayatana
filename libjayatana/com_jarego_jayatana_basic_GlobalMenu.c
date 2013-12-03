@@ -75,6 +75,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_initialize
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_uninitialize
   (JNIEnv *env, jclass thatclass) {
 	collection_list_index_destory(jayatana_globalmenu_windows);
+	jayatana_globalmenu_windows = NULL;
 }
 
 /**
@@ -98,6 +99,29 @@ void jayatana_destroy_menuitem(gpointer data) {
 		data = NULL;
 	}
 }
+
+DbusmenuMenuitem *jayatana_find_menuid(DbusmenuMenuitem *parent, jint menuId) {
+	if (menuId == -1) {
+		return parent;
+	}
+	if (dbusmenu_menuitem_property_exist(parent, "jayatana-menuid") ?
+			dbusmenu_menuitem_property_get_int(parent, "jayatana-menuid") == menuId : 0) {
+		return parent;
+	}
+
+	GList *itemscurr;
+	GList *items = dbusmenu_menuitem_get_children(parent);
+	DbusmenuMenuitem *item, *itemfound;
+	for(itemscurr = items; itemscurr; itemscurr = itemscurr->next) {
+		item = (DbusmenuMenuitem *)itemscurr->data;
+		itemfound = jayatana_find_menuid(item, menuId);
+		if (itemfound != NULL)
+			return itemfound;
+	}
+
+	return NULL;
+}
+
 /**
  * Configurar aceleradores sobre el menu
  */
@@ -262,166 +286,245 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 }
 
 void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
-	// recuperar el controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows,
-					g_variant_get_int64(dbusmenu_menuitem_property_get_variant(
-							item, "jayatana-windowxid")));
-	if (strcmp(DBUSMENU_MENUITEM_EVENT_OPENED, event) == 0) {
-		// inicializar menu
-		globalmenu_window->dbusMenuCurrent = item;
-		g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
-		// invocar generacion de menus
-		JNIEnv *env = NULL;
-		(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
-		jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-		jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
-		(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
-				dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
-		(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
-	} else if (strcmp(DBUSMENU_MENUITEM_EVENT_CLOSED, event) == 0) {
-		// invocar cerrado de menu
-		JNIEnv *env = NULL;
-		(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
-		jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-		jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAfterClose", "(I)V");
-		(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
-				dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
-		(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
+	if (jayatana_globalmenu_windows != NULL) {
+		// recuperar el controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows,
+						g_variant_get_int64(dbusmenu_menuitem_property_get_variant(
+								item, "jayatana-windowxid")));
+		if (globalmenu_window != NULL) {
+			if (strcmp(DBUSMENU_MENUITEM_EVENT_OPENED, event) == 0) {
+				// inicializar menu
+				globalmenu_window->dbusMenuCurrent = item;
+				g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
+				// invocar generacion de menus
+				JNIEnv *env = NULL;
+				(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
+				jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
+				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
+				(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+						dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+				(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
+			} else if (strcmp(DBUSMENU_MENUITEM_EVENT_CLOSED, event) == 0) {
+				// invocar cerrado de menu
+				JNIEnv *env = NULL;
+				(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
+				jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
+				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAfterClose", "(I)V");
+				(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+						dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+				(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 
+			}
+		}
 	}
 }
 
 void jayatana_item_activated(DbusmenuMenuitem *item, guint timestamp, gpointer user_data) {
-	// recuperar el controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows,
-					g_variant_get_int64(dbusmenu_menuitem_property_get_variant(
-							item, "jayatana-windowxid")));
-	//invocar hacia java
-	JNIEnv *env = NULL;
-	(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
-	jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-	jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuActivated", "(I)V");
-	(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
-			dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
-	(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
+	if (jayatana_globalmenu_windows != NULL) {
+		// recuperar el controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows,
+						g_variant_get_int64(dbusmenu_menuitem_property_get_variant(
+								item, "jayatana-windowxid")));
+		if (globalmenu_window != NULL) {
+			//invocar hacia java
+			JNIEnv *env = NULL;
+			(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
+			jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
+			jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuActivated", "(I)V");
+			(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+					dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
+		}
+	}
 }
 
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
-  (JNIEnv *env, jobject that, jlong windowXID, jint menuID, jstring label, jboolean enabled) {
+  (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled) {
 	// recuperar controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
-	// obtener etiqueta del menu
-	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
-	// generar menu
-	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY,
-			DBUSMENU_MENUITEM_CHILD_DISPLAY_SUBMENU);
-	dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
-	dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
-			g_variant_new_int64(globalmenu_window->windowXID));
-	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
-	dbusmenu_menuitem_child_append(globalmenu_window->dbusMenuCurrent, item);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_EVENT,
-			G_CALLBACK(jayatana_item_events), NULL);
+	if (jayatana_globalmenu_windows != NULL) {
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			// obtener etiqueta del menu
+			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			// generar menu
+			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY,
+					DBUSMENU_MENUITEM_CHILD_DISPLAY_SUBMENU);
+			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
+			dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
+					g_variant_new_int64(globalmenu_window->windowXID));
+			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
+			if (parent != NULL)
+				dbusmenu_menuitem_child_append(parent, item);
+			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_EVENT,
+					G_CALLBACK(jayatana_item_events), NULL);
 
-	DbusmenuMenuitem *foo = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
-	dbusmenu_menuitem_child_append(item, foo);
+			DbusmenuMenuitem *foo = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(foo, DBUSMENU_MENUITEM_PROP_LABEL, "");
+			dbusmenu_menuitem_child_append(item, foo);
+		}
+	}
 }
 
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
-  (JNIEnv *env, jobject that, jlong windowXID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode) {
-	// recuperar controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
-	// obtener etiqueta del menu
-	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
-	// generar menu
-	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
-	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
-	dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
-	dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
-				g_variant_new_int64(globalmenu_window->windowXID));
-	if (modifiers > -1 && keycode > -1)
-		jayatana_set_menuitem_shortcut(item, modifiers, keycode);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-			G_CALLBACK(jayatana_item_activated), NULL);
-
-	dbusmenu_menuitem_child_append(globalmenu_window->dbusMenuCurrent, item);
+  (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode) {
+	if (jayatana_globalmenu_windows != NULL) {
+		// recuperar controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			// obtener etiqueta del menu
+			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			// generar menu
+			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
+			dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
+						g_variant_new_int64(globalmenu_window->windowXID));
+			if (modifiers > -1 && keycode > -1)
+				jayatana_set_menuitem_shortcut(item, modifiers, keycode);
+			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+					G_CALLBACK(jayatana_item_activated), NULL);
+			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
+			if (parent != NULL)
+				dbusmenu_menuitem_child_append(parent, item);
+		}
+	}
 }
 
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadio
-  (JNIEnv *env, jobject that, jlong windowXID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
-	// recuperar controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
-	// obtener etiqueta del menu
-	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
-	// generar menu
-	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
-	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
-	dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
-	dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
-				g_variant_new_int64(globalmenu_window->windowXID));
-	if (modifiers > -1 && keycode > -1)
-		jayatana_set_menuitem_shortcut(item, modifiers, keycode);
-	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE,
-			DBUSMENU_MENUITEM_TOGGLE_RADIO);
-	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
-			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-			G_CALLBACK(jayatana_item_activated), NULL);
-	dbusmenu_menuitem_child_append(globalmenu_window->dbusMenuCurrent, item);
+  (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
+	if (jayatana_globalmenu_windows != NULL) {
+		// recuperar controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			// obtener etiqueta del menu
+			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			// generar menu
+			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
+			dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
+						g_variant_new_int64(globalmenu_window->windowXID));
+			if (modifiers > -1 && keycode > -1)
+				jayatana_set_menuitem_shortcut(item, modifiers, keycode);
+			dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE,
+					DBUSMENU_MENUITEM_TOGGLE_RADIO);
+			dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
+					selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
+			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+					G_CALLBACK(jayatana_item_activated), NULL);
+			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
+			if (parent != NULL)
+				dbusmenu_menuitem_child_append(parent, item);
+		}
+	}
 }
 
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemCheck
-  (JNIEnv *env, jobject that, jlong windowXID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
-	// recuperar controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
-	// obtener etiqueta del menu
-	const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
-	// generar menu
-	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
-	dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
-	dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
-	dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
-				g_variant_new_int64(globalmenu_window->windowXID));
-	if (modifiers > -1 && keycode > -1)
-		jayatana_set_menuitem_shortcut(item, modifiers, keycode);
-	dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE,
-			DBUSMENU_MENUITEM_TOGGLE_CHECK);
-	dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
-			selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
-	g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
-			G_CALLBACK(jayatana_item_activated), NULL);
-	dbusmenu_menuitem_child_append(globalmenu_window->dbusMenuCurrent, item);
+  (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
+	if (jayatana_globalmenu_windows != NULL) {
+		// recuperar controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			// obtener etiqueta del menu
+			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			// generar menu
+			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
+			dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
+						g_variant_new_int64(globalmenu_window->windowXID));
+			if (modifiers > -1 && keycode > -1)
+				jayatana_set_menuitem_shortcut(item, modifiers, keycode);
+			dbusmenu_menuitem_property_set (item, DBUSMENU_MENUITEM_PROP_TOGGLE_TYPE,
+					DBUSMENU_MENUITEM_TOGGLE_CHECK);
+			dbusmenu_menuitem_property_set_int(item, DBUSMENU_MENUITEM_PROP_TOGGLE_STATE,
+					selected ? DBUSMENU_MENUITEM_TOGGLE_STATE_CHECKED : DBUSMENU_MENUITEM_TOGGLE_STATE_UNCHECKED);
+			g_signal_connect(G_OBJECT(item), DBUSMENU_MENUITEM_SIGNAL_ITEM_ACTIVATED,
+					G_CALLBACK(jayatana_item_activated), NULL);
+			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
+			if (parent != NULL)
+				dbusmenu_menuitem_child_append(parent, item);
+		}
+	}
+}
+
+JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuEmpty
+  (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID) {
+	if (jayatana_globalmenu_windows != NULL) {
+		// recuperar controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, "(...)");
+			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)0);
+			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
+			if (parent != NULL)
+				dbusmenu_menuitem_child_append(parent, item);
+		}
+	}
 }
 
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addSeparator
-  (JNIEnv *env, jobject that, jlong windowXID) {
-	// recuperar controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
-	// generar separador
-	DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-	dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
-	dbusmenu_menuitem_child_append(globalmenu_window->dbusMenuCurrent, item);
+  (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID) {
+	if (jayatana_globalmenu_windows != NULL) {
+		// recuperar controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			// generar separador
+			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_TYPE, DBUSMENU_CLIENT_TYPES_SEPARATOR);
+			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
+			if (parent != NULL)
+				dbusmenu_menuitem_child_append(parent, item);
+		}
+	}
+}
+
+JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
+  (JNIEnv *env, jobject that, jlong windowXID, jint menuID, jstring label, jboolean enabled) {
+	if (jayatana_globalmenu_windows != NULL) {
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+					collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			GList *itemscurr;
+			GList *items = dbusmenu_menuitem_get_children(globalmenu_window->dbusMenuRoot);
+			DbusmenuMenuitem *item;
+			for(itemscurr = items; itemscurr; itemscurr = itemscurr->next) {
+				item = (DbusmenuMenuitem *)itemscurr->data;
+				if (dbusmenu_menuitem_property_get_int(item, "jayatana-menuid") == menuID) {
+					const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+					dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+					dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+				}
+			}
+		}
+	}
 }
 
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_removeAllMenus
   (JNIEnv *env, jobject that, jlong windowXID) {
-	//recuperar el controlador
-	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-		collection_list_index_get(jayatana_globalmenu_windows, windowXID);
-	g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot), jayatana_destroy_menuitem);
-	globalmenu_window->dbusMenuCurrent = globalmenu_window->dbusMenuRoot;
+	if (jayatana_globalmenu_windows != NULL) {
+		//recuperar el controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot), jayatana_destroy_menuitem);
+			globalmenu_window->dbusMenuCurrent = globalmenu_window->dbusMenuRoot;
+		}
+	}
 }
 
