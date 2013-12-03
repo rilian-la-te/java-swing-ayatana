@@ -56,6 +56,14 @@ public class SwingGlobalMenuStack {
 		}
 		return mse;
 	}
+	public List<MenuStackEntry> findMenuChildren(int menuId) {
+		List<MenuStackEntry> menusFounded = new ArrayList<MenuStackEntry>();
+		MenuStackEntry mse = findMenu(menuId);
+		for (MenuStackEntry msei : menus.values())
+			if (msei.getParentMenu() == mse.getMenu())
+				menusFounded.add(msei);
+		return menusFounded;
+	}
 	public MenuStackEntry findMenu(int menuId) {
 		return menus.get(menuId);
 	}
