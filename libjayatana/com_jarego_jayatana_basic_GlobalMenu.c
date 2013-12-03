@@ -52,7 +52,6 @@ typedef struct {
 
 	DbusmenuServer *dbusMenuServer;
 	DbusmenuMenuitem *dbusMenuRoot;
-	DbusmenuMenuitem *dbusMenuCurrent;
 } jayatana_globalmenu_window;
 
 /**
@@ -187,7 +186,6 @@ void jayatana_on_registrar_available(
 		globalmenu_window->windowXIDPath = jayatana_get_windowxid_path(globalmenu_window->windowXID);
 		globalmenu_window->dbusMenuServer = dbusmenu_server_new(globalmenu_window->windowXIDPath);
 		globalmenu_window->dbusMenuRoot = dbusmenu_menuitem_new();
-		globalmenu_window->dbusMenuCurrent = globalmenu_window->dbusMenuRoot;
 		dbusmenu_server_set_root(globalmenu_window->dbusMenuServer,globalmenu_window->dbusMenuRoot);
 		// registrar bus
 		GDBusProxy *dbBusProxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
@@ -295,7 +293,6 @@ void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 		if (globalmenu_window != NULL) {
 			if (strcmp(DBUSMENU_MENUITEM_EVENT_OPENED, event) == 0) {
 				// inicializar menu
-				globalmenu_window->dbusMenuCurrent = item;
 				g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
 				// invocar generacion de menus
 				JNIEnv *env = NULL;
@@ -522,8 +519,8 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_removeAllMenus
 		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
 			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
-			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot), jayatana_destroy_menuitem);
-			globalmenu_window->dbusMenuCurrent = globalmenu_window->dbusMenuRoot;
+			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
+					jayatana_destroy_menuitem);
 		}
 	}
 }
