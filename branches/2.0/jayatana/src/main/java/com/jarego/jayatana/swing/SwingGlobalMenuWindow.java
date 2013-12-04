@@ -37,20 +37,17 @@ import javax.swing.event.PopupMenuListener;
 
 import com.jarego.jayatana.FeatureManager;
 import com.jarego.jayatana.basic.GlobalMenu;
-import com.jarego.jayatana.swing.SwingGlobalMenuStack.MenuStackEntry;
 
 public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener, AWTEventListener,
 		ContainerListener, PropertyChangeListener, ComponentListener {
 	private long windowXID;
 	private Window window;
 	private JMenuBar menubar;
-	private SwingGlobalMenuStack menuStack;
 	private boolean netbeansPlatform;
 	
 	public SwingGlobalMenuWindow(Window window, JMenuBar menubar) {
 		this.window = window;
 		this.menubar = menubar;
-		menuStack = new SwingGlobalMenuStack();
 	}
 	
 	public void tryInstall() {
@@ -118,13 +115,7 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 			}
 		}
 	}
-	private void reloadRecreatedMenus(JMenu menu) {
-		if (menu.isVisible() && menu.getText() != null && !"".equals(menu.getText()))
-			menuAboutToShow(menu.hashCode());
-		for (MenuStackEntry menufound : menuStack.findMenuChildren(menu.hashCode())) {
-			reloadRecreatedMenus(menufound.getMenu());
-		}
-	}
+	
 	private long approveRecreateMenuBarMenus = -1;
 	private void recreateMenuBarMenus() {
 		if (approveRecreateMenuBarMenus == -1) {
@@ -139,15 +130,8 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 						Logger.getLogger(SwingGlobalMenuWindow.class.getName()).log(
 								Level.WARNING, "Can't wait approve rebuild", e);
 					} finally {
-						menuStack.removeAll();
 						destroyMenuBarMenus();
 						createMenuBarMenus();
-						for (Component comp : menubar.getComponents()) {
-							if (comp instanceof JMenu) {
-								JMenu menu = (JMenu)comp;
-								reloadRecreatedMenus(menu);
-							}
-						}
 						approveRecreateMenuBarMenus = -1;
 					}
 				}
@@ -158,8 +142,10 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 	}
 	
 	private void addMenu(JMenu parent, JMenu menu) {
-		addMenu(windowXID, (parent != null ? parent.hashCode() : -1), menu.hashCode(), menu.getText(), menu.isEnabled());
-		menuStack.put(parent, menu);
+		if (parent == null)
+			addMenu(windowXID, -1, menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+		else if (menu.isVisible())
+			addMenu(windowXID, parent.hashCode(), menu.hashCode(), menu.getText(), menu.isEnabled(), true);
 	}
 	private void addMenuItem(JMenu parent, JMenuItem menuitem) {
 		if (menuitem.getText() == null || "".equals(menuitem.getText()))
@@ -174,22 +160,42 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 			addMenuItemRadio(windowXID, parent.hashCode(), menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers,
 					keycode, menuitem.isSelected());
-			menuStack.put(parent, menuitem);
 		} else if (menuitem instanceof JCheckBoxMenuItem) {
 			addMenuItemCheck(windowXID, parent.hashCode(), menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers,
 					keycode, menuitem.isSelected());
-			menuStack.put(parent, menuitem);
 		} else {
 			addMenuItem(windowXID, parent.hashCode(), menuitem.hashCode(), menuitem.getText(),
 					menuitem.isEnabled(), modifiers, keycode);
-			menuStack.put(parent, menuitem);
 		}
 	}
 	
+	private JMenuItem getJMenuItem(int hashcode) {
+		for (Component comp : menubar.getComponents())
+			if (comp instanceof JMenuItem) {
+				JMenuItem item;
+				if ((item = getJMenuItem((JMenuItem) comp, hashcode)) != null)
+					return item;
+			}
+		return null;
+	}
+	private JMenuItem getJMenuItem(JMenuItem menu, int hashcode) {
+		if (menu.hashCode() == hashcode) {
+			return menu;
+		} else if (menu instanceof JMenu) {
+			for (Component comp : ((JMenu) menu).getMenuComponents())
+				if (comp instanceof JMenuItem) {
+					JMenuItem item;
+					if ((item = getJMenuItem((JMenuItem) comp, hashcode)) != null)
+						return item;
+				}
+		}
+		return null;
+	}
+	
 	@Override
-	protected void menuActivated(int menuId) {
-		final JMenuItem menuitem = menuStack.findMenuItem(menuId);
+	protected synchronized void menuActivated(int menuId) {
+		final JMenuItem menuitem = getJMenuItem(menuId);
 		if (menuitem != null && menuitem.isEnabled() & menuitem.isVisible()) {
 			EventQueue.invokeLater(new Runnable() {
 				@Override
@@ -248,74 +254,69 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 	// ----------------------
 	
 	@Override
-	protected void menuAboutToShow(int menuId) {
-		final SwingGlobalMenuStack.MenuStackEntry mse = menuStack.removeMenu(menuId);
-		if (mse != null) {
-			final JMenu menu = mse.getMenu();
-			if (menu != null && menu.isVisible()) {
-				try {
-					EventQueue.invokeAndWait(new Runnable() {
-						@Override
-						public void run() {
-							int items = 0;
-							if (menu.isEnabled()) {
-								menu.getModel().setSelected(true);
-								
-								JPopupMenu popupMenu = menu.getPopupMenu();
-								menuStack.put(menu, popupMenu);
-								PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
-								for (PopupMenuListener pl : popupMenu.getPopupMenuListeners())
-									if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
-								
-								// Correción para Netbeans
-								if (netbeansPlatform)
-									menuAboutToShowForNetbeansPlatform(menu);
-								// -----------------------
-								
-								for (Component comp : popupMenu.getComponents()) {
-									if (comp.isVisible()) {
-										if (comp instanceof JMenu) {
-											addMenu(menu, (JMenu)comp);
-											items++;
-										} else if (comp instanceof JMenuItem) {
-											addMenuItem(menu, (JMenuItem)comp);
-											items++;
-										} else if (comp instanceof JSeparator)
-											addSeparator(windowXID, menu.hashCode());
-									}
+	protected synchronized void menuAboutToShow(int menuId) {
+		final JMenu menu = (JMenu)getJMenuItem(menuId);
+		if (menu != null && menu.isVisible()) {
+			try {
+				EventQueue.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						int items = 0;
+						if (menu.isEnabled()) {
+							menu.getModel().setSelected(true);
+							
+							JPopupMenu popupMenu = menu.getPopupMenu();
+							PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
+							for (PopupMenuListener pl : popupMenu.getPopupMenuListeners())
+								if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
+							
+							// Correción para Netbeans
+							if (netbeansPlatform)
+								menuAboutToShowForNetbeansPlatform(menu);
+							// -----------------------
+							
+							for (Component comp : popupMenu.getComponents()) {
+								if (comp.isVisible()) {
+									if (comp instanceof JMenu) {
+										addMenu(menu, (JMenu)comp);
+										items++;
+									} else if (comp instanceof JMenuItem) {
+										addMenuItem(menu, (JMenuItem)comp);
+										items++;
+									} else if (comp instanceof JSeparator)
+										addSeparator(windowXID, menu.hashCode());
 								}
 							}
-							if (items == 0) addMenuEmpty(windowXID, menu.hashCode());
 						}
-					});
-				} catch (Exception e) {
-					Logger.getLogger(SwingGlobalMenuWindow.class.getName())
-						.log(Level.SEVERE, e.getMessage(), e);
-				}
+						if (items == 0) addMenuEmpty(windowXID, menu.hashCode());
+					}
+				});
+			} catch (Exception e) {
+				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+					.log(Level.SEVERE, e.getMessage(), e);
 			}
 		}
 	}
 	@Override
-	protected void menuAfterClose(int menuId) {
-		final SwingGlobalMenuStack.MenuStackEntry mse = menuStack.findMenu(menuId);
-		if (mse != null) {
-			final JMenu menu = mse.getMenu();
-			if (menu != null && menu.isEnabled() && menu.isVisible()) {
-				try {
-					EventQueue.invokeAndWait(new Runnable() {
-						@Override
-						public void run() {
-							JPopupMenu popupMenu = mse.getPopupMenu();
+	protected synchronized void menuAfterClose(int menuId) {
+		final JMenu menu = (JMenu)getJMenuItem(menuId);
+		if (menu != null && menu.isEnabled() && menu.isVisible()) {
+			try {
+				EventQueue.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						JPopupMenu popupMenu = menu.getPopupMenu();
+						if (popupMenu != null) {
 							PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
 							for (PopupMenuListener pl : popupMenu.getPopupMenuListeners())
 								if (pl != null) pl.popupMenuWillBecomeInvisible(pevent);
-							menu.getModel().setSelected(false);
 						}
-					});
-				} catch (Exception e) {
-					Logger.getLogger(SwingGlobalMenuWindow.class.getName())
-						.log(Level.WARNING, e.getMessage(), e);
-				}
+						menu.getModel().setSelected(false);
+					}
+				});
+			} catch (Exception e) {
+				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+					.log(Level.WARNING, e.getMessage(), e);
 			}
 		}
 	}
@@ -406,18 +407,22 @@ public class SwingGlobalMenuWindow extends GlobalMenu implements WindowListener,
 	public void propertyChange(PropertyChangeEvent evt) {
 		if ("enabled".equals(evt.getPropertyName())) {
 			JMenu menu = (JMenu)evt.getSource();
-			updateMenu(windowXID, menu.hashCode(), menu.getText(), menu.isEnabled());
+			updateMenu(windowXID, menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
 		}
 	}
 	@Override
 	public void componentHidden(ComponentEvent e) {
-		if (e.getSource() instanceof JMenu)
-			recreateMenuBarMenus();
+		if (e.getSource() instanceof JMenu) {
+			JMenu menu = (JMenu)e.getSource();
+			updateMenu(windowXID, menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+		}
 	}
 	@Override
 	public void componentShown(ComponentEvent e) {
-		if (e.getSource() instanceof JMenu)
-			recreateMenuBarMenus();
+		if (e.getSource() instanceof JMenu) {
+			JMenu menu = (JMenu)e.getSource();
+			updateMenu(windowXID, menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+		}
 	}
 	@Override
 	public void componentMoved(ComponentEvent e) {}

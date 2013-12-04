@@ -58,10 +58,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 /*
  * Class:     com_jarego_jayatana_basic_GlobalMenu
  * Method:    addMenu
- * Signature: (JIILjava/lang/String;Z)V
+ * Signature: (JIILjava/lang/String;ZZ)V
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
-  (JNIEnv *, jobject, jlong, jint, jint, jstring, jboolean);
+  (JNIEnv *, jobject, jlong, jint, jint, jstring, jboolean, jboolean);
 
 /*
  * Class:     com_jarego_jayatana_basic_GlobalMenu
@@ -106,10 +106,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addSeparator
 /*
  * Class:     com_jarego_jayatana_basic_GlobalMenu
  * Method:    updateMenu
- * Signature: (JILjava/lang/String;Z)V
+ * Signature: (JILjava/lang/String;ZZ)V
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
-  (JNIEnv *, jobject, jlong, jint, jstring, jboolean);
+  (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jboolean);
 
 /*
  * Class:     com_jarego_jayatana_basic_GlobalMenu
