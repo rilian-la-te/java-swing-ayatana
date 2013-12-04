@@ -32,6 +32,7 @@ public class FeatureManager {
 	public static final String FEATURE_GMAINLOOP = "gMainLoop";
 	public static final String FEATURE_SWINGGTKFIX = "swingGtkFix";
 	public static final String FEATURE_SWINGGMENU = "swingGMenu";
+	public static final String FEATURE_SWINGWMCLASS = "swingWMClass";
 	
 	private static Map<String, FeatureWrapper> features = new HashMap<String, FeatureWrapper>();
 	
@@ -47,9 +48,12 @@ public class FeatureManager {
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingGTKFixed"));
 		features.put(FEATURE_SWINGGMENU,
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingGlobalMenu"));
+		features.put(FEATURE_SWINGWMCLASS,
+				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
 	}
 	
 	public static void deployForSwing() {
+		deployOnce(FEATURE_SWINGWMCLASS);
 		deployOnce(FEATURE_SWINGGTKFIX);
 		deployOnce(FEATURE_SWINGGMENU);
 	}
