@@ -48,13 +48,13 @@ public abstract class GlobalMenu {
 	abstract protected void register();
 	abstract protected void unregister();
 	
-	native public void addMenu(long windowXID, int menuParentId, int menuId, String label, boolean enabled);
+	native public void addMenu(long windowXID, int menuParentId, int menuId, String label, boolean enabled, boolean visible);
 	native public void addMenuItem(long windowXID, int menuParentId, int menuId, String label, boolean enabled, int modifiers, int keycode);
 	native public void addMenuItemRadio(long windowXID, int menuParentId, int menuId, String label, boolean enabled, int modifiers, int keycode, boolean selected);
 	native public void addMenuItemCheck(long windowXID, int menuParentId, int menuId, String label, boolean enabled, int modifiers, int keycode, boolean selected);
 	native public void addMenuEmpty(long windowXID, int menuParentId);
 	native public void addSeparator(long windowXID, int menuParentId);
-	native public void updateMenu(long windowXID, int menuId, String label, boolean enabled);
+	native public void updateMenu(long windowXID, int menuId, String label, boolean enabled, boolean visible);
 	native public void removeAllMenus(long windowXID);
 	
 	abstract protected void menuActivated(int menuId);
