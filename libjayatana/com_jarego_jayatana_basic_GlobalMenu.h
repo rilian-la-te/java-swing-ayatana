@@ -33,14 +33,6 @@ JNIEXPORT jlong JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_getWindowXID
 
 /*
  * Class:     com_jarego_jayatana_basic_GlobalMenu
- * Method:    setWindowXID
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_setWindowXID
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     com_jarego_jayatana_basic_GlobalMenu
  * Method:    registerWatcher
  * Signature: (J)V
  */
@@ -86,14 +78,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadi
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemCheck
   (JNIEnv *, jobject, jlong, jint, jint, jstring, jboolean, jint, jint, jboolean);
-
-/*
- * Class:     com_jarego_jayatana_basic_GlobalMenu
- * Method:    addMenuEmpty
- * Signature: (JI)V
- */
-JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuEmpty
-  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     com_jarego_jayatana_basic_GlobalMenu

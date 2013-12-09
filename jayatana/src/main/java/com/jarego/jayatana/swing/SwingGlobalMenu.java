@@ -36,6 +36,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
 import com.jarego.jayatana.Feature;
+import com.jarego.jayatana.FeatureManager;
 
 public class SwingGlobalMenu implements Feature, AWTEventListener {
 	@Override
@@ -66,13 +67,24 @@ public class SwingGlobalMenu implements Feature, AWTEventListener {
 	}
 	
 	protected JMenuBar retriveMenuBar(JFrame jframe) {
-		return jframe.getJMenuBar();
+		JMenuBar menuBar = null;
+		if (jframe.getRootPane().getClientProperty("jayatana.menubar") instanceof JMenuBar)
+			menuBar = (JMenuBar)jframe.getRootPane().getClientProperty("jayatana.menubar");
+		else
+			menuBar = jframe.getJMenuBar();
+		return menuBar;
 	}
 	protected JMenuBar retriveMenuBar(JDialog jdialog) {
-		return jdialog.getJMenuBar();
+		JMenuBar menuBar = null;
+		if (jdialog.getRootPane().getClientProperty("jayatana.menubar") instanceof JMenuBar)
+			menuBar = (JMenuBar)jdialog.getRootPane().getClientProperty("jayatana.menubar");
+		else
+			menuBar = jdialog.getJMenuBar();
+		return menuBar;
 	}
 	
 	protected void tryInstallGlobalMenu(Window window, JMenuBar menubar) {
+		FeatureManager.deployOnce(FeatureManager.FEATURE_GMAINLOOP);
 		new SwingGlobalMenuWindow(window, menubar).tryInstall();
 	}
 }

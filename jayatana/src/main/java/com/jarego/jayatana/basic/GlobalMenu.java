@@ -36,11 +36,10 @@ public abstract class GlobalMenu {
 		GlobalMenu.initialize();
 	}
 	
-	native public static void initialize();
-	native public static void uninitialize();
+	native private static void initialize();
+	native private static void uninitialize();
 	
 	native public static long getWindowXID(Window window);
-	native public static void setWindowXID(long windowXID);
 	
 	native public void registerWatcher(long windowXID);
 	native public void unregisterWatcher(long windowXID);
@@ -48,13 +47,17 @@ public abstract class GlobalMenu {
 	abstract protected void register();
 	abstract protected void unregister();
 	
-	native public void addMenu(long windowXID, int menuParentId, int menuId, String label, boolean enabled, boolean visible);
-	native public void addMenuItem(long windowXID, int menuParentId, int menuId, String label, boolean enabled, int modifiers, int keycode);
-	native public void addMenuItemRadio(long windowXID, int menuParentId, int menuId, String label, boolean enabled, int modifiers, int keycode, boolean selected);
-	native public void addMenuItemCheck(long windowXID, int menuParentId, int menuId, String label, boolean enabled, int modifiers, int keycode, boolean selected);
-	native public void addMenuEmpty(long windowXID, int menuParentId);
+	native public void addMenu(long windowXID, int menuParentId, int menuId,
+			String label, boolean enabled, boolean visible);
+	native public void addMenuItem(long windowXID, int menuParentId, int menuId,
+			String label, boolean enabled, int modifiers, int keycode);
+	native public void addMenuItemRadio(long windowXID, int menuParentId, int menuId,
+			String label, boolean enabled, int modifiers, int keycode, boolean selected);
+	native public void addMenuItemCheck(long windowXID, int menuParentId, int menuId,
+			String label, boolean enabled, int modifiers, int keycode, boolean selected);
 	native public void addSeparator(long windowXID, int menuParentId);
-	native public void updateMenu(long windowXID, int menuId, String label, boolean enabled, boolean visible);
+	native public void updateMenu(long windowXID, int menuId, String label,
+			boolean enabled, boolean visible);
 	native public void removeAllMenus(long windowXID);
 	
 	abstract protected void menuActivated(int menuId);
