@@ -78,21 +78,16 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	}
 	@Override
 	protected void unregister() {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				((Window)getWindow()).removeWindowListener(SwingGlobalMenuWindow.this);
-				Toolkit.getDefaultToolkit().removeAWTEventListener(SwingGlobalMenuWindow.this);
-				for (Component comp : menubar.getComponents()) {
-					if (comp instanceof JMenu) {
-						((JMenu)comp).removePropertyChangeListener(SwingGlobalMenuWindow.this);
-						((JMenu)comp).removeComponentListener(SwingGlobalMenuWindow.this);
-					}
-				}
-				menubar.removeContainerListener(SwingGlobalMenuWindow.this);
-				menubar.setVisible(true);
+		((Window)getWindow()).removeWindowListener(SwingGlobalMenuWindow.this);
+		Toolkit.getDefaultToolkit().removeAWTEventListener(SwingGlobalMenuWindow.this);
+		for (Component comp : menubar.getComponents()) {
+			if (comp instanceof JMenu) {
+				((JMenu)comp).removePropertyChangeListener(SwingGlobalMenuWindow.this);
+				((JMenu)comp).removeComponentListener(SwingGlobalMenuWindow.this);
 			}
-		});
+		}
+		menubar.removeContainerListener(SwingGlobalMenuWindow.this);
+		menubar.setVisible(true);
 	}
 	
 	private void destroyMenuBarMenus() {
@@ -247,13 +242,13 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	// ----------------------
 	
 	@Override
-	protected synchronized void menuAboutToShow(int menuId) {
-		final JMenu menu = (JMenu)getJMenuItem(menuId);
-		if (menu != null && menu.isVisible()) {
-			try {
-				EventQueue.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
+	protected synchronized void menuAboutToShow(final int menuId) {
+		try {
+			EventQueue.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					final JMenu menu = (JMenu)getJMenuItem(menuId);
+					if (menu != null && menu.isVisible()) {
 						int items = 0;
 						if (menu.isEnabled()) {
 							menu.getModel().setSelected(true);
@@ -284,21 +279,21 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 						if (items == 0) addMenuItem(
 								menu.hashCode(), -1, "(...)", false, -1, -1);
 					}
-				});
-			} catch (Exception e) {
-				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
-					.log(Level.SEVERE, e.getMessage(), e);
-			}
+				}
+			});
+		} catch (Exception e) {
+			Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+				.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
 	@Override
-	protected synchronized void menuAfterClose(int menuId) {
-		final JMenu menu = (JMenu)getJMenuItem(menuId);
-		if (menu != null && menu.isEnabled() && menu.isVisible()) {
-			try {
-				EventQueue.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
+	protected synchronized void menuAfterClose(final int menuId) {
+		try {
+			EventQueue.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					final JMenu menu = (JMenu)getJMenuItem(menuId);
+					if (menu != null && menu.isEnabled() && menu.isVisible()) {
 						JPopupMenu popupMenu = menu.getPopupMenu();
 						if (popupMenu != null) {
 							PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
@@ -307,11 +302,11 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 						}
 						menu.getModel().setSelected(false);
 					}
-				});
-			} catch (Exception e) {
-				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
-					.log(Level.WARNING, e.getMessage(), e);
-			}
+				}
+			});
+		} catch (Exception e) {
+			Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+				.log(Level.WARNING, e.getMessage(), e);
 		}
 	}
 

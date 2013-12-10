@@ -49,6 +49,7 @@ typedef struct {
 	gchar *windowXIDPath;
 	gboolean gdBusProxyRegistered;
 	guint gBusWatcher;
+	GDBusProxy *dbBusProxy;
 
 	DbusmenuServer *dbusMenuServer;
 	DbusmenuMenuitem *dbusMenuRoot;
@@ -62,6 +63,11 @@ typedef struct {
 ListIndex *jayatana_globalmenu_windows;
 
 /**
+ * Destruir todos los menus
+ */
+void jayatana_destroy_menuitem(gpointer data);
+
+/**
  * Inicializar estructuras para GlobalMenu
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_initialize
@@ -73,6 +79,24 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_initialize
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_uninitialize
   (JNIEnv *env, jclass thatclass) {
+	// eliminar las instancias que se hayan quedado
+	int i; jayatana_globalmenu_window *globalmenu_window;
+	for (i=0;i<jayatana_globalmenu_windows->size;i++) {
+		globalmenu_window = (jayatana_globalmenu_window *)
+				jayatana_globalmenu_windows->entries[i]->data;
+		if (globalmenu_window->gdBusProxyRegistered) {
+			// liberar menus
+			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
+					jayatana_destroy_menuitem);
+			g_object_unref(globalmenu_window->dbusMenuRoot);
+			g_object_unref(globalmenu_window->dbusMenuServer);
+			g_object_unref(globalmenu_window->dbBusProxy);
+			// liberar ruta de ventana
+			free(globalmenu_window->windowXIDPath);
+		}
+		g_bus_unwatch_name(globalmenu_window->gBusWatcher);
+		free(globalmenu_window);
+	}
 	collection_list_index_destory(jayatana_globalmenu_windows);
 	jayatana_globalmenu_windows = NULL;
 }
@@ -188,13 +212,13 @@ void jayatana_on_registrar_available(
 		globalmenu_window->dbusMenuRoot = dbusmenu_menuitem_new();
 		dbusmenu_server_set_root(globalmenu_window->dbusMenuServer,globalmenu_window->dbusMenuRoot);
 		// registrar bus
-		GDBusProxy *dbBusProxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
+		globalmenu_window->dbBusProxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
 				G_DBUS_PROXY_FLAGS_NONE, NULL,
 				"com.canonical.AppMenu.Registrar",
 				"/com/canonical/AppMenu/Registrar",
 				"com.canonical.AppMenu.Registrar",
 				NULL, NULL);
-		g_dbus_proxy_call_sync(dbBusProxy, "RegisterWindow",
+		g_dbus_proxy_call_sync(globalmenu_window->dbBusProxy, "RegisterWindow",
 				g_variant_new("(uo)", (guint32)globalmenu_window->windowXID,
 						globalmenu_window->windowXIDPath), G_DBUS_CALL_FLAGS_NONE, -1, NULL,
 				NULL);
@@ -206,7 +230,7 @@ void jayatana_on_registrar_available(
 		(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid);
 		(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 		// marcar como instalado
-		globalmenu_window->gdBusProxyRegistered = True;
+		globalmenu_window->gdBusProxyRegistered = TRUE;
 	}
 }
 
@@ -220,13 +244,6 @@ void jayatana_on_registrar_unavailable(
 	jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window *)user_data;
 	if (globalmenu_window != NULL) {
 		if (globalmenu_window->gdBusProxyRegistered) {
-			// liberar menus
-			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
-					jayatana_destroy_menuitem);
-			g_object_unref(globalmenu_window->dbusMenuRoot);
-			g_object_unref(globalmenu_window->dbusMenuServer);
-			// liberar ruta de ventana
-			free(globalmenu_window->windowXIDPath);
 			// notificar a java el deregistro
 			JNIEnv *env = NULL;
 			(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**)&env, NULL);
@@ -234,8 +251,16 @@ void jayatana_on_registrar_unavailable(
 			jmethodID mid = (*env)->GetMethodID(env, thatclass, "unregister", "()V");
 			(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid);
 			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
+			// liberar menus
+			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
+					jayatana_destroy_menuitem);
+			g_object_unref(globalmenu_window->dbusMenuRoot);
+			g_object_unref(globalmenu_window->dbusMenuServer);
+			g_object_unref(globalmenu_window->dbBusProxy);
+			// liberar ruta de ventana
+			free(globalmenu_window->windowXIDPath);
 			// marcar como desinstaldo
-			globalmenu_window->gdBusProxyRegistered = False;
+			globalmenu_window->gdBusProxyRegistered = FALSE;
 		}
 	}
 }
@@ -249,7 +274,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_registerWatcher
 	jayatana_globalmenu_window *globalmenu_window = jayatana_globalmenu_window_new;
 	globalmenu_window->windowXID = windowXID;
 	globalmenu_window->globalThat = (*env)->NewGlobalRef(env, that);
-	globalmenu_window->gdBusProxyRegistered = False;
+	globalmenu_window->gdBusProxyRegistered = FALSE;
 	collection_list_index_add(jayatana_globalmenu_windows, windowXID, globalmenu_window);
 	// iniciar bus para menu global
 	globalmenu_window->gBusWatcher = g_bus_watch_name(G_BUS_TYPE_SESSION,
@@ -270,17 +295,18 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 				collection_list_index_remove(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
 			if (globalmenu_window->gdBusProxyRegistered) {
+				// notificar a clase java
+				jclass thatclass = (*env)->GetObjectClass(env, that);
+				jmethodID mid = (*env)->GetMethodID(env, thatclass, "unregister", "()V");
+				(*env)->CallVoidMethod(env, that, mid);
 				// liberar menus
 				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
 						jayatana_destroy_menuitem);
 				g_object_unref(globalmenu_window->dbusMenuRoot);
 				g_object_unref(globalmenu_window->dbusMenuServer);
+				g_object_unref(globalmenu_window->dbBusProxy);
 				// liberar ruta de ventana
 				free(globalmenu_window->windowXIDPath);
-				// notificar a clase java
-				jclass thatclass = (*env)->GetObjectClass(env, that);
-				jmethodID mid = (*env)->GetMethodID(env, thatclass, "unregister", "()V");
-				(*env)->CallVoidMethod(env, that, mid);
 			}
 			(*env)->DeleteGlobalRef(env, globalmenu_window->globalThat);
 			g_bus_unwatch_name(globalmenu_window->gBusWatcher);

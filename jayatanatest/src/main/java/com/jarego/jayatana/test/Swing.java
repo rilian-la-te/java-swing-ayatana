@@ -28,7 +28,6 @@ package com.jarego.jayatana.test;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -385,8 +384,9 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 		} else if ("close".equals(e.getActionCommand())) {
 			this.dispose();
 		} else if ("exit".equals(e.getActionCommand())) {
-			for (Frame frame : Frame.getFrames())
-				frame.dispose();
+			System.exit(0);
+			//for (Frame frame : Frame.getFrames())
+			//	frame.dispose();
 		}
 	}
 
