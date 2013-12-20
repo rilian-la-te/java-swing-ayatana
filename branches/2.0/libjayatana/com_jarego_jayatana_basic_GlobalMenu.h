@@ -7,6 +7,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef com_jarego_jayatana_basic_GlobalMenu_REGISTER_STATE_INITIAL
+#define com_jarego_jayatana_basic_GlobalMenu_REGISTER_STATE_INITIAL 0L
+#undef com_jarego_jayatana_basic_GlobalMenu_REGISTER_STATE_REFRESH
+#define com_jarego_jayatana_basic_GlobalMenu_REGISTER_STATE_REFRESH 1L
 /*
  * Class:     com_jarego_jayatana_basic_GlobalMenu
  * Method:    initialize
@@ -45,6 +49,14 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_registerWatcher
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatcher
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_jarego_jayatana_basic_GlobalMenu
+ * Method:    refreshWatcher
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -94,14 +106,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addSeparator
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
   (JNIEnv *, jobject, jlong, jint, jstring, jboolean, jboolean);
-
-/*
- * Class:     com_jarego_jayatana_basic_GlobalMenu
- * Method:    removeAllMenus
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_removeAllMenus
-  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

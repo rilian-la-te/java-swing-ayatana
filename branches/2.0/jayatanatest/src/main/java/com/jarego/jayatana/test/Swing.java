@@ -85,6 +85,9 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 	private JMenuItem menucopy;
 	private File file;
 	private JTextArea textarea;
+	private JMenu menufile;
+	private JMenu menuedit;
+	private JMenu menuhelp;
 
 	/**
 	 * Crear un editor de texto básico
@@ -174,46 +177,48 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 	 * @return menu
 	 */
 	private JMenu getMenuFile() {
-		JMenuItem menunew = new JMenuItem(bundle.getString("menu_new"));
-		menunew.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_new_ac")));
-		menunew.setActionCommand("new");
-		menunew.addActionListener(this);
-		JMenuItem menuopen = new JMenuItem(bundle.getString("menu_open"));
-		menuopen.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_open_ac")));
-		menuopen.setActionCommand("open");
-		menuopen.addActionListener(this);
-		JMenuItem menusave = new JMenuItem(bundle.getString("menu_save"));
-		menusave.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_save_ac")));
-		menusave.setActionCommand("save");
-		menusave.addActionListener(this);
-		JMenuItem menusaveas = new JMenuItem(bundle.getString("menu_save_as"));
-		menusaveas.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_save_as_ac")));
-		menusaveas.setActionCommand("saveas");
-		menusaveas.addActionListener(this);
-		JMenuItem menuclose = new JMenuItem(bundle.getString("menu_close"));
-		menuclose.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_close_ac")));
-		menuclose.setActionCommand("close");
-		menuclose.addActionListener(this);
-		JMenuItem menuexit = new JMenuItem(bundle.getString("menu_exit"));
-		menuexit.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_exit_ac")));
-		menuexit.setActionCommand("exit");
-		menuexit.addActionListener(this);
-
-		JMenu menufile = new JMenu(bundle.getString("menu_file"));
-		menufile.setMnemonic(bundle.getString("menu_file_mn").charAt(0));
-		menufile.add(menunew);
-		menufile.add(menuopen);
-		menufile.add(menusave);
-		menufile.add(menusaveas);
-		menufile.addSeparator();
-		menufile.add(menuclose);
-		menufile.add(menuexit);
+		if (menufile == null) {
+			JMenuItem menunew = new JMenuItem(bundle.getString("menu_new"));
+			menunew.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_new_ac")));
+			menunew.setActionCommand("new");
+			menunew.addActionListener(this);
+			JMenuItem menuopen = new JMenuItem(bundle.getString("menu_open"));
+			menuopen.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_open_ac")));
+			menuopen.setActionCommand("open");
+			menuopen.addActionListener(this);
+			JMenuItem menusave = new JMenuItem(bundle.getString("menu_save"));
+			menusave.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_save_ac")));
+			menusave.setActionCommand("save");
+			menusave.addActionListener(this);
+			JMenuItem menusaveas = new JMenuItem(bundle.getString("menu_save_as"));
+			menusaveas.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_save_as_ac")));
+			menusaveas.setActionCommand("saveas");
+			menusaveas.addActionListener(this);
+			JMenuItem menuclose = new JMenuItem(bundle.getString("menu_close"));
+			menuclose.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_close_ac")));
+			menuclose.setActionCommand("close");
+			menuclose.addActionListener(this);
+			JMenuItem menuexit = new JMenuItem(bundle.getString("menu_exit"));
+			menuexit.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_exit_ac")));
+			menuexit.setActionCommand("exit");
+			menuexit.addActionListener(this);
+	
+			menufile = new JMenu(bundle.getString("menu_file"));
+			menufile.setMnemonic(bundle.getString("menu_file_mn").charAt(0));
+			menufile.add(menunew);
+			menufile.add(menuopen);
+			menufile.add(menusave);
+			menufile.add(menusaveas);
+			menufile.addSeparator();
+			menufile.add(menuclose);
+			menufile.add(menuexit);
+		}
 
 		return menufile;
 	}
@@ -224,54 +229,56 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 	 * @return menu
 	 */
 	private JMenu getMenuEdit() {
-		JMenuItem menuundo = new JMenuItem(bundle.getString("menu_undo"));
-		menuundo.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_undo_ac")));
-		menuundo.setActionCommand("undo");
-		menuundo.addActionListener(this);
-		menuundo.setEnabled(false);
-		JMenuItem menuredo = new JMenuItem(bundle.getString("menu_redo"));
-		menuredo.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_redo_ac")));
-		menuredo.setActionCommand("redo");
-		menuredo.addActionListener(this);
-		menuredo.setEnabled(false);
-		menucut = new JMenuItem(bundle.getString("menu_cut"));
-		menucut.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_cut_ac")));
-		menucut.setActionCommand("cut");
-		menucut.addActionListener(this);
-		menucut.setEnabled(false);
-		menucopy = new JMenuItem(bundle.getString("menu_copy"));
-		menucopy.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_copy_ac")));
-		menucopy.setActionCommand("copy");
-		menucopy.addActionListener(this);
-		menucopy.setEnabled(false);
-		JMenuItem menupaste = new JMenuItem(bundle.getString("menu_paste"));
-		menupaste.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_paste_ac")));
-		menupaste.setActionCommand("paste");
-		menupaste.addActionListener(this);
-		menupaste.setEnabled(false);
-		JMenuItem menuselall = new JMenuItem(bundle.getString("menu_selall"));
-		menuselall.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_selall_ac")));
-		menuselall.setActionCommand("selall");
-		menuselall.addActionListener(this);
-
-		JMenu menuedit = new JMenu(bundle.getString("menu_edit"));
-		menuedit.setMnemonic(bundle.getString("menu_edit_mn").charAt(0));
-		menuedit.add(menuundo);
-		menuedit.add(menuredo);
-		menuedit.addSeparator();
-		menuedit.add(menucut);
-		menuedit.add(menucopy);
-		menuedit.add(menupaste);
-		menuedit.addSeparator();
-		menuedit.add(menuselall);
-		menuedit.addSeparator();
-		menuedit.add(getMenuLaF());
+		if (menuedit == null) {
+			JMenuItem menuundo = new JMenuItem(bundle.getString("menu_undo"));
+			menuundo.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_undo_ac")));
+			menuundo.setActionCommand("undo");
+			menuundo.addActionListener(this);
+			menuundo.setEnabled(false);
+			JMenuItem menuredo = new JMenuItem(bundle.getString("menu_redo"));
+			menuredo.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_redo_ac")));
+			menuredo.setActionCommand("redo");
+			menuredo.addActionListener(this);
+			menuredo.setEnabled(false);
+			menucut = new JMenuItem(bundle.getString("menu_cut"));
+			menucut.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_cut_ac")));
+			menucut.setActionCommand("cut");
+			menucut.addActionListener(this);
+			menucut.setEnabled(false);
+			menucopy = new JMenuItem(bundle.getString("menu_copy"));
+			menucopy.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_copy_ac")));
+			menucopy.setActionCommand("copy");
+			menucopy.addActionListener(this);
+			menucopy.setEnabled(false);
+			JMenuItem menupaste = new JMenuItem(bundle.getString("menu_paste"));
+			menupaste.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_paste_ac")));
+			menupaste.setActionCommand("paste");
+			menupaste.addActionListener(this);
+			menupaste.setEnabled(false);
+			JMenuItem menuselall = new JMenuItem(bundle.getString("menu_selall"));
+			menuselall.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_selall_ac")));
+			menuselall.setActionCommand("selall");
+			menuselall.addActionListener(this);
+	
+			menuedit = new JMenu(bundle.getString("menu_edit"));
+			menuedit.setMnemonic(bundle.getString("menu_edit_mn").charAt(0));
+			menuedit.add(menuundo);
+			menuedit.add(menuredo);
+			menuedit.addSeparator();
+			menuedit.add(menucut);
+			menuedit.add(menucopy);
+			menuedit.add(menupaste);
+			menuedit.addSeparator();
+			menuedit.add(menuselall);
+			menuedit.addSeparator();
+			menuedit.add(getMenuLaF());
+		}
 		return menuedit;
 	}
 
@@ -305,14 +312,16 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 	 * @return menu
 	 */
 	private JMenu getMenuHelp() {
-		JMenuItem menuAbout = new JMenuItem(bundle.getString("menu_about"));
-		menuAbout.setAccelerator(KeyStroke.getKeyStroke(bundle
-				.getString("menu_about_ac")));
-		menuAbout.setActionCommand("about");
-		menuAbout.addActionListener(this);
-
-		JMenu menuhelp = new JMenu(bundle.getString("menu_help"));
-		menuhelp.add(menuAbout);
+		if (menuhelp == null) {
+			JMenuItem menuAbout = new JMenuItem(bundle.getString("menu_about"));
+			menuAbout.setAccelerator(KeyStroke.getKeyStroke(bundle
+					.getString("menu_about_ac")));
+			menuAbout.setActionCommand("about");
+			menuAbout.addActionListener(this);
+	
+			menuhelp = new JMenu(bundle.getString("menu_help"));
+			menuhelp.add(menuAbout);
+		}
 		return menuhelp;
 	}
 
@@ -331,11 +340,32 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 		JButton btnsave = createToolBarButton("Save24.gif", null);
 		btnsave.setActionCommand("save");
 		btnsave.addActionListener(this);
+		
+		JButton btnRebuild = new JButton("Rebuild");
+		btnRebuild.setActionCommand("rebuild");
+		btnRebuild.setFocusable(false);
+		btnRebuild.setOpaque(false);
+		btnRebuild.addActionListener(this);
+		
+		JButton btnRemove = new JButton("Remove");
+		btnRemove.setActionCommand("remove");
+		btnRemove.setFocusable(false);
+		btnRemove.setOpaque(false);
+		btnRemove.addActionListener(this);
+		
+		JButton btnAdd = new JButton("Add");
+		btnAdd.setActionCommand("add");
+		btnAdd.setFocusable(false);
+		btnAdd.setOpaque(false);
+		btnAdd.addActionListener(this);
 
 		JToolBar toolbar = new JToolBar();
 		toolbar.add(btnnew);
 		toolbar.add(btnopen);
 		toolbar.add(btnsave);
+		toolbar.add(btnRebuild);
+		toolbar.add(btnRemove);
+		toolbar.add(btnAdd);
 
 		return toolbar;
 	}
@@ -387,6 +417,21 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 			System.exit(0);
 			//for (Frame frame : Frame.getFrames())
 			//	frame.dispose();
+		} else if ("rebuild".equals(e.getActionCommand())) {
+			menubar.remove(getMenuFile());
+			menubar.remove(getMenuEdit());
+			menubar.remove(getMenuHelp());
+			menubar.add(getMenuFile());
+			menubar.add(getMenuEdit());
+			menubar.add(getMenuHelp());
+		} else if ("remove".equals(e.getActionCommand())) {
+			menubar.remove(getMenuFile());
+			menubar.remove(getMenuEdit());
+			menubar.remove(getMenuHelp());
+		} else if ("add".equals(e.getActionCommand())) {
+			menubar.add(getMenuFile());
+			menubar.add(getMenuEdit());
+			menubar.add(getMenuHelp());
 		}
 	}
 
