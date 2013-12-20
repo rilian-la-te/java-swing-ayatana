@@ -101,6 +101,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_uninitialize
 			// liberar ruta de ventana
 			free(globalmenu_window->windowXIDPath);
 		}
+		(*env)->DeleteGlobalRef(env, globalmenu_window->globalThat);
 		g_bus_unwatch_name(globalmenu_window->gBusWatcher);
 		free(globalmenu_window);
 	}
@@ -346,7 +347,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
 				free(globalmenu_window->windowXIDPath);
 			}
 			g_bus_unwatch_name(globalmenu_window->gBusWatcher);
-
 			globalmenu_window->windowXID = windowXID;
 			globalmenu_window->gdBusProxyRegistered = FALSE;
 			globalmenu_window->registerState = REGISTER_STATE_REFRESH;
@@ -598,19 +598,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_VISIBLE, (gboolean)visible);
 			}
-		}
-	}
-}
-
-JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_removeAllMenus
-  (JNIEnv *env, jobject that, jlong windowXID) {
-	if (jayatana_globalmenu_windows != NULL) {
-		//recuperar el controlador
-		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
-			collection_list_index_get(jayatana_globalmenu_windows, windowXID);
-		if (globalmenu_window != NULL) {
-			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
-					jayatana_destroy_menuitem);
 		}
 	}
 }
