@@ -125,6 +125,8 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	}
 	
 	private void addMenu(JMenu parent, JMenu menu) {
+		if (approveRecreateMenuBarMenus != -1)
+			approveRecreateMenuBarMenus = System.currentTimeMillis() + 300;
 		if (parent == null)
 			addMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
 		else
@@ -132,6 +134,8 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	}
 	
 	private void addMenuItem(JMenu parent, JMenuItem menuitem) {
+		if (approveRecreateMenuBarMenus != -1)
+			approveRecreateMenuBarMenus = System.currentTimeMillis() + 300;
 		int modifiers = -1;
 		int keycode = -1;
 		if (menuitem.getAccelerator() != null) {
@@ -237,6 +241,8 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	
 	@Override
 	protected synchronized void menuAboutToShow(final int menuId) {
+		if (approveRecreateMenuBarMenus != -1)
+			approveRecreateMenuBarMenus = System.currentTimeMillis() + 300;
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
@@ -280,6 +286,8 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	}
 	@Override
 	protected synchronized void menuAfterClose(final int menuId) {
+		if (approveRecreateMenuBarMenus != -1)
+			approveRecreateMenuBarMenus = System.currentTimeMillis() + 300;
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
