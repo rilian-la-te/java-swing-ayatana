@@ -28,6 +28,9 @@ package com.jarego.jayatana.basic;
 import java.awt.Window;
 
 public abstract class GlobalMenu {
+	public static final int REGISTER_STATE_INITIAL = 0;
+	public static final int REGISTER_STATE_REFRESH = 1;
+	
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
@@ -41,10 +44,11 @@ public abstract class GlobalMenu {
 	
 	native public static long getWindowXID(Window window);
 	
-	native public void registerWatcher(long windowXID);
-	native public void unregisterWatcher(long windowXID);
+	native synchronized public void registerWatcher(long windowXID);
+	native synchronized public void unregisterWatcher(long windowXID);
+	native synchronized public void refreshWatcher(long windowXID);
 	
-	abstract protected void register();
+	abstract protected void register(int state);
 	abstract protected void unregister();
 	
 	native public void addMenu(long windowXID, int menuParentId, int menuId,
@@ -58,7 +62,6 @@ public abstract class GlobalMenu {
 	native public void addSeparator(long windowXID, int menuParentId);
 	native public void updateMenu(long windowXID, int menuId, String label,
 			boolean enabled, boolean visible);
-	native public void removeAllMenus(long windowXID);
 	
 	abstract protected void menuActivated(int menuId);
 	abstract protected void menuAboutToShow(int menuId);

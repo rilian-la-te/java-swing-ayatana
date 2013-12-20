@@ -50,10 +50,16 @@ typedef struct {
 	gboolean gdBusProxyRegistered;
 	guint gBusWatcher;
 	GDBusProxy *dbBusProxy;
+	GVariant *dbBusProxyCallSync;
 
 	DbusmenuServer *dbusMenuServer;
 	DbusmenuMenuitem *dbusMenuRoot;
+
+	jint registerState;
 } jayatana_globalmenu_window;
+
+#define REGISTER_STATE_INITIAL 0
+#define REGISTER_STATE_REFRESH 1
 
 /**
  * Generar nueva instancia de jayatana_globalmenu_window
@@ -90,6 +96,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_uninitialize
 					jayatana_destroy_menuitem);
 			g_object_unref(globalmenu_window->dbusMenuRoot);
 			g_object_unref(globalmenu_window->dbusMenuServer);
+			g_variant_unref(globalmenu_window->dbBusProxyCallSync);
 			g_object_unref(globalmenu_window->dbBusProxy);
 			// liberar ruta de ventana
 			free(globalmenu_window->windowXIDPath);
@@ -115,11 +122,9 @@ gchar *jayatana_get_windowxid_path(long xid) {
  */
 void jayatana_destroy_menuitem(gpointer data) {
 	if (data != NULL) {
-		g_list_free_full(
-				dbusmenu_menuitem_take_children((DbusmenuMenuitem *) data),
-				jayatana_destroy_menuitem);
+		DbusmenuMenuitem *item = (DbusmenuMenuitem *)data;
+		g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
 		g_object_unref(G_OBJECT(data));
-		data = NULL;
 	}
 }
 
@@ -218,16 +223,20 @@ void jayatana_on_registrar_available(
 				"/com/canonical/AppMenu/Registrar",
 				"com.canonical.AppMenu.Registrar",
 				NULL, NULL);
-		g_dbus_proxy_call_sync(globalmenu_window->dbBusProxy, "RegisterWindow",
+		globalmenu_window->dbBusProxyCallSync = g_dbus_proxy_call_sync(
+				globalmenu_window->dbBusProxy, "RegisterWindow",
 				g_variant_new("(uo)", (guint32)globalmenu_window->windowXID,
 						globalmenu_window->windowXIDPath), G_DBUS_CALL_FLAGS_NONE, -1, NULL,
 				NULL);
+		jint register_state = globalmenu_window->registerState;
+		if (globalmenu_window->registerState == REGISTER_STATE_REFRESH)
+			globalmenu_window->registerState = REGISTER_STATE_INITIAL;
 		// notificar a clase java la integración
 		JNIEnv *env = NULL;
 		(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**)&env, NULL);
 		jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-		jmethodID mid = (*env)->GetMethodID(env, thatclass, "register", "()V");
-		(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid);
+		jmethodID mid = (*env)->GetMethodID(env, thatclass, "register", "(I)V");
+		(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid, register_state);
 		(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 		// marcar como instalado
 		globalmenu_window->gdBusProxyRegistered = TRUE;
@@ -256,6 +265,7 @@ void jayatana_on_registrar_unavailable(
 					jayatana_destroy_menuitem);
 			g_object_unref(globalmenu_window->dbusMenuRoot);
 			g_object_unref(globalmenu_window->dbusMenuServer);
+			g_variant_unref(globalmenu_window->dbBusProxyCallSync);
 			g_object_unref(globalmenu_window->dbBusProxy);
 			// liberar ruta de ventana
 			free(globalmenu_window->windowXIDPath);
@@ -275,6 +285,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_registerWatcher
 	globalmenu_window->windowXID = windowXID;
 	globalmenu_window->globalThat = (*env)->NewGlobalRef(env, that);
 	globalmenu_window->gdBusProxyRegistered = FALSE;
+	globalmenu_window->registerState = REGISTER_STATE_INITIAL;
 	collection_list_index_add(jayatana_globalmenu_windows, windowXID, globalmenu_window);
 	// iniciar bus para menu global
 	globalmenu_window->gBusWatcher = g_bus_watch_name(G_BUS_TYPE_SESSION,
@@ -304,6 +315,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 						jayatana_destroy_menuitem);
 				g_object_unref(globalmenu_window->dbusMenuRoot);
 				g_object_unref(globalmenu_window->dbusMenuServer);
+				g_variant_unref(globalmenu_window->dbBusProxyCallSync);
 				g_object_unref(globalmenu_window->dbBusProxy);
 				// liberar ruta de ventana
 				free(globalmenu_window->windowXIDPath);
@@ -311,6 +323,38 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 			(*env)->DeleteGlobalRef(env, globalmenu_window->globalThat);
 			g_bus_unwatch_name(globalmenu_window->gBusWatcher);
 			free(globalmenu_window);
+		}
+	}
+}
+
+JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
+  (JNIEnv *env, jobject that, jlong windowXID) {
+	if (jayatana_globalmenu_windows != NULL) {
+		//recuperar el controlador
+		jayatana_globalmenu_window *globalmenu_window = (jayatana_globalmenu_window*)
+				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
+		if (globalmenu_window != NULL) {
+			if (globalmenu_window->gdBusProxyRegistered) {
+				// liberar menus
+				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
+						jayatana_destroy_menuitem);
+				g_object_unref(globalmenu_window->dbusMenuRoot);
+				g_object_unref(globalmenu_window->dbusMenuServer);
+				g_variant_unref(globalmenu_window->dbBusProxyCallSync);
+				g_object_unref(globalmenu_window->dbBusProxy);
+				// liberar ruta de ventana
+				free(globalmenu_window->windowXIDPath);
+			}
+			g_bus_unwatch_name(globalmenu_window->gBusWatcher);
+
+			globalmenu_window->windowXID = windowXID;
+			globalmenu_window->gdBusProxyRegistered = FALSE;
+			globalmenu_window->registerState = REGISTER_STATE_REFRESH;
+			// iniciar bus para menu global
+			globalmenu_window->gBusWatcher = g_bus_watch_name(G_BUS_TYPE_SESSION,
+					"com.canonical.AppMenu.Registrar", G_BUS_NAME_WATCHER_FLAGS_NONE,
+					jayatana_on_registrar_available, jayatana_on_registrar_unavailable,
+					globalmenu_window, NULL);
 		}
 	}
 }
@@ -407,7 +451,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
 			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
 			if (parent != NULL) {
 				// obtener etiqueta del menu
-				const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+				const char *cclabel = (label == NULL ? "" : (*env)->GetStringUTFChars(env, label, 0));
 				// generar menu
 				DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -443,7 +487,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
 				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
 			// obtener etiqueta del menu
-			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			const char *cclabel = (label == NULL ? "" : (*env)->GetStringUTFChars(env, label, 0));
 			// generar menu
 			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -470,7 +514,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadi
 				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
 			// obtener etiqueta del menu
-			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			const char *cclabel = (label == NULL ? "" : (*env)->GetStringUTFChars(env, label, 0));
 			// generar menu
 			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -501,7 +545,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemChec
 				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
 			// obtener etiqueta del menu
-			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			const char *cclabel = (label == NULL ? "" : (*env)->GetStringUTFChars(env, label, 0));
 			// generar menu
 			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
 			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
@@ -549,7 +593,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
 		if (globalmenu_window != NULL) {
 			DbusmenuMenuitem *item = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuID);
 			if (item != NULL) {
-				const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
+				const char *cclabel = (label == NULL ? "" : (*env)->GetStringUTFChars(env, label, 0));
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_VISIBLE, (gboolean)visible);

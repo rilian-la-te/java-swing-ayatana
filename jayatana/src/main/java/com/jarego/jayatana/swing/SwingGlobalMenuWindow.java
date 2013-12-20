@@ -48,26 +48,28 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	}
 	
 	@Override
-	protected void register() {
+	protected void register(final int state) {
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					// Correción para Netbeans
-					netbeansPlatform = "org.openide.awt.MenuBar".equals(
-							menubar.getClass().getName());
-					// -----------------------
-					for (Component comp : menubar.getComponents()) {
-						if (comp instanceof JMenu) {
-							((JMenu)comp).addPropertyChangeListener(SwingGlobalMenuWindow.this);
-							((JMenu)comp).addComponentListener(SwingGlobalMenuWindow.this);
+					if (state == REGISTER_STATE_INITIAL) {
+						// Correción para Netbeans
+						netbeansPlatform = "org.openide.awt.MenuBar".equals(
+								menubar.getClass().getName());
+						// -----------------------
+						for (Component comp : menubar.getComponents()) {
+							if (comp instanceof JMenu) {
+								((JMenu)comp).addPropertyChangeListener(SwingGlobalMenuWindow.this);
+								((JMenu)comp).addComponentListener(SwingGlobalMenuWindow.this);
+							}
 						}
+						menubar.addContainerListener(SwingGlobalMenuWindow.this);
+						Toolkit.getDefaultToolkit().addAWTEventListener(
+								SwingGlobalMenuWindow.this, KeyEvent.KEY_EVENT_MASK);
+						((Window)getWindow()).addWindowListener(SwingGlobalMenuWindow.this);
+						menubar.setVisible(false);
 					}
-					menubar.addContainerListener(SwingGlobalMenuWindow.this);
-					Toolkit.getDefaultToolkit().addAWTEventListener(
-							SwingGlobalMenuWindow.this, KeyEvent.KEY_EVENT_MASK);
-					((Window)getWindow()).addWindowListener(SwingGlobalMenuWindow.this);
-					menubar.setVisible(false);
 					createMenuBarMenus();
 				}
 			});
@@ -90,15 +92,10 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		menubar.setVisible(true);
 	}
 	
-	private void destroyMenuBarMenus() {
-		removeAllMenus();
-	}
 	private void createMenuBarMenus() {
 		for (Component comp : menubar.getComponents()) {
 			if (comp instanceof JMenu) {
-				JMenu menu = (JMenu)comp;
-				if (menu.isVisible() && menu.getText() != null && !"".equals(menu.getText()))
-					addMenu(null, menu);
+				addMenu(null, (JMenu)comp);
 			}
 		}
 	}
@@ -117,8 +114,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 						Logger.getLogger(SwingGlobalMenuWindow.class.getName()).log(
 								Level.WARNING, "Can't wait approve rebuild", e);
 					} finally {
-						destroyMenuBarMenus();
-						createMenuBarMenus();
+						refreshWatcher();
 						approveRecreateMenuBarMenus = -1;
 					}
 				}
@@ -131,13 +127,11 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	private void addMenu(JMenu parent, JMenu menu) {
 		if (parent == null)
 			addMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
-		else if (menu.isVisible())
-			addMenu(parent.hashCode(), menu.hashCode(), menu.getText(), menu.isEnabled(), true);
+		else
+			addMenu(parent.hashCode(), menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
 	}
 	
 	private void addMenuItem(JMenu parent, JMenuItem menuitem) {
-		if (menuitem.getText() == null || "".equals(menuitem.getText()))
-			return;
 		int modifiers = -1;
 		int keycode = -1;
 		if (menuitem.getAccelerator() != null) {
@@ -184,7 +178,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	@Override
 	protected synchronized void menuActivated(int menuId) {
 		final JMenuItem menuitem = getJMenuItem(menuId);
-		if (menuitem != null && menuitem.isEnabled() & menuitem.isVisible()) {
+		if (menuitem != null && menuitem.isEnabled() && menuitem.isVisible()) {
 			EventQueue.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -248,37 +242,35 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 				@Override
 				public void run() {
 					final JMenu menu = (JMenu)getJMenuItem(menuId);
-					if (menu != null && menu.isVisible()) {
-						int items = 0;
-						if (menu.isEnabled()) {
-							menu.getModel().setSelected(true);
-							
-							JPopupMenu popupMenu = menu.getPopupMenu();
-							PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
-							for (PopupMenuListener pl : popupMenu.getPopupMenuListeners())
-								if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
-							
-							// Correción para Netbeans
-							if (netbeansPlatform)
-								menuAboutToShowForNetbeansPlatform(menu);
-							// -----------------------
-							
-							for (Component comp : popupMenu.getComponents()) {
-								if (comp.isVisible()) {
-									if (comp instanceof JMenu) {
-										addMenu(menu, (JMenu)comp);
-										items++;
-									} else if (comp instanceof JMenuItem) {
-										addMenuItem(menu, (JMenuItem)comp);
-										items++;
-									} else if (comp instanceof JSeparator)
-										addSeparator(menu.hashCode());
-								}
+					int items = 0;
+					if (menu != null && menu.isEnabled() && menu.isVisible()) {
+						menu.getModel().setSelected(true);
+						
+						JPopupMenu popupMenu = menu.getPopupMenu();
+						PopupMenuEvent pevent = new PopupMenuEvent(popupMenu);
+						for (PopupMenuListener pl : popupMenu.getPopupMenuListeners())
+							if (pl != null) pl.popupMenuWillBecomeVisible(pevent);
+						
+						// Correción para Netbeans
+						if (netbeansPlatform)
+							menuAboutToShowForNetbeansPlatform(menu);
+						// -----------------------
+						
+						for (Component comp : popupMenu.getComponents()) {
+							if (comp.isVisible()) {
+								if (comp instanceof JMenu) {
+									addMenu(menu, (JMenu)comp);
+									items++;
+								} else if (comp instanceof JMenuItem) {
+									addMenuItem(menu, (JMenuItem)comp);
+									items++;
+								} else if (comp instanceof JSeparator)
+									addSeparator(menu.hashCode());
 							}
 						}
-						if (items == 0) addMenuItem(
-								menu.hashCode(), -1, "(...)", false, -1, -1);
 					}
+					if (items == 0)
+						addMenuItem(menu.hashCode(), -1, "(...)", false, -1, -1);
 				}
 			});
 		} catch (Exception e) {
@@ -331,9 +323,9 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		if (comp == null)
 			return null;
 		else if (comp instanceof JFrame)
-			return (Window) comp;
+			return (Window)comp;
 		else if (comp instanceof JDialog)
-			return (Window) comp;
+			return (Window)comp;
 		else
 			return getWindow(comp.getParent());
 	}

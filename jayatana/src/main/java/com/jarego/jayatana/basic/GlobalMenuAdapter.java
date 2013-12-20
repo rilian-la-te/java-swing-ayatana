@@ -24,6 +24,9 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	protected void unregisterWatcher() {
 		unregisterWatcher(windowXID);
 	}
+	public void refreshWatcher() {
+		refreshWatcher(windowXID);
+	}
 	
 	protected void addMenu(int menuId, String label, boolean enabled, boolean visible) {
 		addMenu(windowXID, -1, menuId, label, enabled, visible);
@@ -49,9 +52,6 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	}
 	protected void updateMenu(int menuId, String label, boolean enabled, boolean visible) {
 		updateMenu(windowXID, menuId, label, enabled, visible);
-	}
-	protected void removeAllMenus() {
-		removeAllMenus(windowXID);
 	}
 	
 	protected Object getWindow() {
