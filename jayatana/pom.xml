@@ -6,9 +6,43 @@
 	<version>2.0</version>
 	<name>JAyatana</name>
 	
+	<developers>
+		<developer>
+			<name>Jared González</name>
+			<email>danjaredg@gmail.com</email>
+		</developer>
+	</developers>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
+	<profiles>
+		<profile>
+			<id>linux-amd64</id>
+			<activation>
+				<os>
+					<family>Linux</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<JAVA.ARCH>amd64</JAVA.ARCH>
+			</properties>
+		</profile>
+		<profile>
+			<id>linux-i386</id>
+			<activation>
+				<os>
+					<family>Linux</family>
+					<arch>i386</arch>
+				</os>
+			</activation>
+			<properties>
+				<JAVA.ARCH>i386</JAVA.ARCH>
+			</properties>
+		</profile>
+	</profiles>
 	
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -20,6 +54,8 @@
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
+					<fork>true</fork>
+					<executable>/usr/lib/jvm/java-6-openjdk-${JAVA.ARCH}/bin/javac</executable>
 				</configuration>
 			</plugin>
 		</plugins>
