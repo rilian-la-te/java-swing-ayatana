@@ -101,7 +101,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	}
 	
 	private long approveRecreateMenuBarMenus = -1;
-	private void recreateMenuBarMenus() {
+	private synchronized void recreateMenuBarMenus() {
 		if (approveRecreateMenuBarMenus == -1) {
 			approveRecreateMenuBarMenus = System.currentTimeMillis() + 300;
 			new Thread() {
