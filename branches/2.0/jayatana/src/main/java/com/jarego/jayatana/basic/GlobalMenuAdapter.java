@@ -18,13 +18,13 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 			registerWatcher(windowXID = getWindowXID((Window)window));
 	}
 	
-	protected void registerWatcher() {
+	protected synchronized void registerWatcher() {
 		registerWatcher(windowXID);
 	}
-	protected void unregisterWatcher() {
+	protected synchronized void unregisterWatcher() {
 		unregisterWatcher(windowXID);
 	}
-	public void refreshWatcher() {
+	protected synchronized void refreshWatcher() {
 		refreshWatcher(windowXID);
 	}
 	
