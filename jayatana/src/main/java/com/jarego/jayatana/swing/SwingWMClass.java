@@ -14,8 +14,13 @@ public class SwingWMClass implements Feature {
 		
 		if (System.getProperty("jayatana.startupWMClass") != null)
 			startupWMClass = System.getProperty("jayatana.startupWMClass");
-		if (System.getProperty("JAYATANA_STARTUPWMCLASS") != null)
+		else if (System.getProperty("jayatana.wmclass") != null)
+			startupWMClass = System.getProperty("jayatana.wmclass");
+		
+		else if (System.getProperty("JAYATANA_STARTUPWMCLASS") != null)
 			startupWMClass = System.getProperty("JAYATANA_STARTUPWMCLASS");
+		else if (System.getProperty("JAYATANA_WMCLASS") != null)
+			startupWMClass = System.getProperty("JAYATANA_WMCLASS");
 		
 		if (startupWMClass != null) {
 			try {
