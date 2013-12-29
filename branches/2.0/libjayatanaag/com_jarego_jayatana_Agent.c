@@ -34,13 +34,10 @@
 
 #include "com_jarego_jayatana_Agent.h"
 
-#define CHARSZ(s) (sizeof(char)*(s))
-#define MATHMIN(a,b) ((a)<(b)?(a):(b))
-
 /*
  * Encabezado para validar valor de variable de ambiente
  */
-int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval);
+int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval, const int def);
 
 /*
  * Cargar agente para integración con Ubuntu/Linux
@@ -54,7 +51,7 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 	if (error == JVMTI_ERROR_NONE) {
 		// inicializar XInitThreads para corregir defecto en OpenJDK 6 para los hilos de AWT o
 		// Java 2D
-		if (memcmp(info.name, "Java2D", MATHMIN(CHARSZ(6), strlen(info.name))) == 0) {
+		if (strcmp(info.name, "Java2D Disposer") == 0) {
 			// inicializar hilos de X, solo para OpenJDK 6
 			char *version = 0;
 			if ((*jvmti_env)->GetSystemProperty(
@@ -69,7 +66,7 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 				}
 				(*jvmti_env)->Deallocate(jvmti_env, (unsigned char*)version);
 			}
-		} else if (memcmp(info.name, "AWT-XAWT", MATHMIN(CHARSZ(8), strlen(info.name))) == 0) {
+		} else if (strcmp(info.name, "AWT-XAWT") == 0) {
 			// instala la clase para control de integración Swing
 			jclass clsInstallers = (*jni_env)->FindClass(
 					jni_env, "com/jarego/jayatana/FeatureManager");
@@ -87,10 +84,9 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
  */
 JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
-	if ((com_jarego_jayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity") ||
-			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true") ||
-			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1")) &&
-			!com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "")) {
+	if (com_jarego_jayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity", False) ||
+			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true", False) ||
+			!com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "", True)) {
 
 		// inicializar entorno
 		jvmtiEnv *jvmti_env;
@@ -125,8 +121,8 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
 /*
  * Verificar valor de variable de ambiente.
  */
-int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval) {
-	if (getenv(envname) == NULL) return 0;
+int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval, const int def) {
+	if (getenv(envname) == NULL) return def;
 	if (strcmp(getenv(envname), envval) == 0) return 1;
 	else return 0;
 }
