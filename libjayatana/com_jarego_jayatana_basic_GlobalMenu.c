@@ -69,9 +69,17 @@ typedef struct {
 ListIndex *jayatana_globalmenu_windows;
 
 /**
+ * Obtener la ubicacion de la ventana
+ */
+gchar *jayatana_get_windowxid_path(long xid);
+/**
  * Destruir todos los menus
  */
 void jayatana_destroy_menuitem(gpointer data);
+/**
+ * Encuentra un menu basado en el identificador
+ */
+DbusmenuMenuitem *jayatana_find_menuid(DbusmenuMenuitem *parent, jint menuId);
 
 /**
  * Inicializar estructuras para GlobalMenu
@@ -90,20 +98,23 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_uninitialize
 	for (i=0;i<jayatana_globalmenu_windows->size;i++) {
 		globalmenu_window = (jayatana_globalmenu_window *)
 				jayatana_globalmenu_windows->entries[i]->data;
-		if (globalmenu_window->gdBusProxyRegistered) {
-			// liberar menus
-			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
-					jayatana_destroy_menuitem);
-			g_object_unref(globalmenu_window->dbusMenuRoot);
-			g_object_unref(globalmenu_window->dbusMenuServer);
-			g_variant_unref(globalmenu_window->dbBusProxyCallSync);
-			g_object_unref(globalmenu_window->dbBusProxy);
-			// liberar ruta de ventana
-			free(globalmenu_window->windowXIDPath);
+		if (globalmenu_window != NULL) {
+			if (globalmenu_window->gdBusProxyRegistered) {
+				// liberar menus
+				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
+						jayatana_destroy_menuitem);
+				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
+				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
+				// liberar bus
+				g_variant_unref(globalmenu_window->dbBusProxyCallSync);
+				g_object_unref(G_OBJECT(globalmenu_window->dbBusProxy));
+				// liberar ruta de ventana
+				free(globalmenu_window->windowXIDPath);
+			}
+			(*env)->DeleteGlobalRef(env, globalmenu_window->globalThat);
+			g_bus_unwatch_name(globalmenu_window->gBusWatcher);
+			free(globalmenu_window);
 		}
-		(*env)->DeleteGlobalRef(env, globalmenu_window->globalThat);
-		g_bus_unwatch_name(globalmenu_window->gBusWatcher);
-		free(globalmenu_window);
 	}
 	collection_list_index_destory(jayatana_globalmenu_windows);
 	jayatana_globalmenu_windows = NULL;
@@ -123,12 +134,17 @@ gchar *jayatana_get_windowxid_path(long xid) {
  */
 void jayatana_destroy_menuitem(gpointer data) {
 	if (data != NULL) {
-		DbusmenuMenuitem *item = (DbusmenuMenuitem *)data;
-		g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
+		// genera problemas en el refreshWatcher
+		// TODO: revisar posibles memory leaks
+		//DbusmenuMenuitem *item = (DbusmenuMenuitem *)data;
+		//g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
 		g_object_unref(G_OBJECT(data));
 	}
 }
 
+/**
+ * Encuentra un menu basado en el identificador
+ */
 DbusmenuMenuitem *jayatana_find_menuid(DbusmenuMenuitem *parent, jint menuId) {
 	if (parent != NULL) {
 		if (menuId == -1) {
@@ -264,10 +280,10 @@ void jayatana_on_registrar_unavailable(
 			// liberar menus
 			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
 					jayatana_destroy_menuitem);
-			g_object_unref(globalmenu_window->dbusMenuRoot);
-			g_object_unref(globalmenu_window->dbusMenuServer);
+			g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
+			g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
 			g_variant_unref(globalmenu_window->dbBusProxyCallSync);
-			g_object_unref(globalmenu_window->dbBusProxy);
+			g_object_unref(G_OBJECT(globalmenu_window->dbBusProxy));
 			// liberar ruta de ventana
 			free(globalmenu_window->windowXIDPath);
 			// marcar como desinstaldo
@@ -314,10 +330,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 				// liberar menus
 				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
 						jayatana_destroy_menuitem);
-				g_object_unref(globalmenu_window->dbusMenuRoot);
-				g_object_unref(globalmenu_window->dbusMenuServer);
+				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
+				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
 				g_variant_unref(globalmenu_window->dbBusProxyCallSync);
-				g_object_unref(globalmenu_window->dbBusProxy);
+				g_object_unref(G_OBJECT(globalmenu_window->dbBusProxy));
 				// liberar ruta de ventana
 				free(globalmenu_window->windowXIDPath);
 			}
@@ -328,6 +344,9 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 	}
 }
 
+/**
+ * Actualiza el bus para menus en caso de una recontrucción de menus
+ */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
   (JNIEnv *env, jobject that, jlong windowXID) {
 	if (jayatana_globalmenu_windows != NULL) {
@@ -339,13 +358,15 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
 				// liberar menus
 				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
 						jayatana_destroy_menuitem);
-				g_object_unref(globalmenu_window->dbusMenuRoot);
-				g_object_unref(globalmenu_window->dbusMenuServer);
+				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
+				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
+				// liberar bus
 				g_variant_unref(globalmenu_window->dbBusProxyCallSync);
-				g_object_unref(globalmenu_window->dbBusProxy);
+				g_object_unref(G_OBJECT(globalmenu_window->dbBusProxy));
 				// liberar ruta de ventana
 				free(globalmenu_window->windowXIDPath);
 			}
+			// liberar unwatch
 			g_bus_unwatch_name(globalmenu_window->gBusWatcher);
 			globalmenu_window->windowXID = windowXID;
 			globalmenu_window->gdBusProxyRegistered = FALSE;
@@ -359,6 +380,9 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
 	}
 }
 
+/**
+ * Invoar generación el momento de presionar la expanción del menu
+ */
 void jayatana_item_about_to_show(DbusmenuMenuitem *item) {
 	if (jayatana_globalmenu_windows != NULL) {
 		// recuperar el controlador
@@ -383,6 +407,9 @@ void jayatana_item_about_to_show(DbusmenuMenuitem *item) {
 	}
 }
 
+/**
+ * Invocar generación de menus desde HUD y cerrado de menus
+ */
 void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 	if (jayatana_globalmenu_windows != NULL) {
 		// recuperar el controlador
@@ -421,6 +448,9 @@ void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 	}
 }
 
+/**
+ * Invokar activación de menu
+ */
 void jayatana_item_activated(DbusmenuMenuitem *item, guint timestamp, gpointer user_data) {
 	if (jayatana_globalmenu_windows != NULL) {
 		// recuperar el controlador
@@ -441,6 +471,9 @@ void jayatana_item_activated(DbusmenuMenuitem *item, guint timestamp, gpointer u
 	}
 }
 
+/**
+ * Agregar un nuevo menu
+ */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
   (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled, jboolean visible) {
 	// recuperar controlador
@@ -479,6 +512,9 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
 	}
 }
 
+/**
+ * Agregar un nuevo elemento de menu
+ */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
   (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode) {
 	if (jayatana_globalmenu_windows != NULL) {
@@ -506,6 +542,9 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
 	}
 }
 
+/**
+ * Agregar un nuevo elemento de menu tipo radio
+ */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadio
   (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
 	if (jayatana_globalmenu_windows != NULL) {
@@ -537,6 +576,9 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadi
 	}
 }
 
+/**
+ * Agregar un nuevo elemento de menu tipo verificación
+ */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemCheck
   (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID, jint menuID, jstring label, jboolean enabled, jint modifiers, jint keycode, jboolean selected) {
 	if (jayatana_globalmenu_windows != NULL) {
@@ -568,6 +610,9 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemChec
 	}
 }
 
+/**
+ * Agregar un elemento de menu de separador
+ */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addSeparator
   (JNIEnv *env, jobject that, jlong windowXID, jint menuParentID) {
 	if (jayatana_globalmenu_windows != NULL) {
@@ -585,6 +630,9 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addSeparator
 	}
 }
 
+/**
+ * Actualizar visibilidad, accesibilidad y etiqueta de menu
+ */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
   (JNIEnv *env, jobject that, jlong windowXID, jint menuID, jstring label, jboolean enabled, jboolean visible) {
 	if (jayatana_globalmenu_windows != NULL) {
