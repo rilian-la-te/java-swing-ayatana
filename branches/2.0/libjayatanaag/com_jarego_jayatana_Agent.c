@@ -49,7 +49,6 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 	jvmtiThreadInfo info;
 	error = (*jvmti_env)->GetThreadInfo(jvmti_env, thread, &info);
 	if (error == JVMTI_ERROR_NONE) {
-		//fprintf(stderr, ">%s\n", info.name);
 		// inicializar XInitThreads para corregir defecto en OpenJDK 6 para los hilos de AWT o
 		// Java 2D
 		if (strcmp(info.name, "Java2D Disposer") == 0) {
@@ -75,6 +74,7 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 				jmethodID midInstallForSwing = (*jni_env)->GetStaticMethodID(
 						jni_env, clsInstallers, "deployForSwing", "()V");
 				(*jni_env)->CallStaticVoidMethod(jni_env, clsInstallers, midInstallForSwing);
+				(*jni_env)->DeleteLocalRef(jni_env, clsInstallers);
 			}
 			// una vez inicializada la prueba
 			(*jvmti_env)->SetEventNotificationMode(jvmti_env,
@@ -107,40 +107,51 @@ com_jarego_jayatana_Agent_MethodExit(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthre
  */
 JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
+
 	if (com_jarego_jayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity", False) ?
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true", True) &&
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1", True) :
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true", False) ||
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1", False)) {
-
 		// inicializar entorno
 		jvmtiEnv *jvmti_env;
 		(*vm)->GetEnv(vm, (void**) &jvmti_env, JVMTI_VERSION);
+		// recuperar version
+		char *version = 0;
+		if ((*jvmti_env)->GetSystemProperty(
+				jvmti_env, "java.vm.version", &version) == JVMTI_ERROR_NONE) {
+			// ignorar para versiones 1.4 y 1.5
+			if (memcmp(version, "1.4", 3) != 0 && memcmp(version, "1.5", 3) != 0) {
+				// activar capacidades
+				jvmtiCapabilities capabilities;
+				memset(&capabilities, 0, sizeof(jvmtiCapabilities));
+				//capabilities.can_generate_method_exit_events = 1;
+				(*jvmti_env)->AddCapabilities(jvmti_env, &capabilities);
 
-		// activar capacidades
-		jvmtiCapabilities capabilities;
-		memset(&capabilities, 0, sizeof(jvmtiCapabilities));
-		//capabilities.can_generate_method_exit_events = 1;
-		(*jvmti_env)->AddCapabilities(jvmti_env, &capabilities);
+				// registrar funciones de eventos
+				jvmtiEventCallbacks callbacks;
+				memset(&callbacks, 0, sizeof(jvmtiEventCallbacks));
+				//callbacks.MethodExit = &com_jarego_jayatana_Agent_MethodExit;
+				callbacks.ThreadStart = &com_jarego_jayatana_Agent_threadStart;
+				(*jvmti_env)->SetEventCallbacks(jvmti_env,
+						&callbacks, (jint)sizeof(jvmtiEventCallbacks));
 
-		// registrar funciones de eventos
-		jvmtiEventCallbacks callbacks;
-		memset(&callbacks, 0, sizeof(jvmtiEventCallbacks));
-		//callbacks.MethodExit = &com_jarego_jayatana_Agent_MethodExit;
-		callbacks.ThreadStart = &com_jarego_jayatana_Agent_threadStart;
-		(*jvmti_env)->SetEventCallbacks(jvmti_env, &callbacks, (jint)sizeof(jvmtiEventCallbacks));
+				// habilitar gestor de eventos
+				(*jvmti_env)->SetEventNotificationMode(jvmti_env,
+						JVMTI_ENABLE, JVMTI_EVENT_THREAD_START, (jthread)NULL);
+				//(*jvmti_env)->SetEventNotificationMode(jvmti_env,
+				//		JVMTI_ENABLE, JVMTI_EVENT_METHOD_EXIT, (jthread)NULL);
 
-		// habilitar gestor de eventos
-		(*jvmti_env)->SetEventNotificationMode(jvmti_env,
-				JVMTI_ENABLE, JVMTI_EVENT_THREAD_START, (jthread)NULL);
-		//(*jvmti_env)->SetEventNotificationMode(jvmti_env,
-		//		JVMTI_ENABLE, JVMTI_EVENT_METHOD_EXIT, (jthread)NULL);
-
-		// cargar ruta de clases jayatana
-		if (getenv("JAYATANA_CLASSPATH") != NULL) // opción para desarrollo
-			(*jvmti_env)->AddToSystemClassLoaderSearch(jvmti_env, getenv("JAYATANA_CLASSPATH"));
-		else
-			(*jvmti_env)->AddToSystemClassLoaderSearch(jvmti_env, "/usr/share/java/jayatana.jar");
+				// cargar ruta de clases jayatana
+				if (getenv("JAYATANA_CLASSPATH") != NULL) // opción para desarrollo
+					(*jvmti_env)->AddToSystemClassLoaderSearch(
+							jvmti_env, getenv("JAYATANA_CLASSPATH"));
+				else
+					(*jvmti_env)->AddToSystemClassLoaderSearch(
+							jvmti_env, "/usr/share/java/jayatana.jar");
+			}
+			(*jvmti_env)->Deallocate(jvmti_env, (unsigned char*)version);
+		}
 	}
 	return JVMTI_ERROR_NONE;
 }

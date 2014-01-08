@@ -37,11 +37,7 @@ public class FeatureManager {
 	private static Map<String, FeatureWrapper> features = new HashMap<String, FeatureWrapper>();
 	
 	static {
-		if (System.getenv("JAYATANA_LIBPATH") != null) //opcion para desarrollo
-			System.load(System.getenv("JAYATANA_LIBPATH"));
-		else
-			System.load("/usr/lib/jayatana.so");
-		
+		// registrar carcateristicas de integración
 		features.put(FEATURE_GMAINLOOP,
 				new FeatureWrapper("com.jarego.jayatana.basic.GMainLoop"));
 		features.put(FEATURE_SWINGGTKFIX,
@@ -53,6 +49,14 @@ public class FeatureManager {
 	}
 	
 	public static void deployForSwing() {
+		// cargar librerias para soporte swing
+		System.loadLibrary("jawt");
+		// cargar libreria de JAyatana
+		if (System.getenv("JAYATANA_LIBPATH") != null) //opcion para desarrollo
+			System.load(System.getenv("JAYATANA_LIBPATH"));
+		else
+			System.load("/usr/lib/jayatana.so");
+		// desplegar carcateristicas de integración
 		deployOnce(FEATURE_SWINGWMCLASS);
 		deployOnce(FEATURE_SWINGGTKFIX);
 		deployOnce(FEATURE_SWINGGMENU);
