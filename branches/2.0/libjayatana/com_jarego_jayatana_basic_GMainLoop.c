@@ -40,23 +40,13 @@
 GMainLoop *com_jarego_jayatana_gmainloop = NULL;
 
 /**
- * Hilo que mantiene en ejecución un GMainLoop
- */
-gpointer com_jarego_jayatana_gmainloop_thread(gpointer data) {
-	// ejecutar GMainLoop
-	com_jarego_jayatana_gmainloop = g_main_loop_new(NULL, FALSE);
-	if (!g_main_loop_is_running(com_jarego_jayatana_gmainloop))
-		g_main_loop_run(com_jarego_jayatana_gmainloop);
-	return NULL;
-}
-
-/**
  * Iniciar un GMainLoop para comunicacion con glib/dbus al iniciar el programa
  */
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GMainLoop_installGMainLoop
   (JNIEnv *env, jclass jclass) {
 	// lanza el hilo para el GMainLoop
-	g_thread_new("jayatana_gmainloop", com_jarego_jayatana_gmainloop_thread, NULL);
+	com_jarego_jayatana_gmainloop = g_main_loop_new(NULL, FALSE);
+	g_main_loop_run(com_jarego_jayatana_gmainloop);
 }
 
 /**
@@ -65,6 +55,5 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GMainLoop_installGMainLoop
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GMainLoop_uninstallGMainLoop
   (JNIEnv *env, jclass jclass) {
 	// detiene el GMainLoop
-	if (g_main_loop_is_running(com_jarego_jayatana_gmainloop))
-		g_main_loop_quit(com_jarego_jayatana_gmainloop);
+	g_main_loop_quit(com_jarego_jayatana_gmainloop);
 }

@@ -117,7 +117,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_uninitialize
 		}
 	}
 	collection_list_index_destory(jayatana_globalmenu_windows);
-	jayatana_globalmenu_windows = NULL;
 }
 
 /**
@@ -134,10 +133,8 @@ gchar *jayatana_get_windowxid_path(long xid) {
  */
 void jayatana_destroy_menuitem(gpointer data) {
 	if (data != NULL) {
-		// genera problemas en el refreshWatcher
-		// TODO: revisar posibles memory leaks
-		//DbusmenuMenuitem *item = (DbusmenuMenuitem *)data;
-		//g_list_free_full(dbusmenu_menuitem_take_children(item), jayatana_destroy_menuitem);
+		g_list_free_full(dbusmenu_menuitem_take_children(
+				DBUSMENU_MENUITEM(data)), jayatana_destroy_menuitem);
 		g_object_unref(G_OBJECT(data));
 	}
 }
@@ -356,8 +353,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
 		if (globalmenu_window != NULL) {
 			if (globalmenu_window->gdBusProxyRegistered) {
 				// liberar menus
-				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
-						jayatana_destroy_menuitem);
+				// TODO: La liberación periva de los menus genera un crash en la aplicación
+				// al momento de recontruir los menus, revisar posibles fugas de memoria.
+				//g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
+				//		jayatana_destroy_menuitem);
 				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
 				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
 				// liberar bus
@@ -366,9 +365,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_refreshWatcher
 				// liberar ruta de ventana
 				free(globalmenu_window->windowXIDPath);
 			}
+
 			// liberar unwatch
 			g_bus_unwatch_name(globalmenu_window->gBusWatcher);
-			globalmenu_window->windowXID = windowXID;
+			// inicializa variables
 			globalmenu_window->gdBusProxyRegistered = FALSE;
 			globalmenu_window->registerState = REGISTER_STATE_REFRESH;
 			// iniciar bus para menu global
@@ -507,6 +507,8 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
 				dbusmenu_menuitem_child_append(item, foo);
 
 				dbusmenu_menuitem_child_append(parent, item);
+				// liberar etiqueta
+				(*env)->ReleaseStringUTFChars(env, label, cclabel);
 			}
 		}
 	}
@@ -538,6 +540,8 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
 			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
 			if (parent != NULL)
 				dbusmenu_menuitem_child_append(parent, item);
+			// liberar etiqueta
+			(*env)->ReleaseStringUTFChars(env, label, cclabel);
 		}
 	}
 }
@@ -572,6 +576,8 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadi
 			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
 			if (parent != NULL)
 				dbusmenu_menuitem_child_append(parent, item);
+			// liberar etiqueta
+			(*env)->ReleaseStringUTFChars(env, label, cclabel);
 		}
 	}
 }
@@ -606,6 +612,8 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemChec
 			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
 			if (parent != NULL)
 				dbusmenu_menuitem_child_append(parent, item);
+			// liberar etiqueta
+			(*env)->ReleaseStringUTFChars(env, label, cclabel);
 		}
 	}
 }
@@ -641,10 +649,13 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
 		if (globalmenu_window != NULL) {
 			DbusmenuMenuitem *item = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuID);
 			if (item != NULL) {
+				// actualizar menu
 				const char *cclabel = (label == NULL ? "" : (*env)->GetStringUTFChars(env, label, 0));
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_VISIBLE, (gboolean)visible);
+				// liberar etiqueta
+				(*env)->ReleaseStringUTFChars(env, label, cclabel);
 			}
 		}
 	}
