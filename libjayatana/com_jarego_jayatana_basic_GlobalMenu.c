@@ -251,6 +251,7 @@ void jayatana_on_registrar_available(
 		jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
 		jmethodID mid = (*env)->GetMethodID(env, thatclass, "register", "(I)V");
 		(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid, register_state);
+		(*env)->DeleteLocalRef(env, thatclass);
 		(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 		// marcar como instalado
 		globalmenu_window->gdBusProxyRegistered = TRUE;
@@ -273,6 +274,7 @@ void jayatana_on_registrar_unavailable(
 			jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
 			jmethodID mid = (*env)->GetMethodID(env, thatclass, "unregister", "()V");
 			(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid);
+			(*env)->DeleteLocalRef(env, thatclass);
 			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 			// liberar menus
 			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
@@ -400,6 +402,7 @@ void jayatana_item_about_to_show(DbusmenuMenuitem *item) {
 			jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
 			(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
 					dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+			(*env)->DeleteLocalRef(env, thatclass);
 			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 			// marcar como atendido
 			dbusmenu_menuitem_property_set_bool(item, "jayatana-need-open", FALSE);
@@ -429,6 +432,7 @@ void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
 				(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
 						dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+				(*env)->DeleteLocalRef(env, thatclass);
 				(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 				// marcar como atendido
 				dbusmenu_menuitem_property_set_bool(item, "jayatana-need-open", FALSE);
@@ -440,6 +444,7 @@ void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAfterClose", "(I)V");
 				(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
 						dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+				(*env)->DeleteLocalRef(env, thatclass);
 				(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 				// marcar como pendiente de atencion
 				dbusmenu_menuitem_property_set_bool(item, "jayatana-need-open", TRUE);
@@ -466,6 +471,7 @@ void jayatana_item_activated(DbusmenuMenuitem *item, guint timestamp, gpointer u
 			jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuActivated", "(I)V");
 			(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
 					dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
+			(*env)->DeleteLocalRef(env, thatclass);
 			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 		}
 	}
