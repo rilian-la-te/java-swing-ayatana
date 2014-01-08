@@ -43,6 +43,12 @@ public class GMainLoop implements Feature {
 				uninstallGMainLoop();
 			}
 		});
-		installGMainLoop();
+		Thread gmainLoopThread = new Thread() {
+			public void run() {
+				installGMainLoop();
+			};
+		};
+		gmainLoopThread.setDaemon(true);
+		gmainLoopThread.start();
 	}
 }

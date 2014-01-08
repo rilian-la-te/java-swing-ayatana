@@ -49,6 +49,7 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 	jvmtiThreadInfo info;
 	error = (*jvmti_env)->GetThreadInfo(jvmti_env, thread, &info);
 	if (error == JVMTI_ERROR_NONE) {
+		//fprintf(stderr, ">%s\n", info.name);
 		// inicializar XInitThreads para corregir defecto en OpenJDK 6 para los hilos de AWT o
 		// Java 2D
 		if (strcmp(info.name, "Java2D Disposer") == 0) {
@@ -75,18 +76,42 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 						jni_env, clsInstallers, "deployForSwing", "()V");
 				(*jni_env)->CallStaticVoidMethod(jni_env, clsInstallers, midInstallForSwing);
 			}
+			// una vez inicializada la prueba
+			(*jvmti_env)->SetEventNotificationMode(jvmti_env,
+				JVMTI_DISABLE, JVMTI_EVENT_THREAD_START, (jthread)NULL);
 		}
 	}
 }
+
+/* Pruebas para comptibilidad con SWT
+static void JNICALL
+com_jarego_jayatana_Agent_MethodExit(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread,
+		jmethodID method, jboolean was_popped_by_exception, jvalue return_value) {
+	jclass declaring_class;
+	char *methodName;
+	char *declaringClassName;
+	if ((*jvmti_env)->GetMethodDeclaringClass(jvmti_env, method, &declaring_class) == JVMTI_ERROR_NONE) {
+		(*jvmti_env)->GetClassSignature(jvmti_env, declaring_class, &declaringClassName, NULL);
+		(*jvmti_env)->GetMethodName(jvmti_env, method, &methodName, NULL, NULL);
+		if (strcmp(declaringClassName, "Lorg/eclipse/swt/widgets/Display;") == 0 &&
+				strcmp(methodName, "<init>") == 0) {
+			(*jvmti_env)->SetEventNotificationMode(jvmti_env,
+				JVMTI_DISABLE, JVMTI_EVENT_METHOD_EXIT, (jthread)NULL);
+		}
+	}
+}
+*/
 
 /*
  * Carga del agente de Java Ayatana
  */
 JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
-	if (com_jarego_jayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity", False) ||
+	if (com_jarego_jayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity", False) ?
+			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true", True) &&
+			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1", True) :
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true", False) ||
-			!com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "", True)) {
+			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1", False)) {
 
 		// inicializar entorno
 		jvmtiEnv *jvmti_env;
@@ -95,19 +120,21 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
 		// activar capacidades
 		jvmtiCapabilities capabilities;
 		memset(&capabilities, 0, sizeof(jvmtiCapabilities));
+		//capabilities.can_generate_method_exit_events = 1;
 		(*jvmti_env)->AddCapabilities(jvmti_env, &capabilities);
 
 		// registrar funciones de eventos
 		jvmtiEventCallbacks callbacks;
 		memset(&callbacks, 0, sizeof(jvmtiEventCallbacks));
+		//callbacks.MethodExit = &com_jarego_jayatana_Agent_MethodExit;
 		callbacks.ThreadStart = &com_jarego_jayatana_Agent_threadStart;
+		(*jvmti_env)->SetEventCallbacks(jvmti_env, &callbacks, (jint)sizeof(jvmtiEventCallbacks));
 
 		// habilitar gestor de eventos
 		(*jvmti_env)->SetEventNotificationMode(jvmti_env,
 				JVMTI_ENABLE, JVMTI_EVENT_THREAD_START, (jthread)NULL);
-
-		// registrar gestor de eventos
-		(*jvmti_env)->SetEventCallbacks(jvmti_env, &callbacks, (jint)sizeof(jvmtiEventCallbacks));
+		//(*jvmti_env)->SetEventNotificationMode(jvmti_env,
+		//		JVMTI_ENABLE, JVMTI_EVENT_METHOD_EXIT, (jthread)NULL);
 
 		// cargar ruta de clases jayatana
 		if (getenv("JAYATANA_CLASSPATH") != NULL) // opción para desarrollo
@@ -123,8 +150,8 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
  */
 int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval, const int def) {
 	if (getenv(envname) == NULL) return def;
-	if (strcmp(getenv(envname), envval) == 0) return 1;
-	else return 0;
+	else if (strcmp(getenv(envname), envval) == 0) return True;
+	else return False;
 }
 
 /*

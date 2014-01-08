@@ -28,7 +28,7 @@ CC=gcc
 # Se configuran las banderas y opciones de compilación
 # de forma predeterminada se compila en Release
 ifeq ($(BUILD),debug)
-CFLAGS=-O0 -g3 -Wall
+CFLAGS=-O0 -g -Wall
 else
 CFLAGS=-O3 -Wall -DNDEBUG
 endif
