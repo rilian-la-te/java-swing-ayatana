@@ -101,8 +101,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_uninitialize
 		if (globalmenu_window != NULL) {
 			if (globalmenu_window->gdBusProxyRegistered) {
 				// liberar menus
-				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
-						jayatana_destroy_menuitem);
 				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
 				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
 				// liberar bus

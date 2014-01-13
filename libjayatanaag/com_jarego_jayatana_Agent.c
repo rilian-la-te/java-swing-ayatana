@@ -121,7 +121,7 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
 		if ((*jvmti_env)->GetSystemProperty(
 				jvmti_env, "java.vm.version", &version) == JVMTI_ERROR_NONE) {
 			// ignorar para versiones 1.4 y 1.5
-			if (memcmp(version, "1.4", 3) != 0 && memcmp(version, "1.5", 3) != 0) {
+			if (strncmp(version, "1.4", 3) != 0 && strncmp(version, "1.5", 3) != 0) {
 				// activar capacidades
 				jvmtiCapabilities capabilities;
 				memset(&capabilities, 0, sizeof(jvmtiCapabilities));
