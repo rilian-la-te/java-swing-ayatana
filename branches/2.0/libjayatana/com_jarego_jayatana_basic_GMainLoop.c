@@ -56,6 +56,7 @@ gpointer com_jarego_jayatana_gmainloop_thread(gpointer data) {
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GMainLoop_installGMainLoop
   (JNIEnv *env, jclass jclass) {
 	// lanza el hilo para el GMainLoop
+	XInitThreads();
 	g_thread_new("jayatana_gmainloop", com_jarego_jayatana_gmainloop_thread, NULL);
 }
 
