@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="jar">
+	<target name="compile">
+		<mkdir dir="target/antclasses"/>
+		<javac executable="${JavaHome}/bin/javac" source="1.6" target="1.6"
+			includeantruntime="false" fork="true"
+			srcdir="src/main/java" destdir="target/antclasses"/>
+	</target>
+    <target name="jar" depends="compile">
+        <jar destfile="target/jayatana.jar" basedir="target/antclasses"/>
+    </target>
+    <target name="clean">
+    	<delete dir="target/antclasses"/>
+    	<delete dir="target/jayatana.jar"/>
+    </target>
+</project>
