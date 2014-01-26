@@ -43,7 +43,7 @@ JAVA_ARCH=i386
 endif
 # Obtener versión Java de compilación
 ifndef JAVA_HOME
-JAVA_HOME=/usr/lib/jvm/java-7-openjdk-${JAVA_ARCH}
+JAVA_HOME=/usr/lib/jvm/java-6-openjdk-${JAVA_ARCH}
 endif
 
 # ESTABLECER VARIABLES DE COMPILACION DE JAYATANA

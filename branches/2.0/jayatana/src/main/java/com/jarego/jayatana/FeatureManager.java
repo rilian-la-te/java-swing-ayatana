@@ -25,6 +25,7 @@
  */
 package com.jarego.jayatana;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,13 +50,16 @@ public class FeatureManager {
 	}
 	
 	public static void deployForSwing() {
+		// si la libreria no existe cancelar integración
+		if (new File("/usr/lib/libjayatana.so").canRead())
+			return;
 		// cargar librerias para soporte swing
 		System.loadLibrary("jawt");
 		// cargar libreria de JAyatana
 		if (System.getenv("JAYATANA_LIBPATH") != null) //opcion para desarrollo
 			System.load(System.getenv("JAYATANA_LIBPATH"));
 		else
-			System.load("/usr/lib/jayatana.so");
+			System.load("/usr/lib/libjayatana.so");
 		// desplegar carcateristicas de integración
 		deployOnce(FEATURE_SWINGWMCLASS);
 		deployOnce(FEATURE_SWINGGTKFIX);
