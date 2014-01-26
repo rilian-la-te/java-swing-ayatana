@@ -29,6 +29,7 @@
 #include <jvmti.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <X11/Xlib.h>
 
@@ -107,7 +108,12 @@ com_jarego_jayatana_Agent_MethodExit(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthre
  */
 JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
+	// en caso de no exista una referencia a jayatana
+	if (getenv("JAYATANA_CLASSPATH") == NULL &&
+			access("/usr/share/java/jayatana.jar", R_OK) != 0)
+		return JVMTI_ERROR_NONE;
 
+	// la librería si existe iniciar procedo de validación de integración
 	if (com_jarego_jayatana_Agent_CheckEnv("XDG_CURRENT_DESKTOP", "Unity", False) ?
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true", True) &&
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1", True) :
