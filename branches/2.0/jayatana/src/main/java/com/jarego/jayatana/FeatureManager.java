@@ -51,7 +51,7 @@ public class FeatureManager {
 	
 	public static void deployForSwing() {
 		// si la libreria no existe cancelar integración
-		if (new File("/usr/lib/libjayatana.so").canRead())
+		if (!new File("/usr/lib/libjayatana.so").canRead())
 			return;
 		// cargar librerias para soporte swing
 		System.loadLibrary("jawt");
