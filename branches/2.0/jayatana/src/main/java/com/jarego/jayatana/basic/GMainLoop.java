@@ -43,12 +43,13 @@ public class GMainLoop implements Feature {
 			}
 			@Override
 			public void run() {
-				try {
-					GlobalMenu.thread.join();
-				} catch (InterruptedException e) {
-					Logger.getLogger(GMainLoop.class.getName())
-						.log(Level.WARNING, "can't wait Global Menu end", e);
-				}
+				if (GlobalMenu.thread != null)
+					try {
+						GlobalMenu.thread.join();
+					} catch (InterruptedException e) {
+						Logger.getLogger(GMainLoop.class.getName())
+							.log(Level.WARNING, "can't wait Global Menu end", e);
+					}
 				uninstallGMainLoop();
 			}
 		});

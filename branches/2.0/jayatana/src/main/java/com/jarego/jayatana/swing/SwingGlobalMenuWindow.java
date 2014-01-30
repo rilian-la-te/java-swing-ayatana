@@ -138,10 +138,15 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 			approveRecreateMenuBarMenus = System.currentTimeMillis() + 200;
 		int modifiers = -1;
 		int keycode = -1;
+		
 		if (menuitem.getAccelerator() != null) {
 			modifiers = menuitem.getAccelerator().getModifiers();
 			keycode = menuitem.getAccelerator().getKeyCode();
 		}
+		
+		if (netbeansPlatform)
+			menuitem.getPreferredSize();
+		
 		if (menuitem instanceof JRadioButtonMenuItem) {
 			addMenuItemRadio(parent.hashCode(), menuitem.hashCode(),
 					menuitem.getText(), menuitem.isEnabled(), modifiers,
@@ -195,9 +200,24 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		}
 	}
 	
+	// verificar instancia instancia
+	private boolean isInstanceRelection(Class<?> cls, String scls) {
+		if ("java.lang.Object".equals(cls.getName())) {
+			return false;
+		} else if (scls.equals(cls.getName())) {
+			return true;
+		} else {
+			for (Class<?> clsInterface : cls.getInterfaces()) {
+				if (scls.equals(clsInterface.getName()))
+					return true;
+			}
+			return isInstanceRelection(cls.getSuperclass(), scls);
+		}
+	}
+	
 	// Correción para Netbeans
 	private void menuAboutToShowForNetbeansPlatform(JMenu menu) {
-		if ("org.openide.awt.MenuBar$LazyMenu".equals(menu.getClass().getName())) {
+		if (isInstanceRelection(menu.getClass(), "org.openide.awt.MenuBar$LazyMenu")) {
 			try {
 				Method methodDoInitialize = menu.getClass().getDeclaredMethod(
 						"doInitialize", new Class<?>[] {});
@@ -223,17 +243,14 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 			}
 		}
 		
-		for (Class<?> clsInterface : menu.getClass().getInterfaces()) {
-			if ("org.openide.awt.DynamicMenuContent".equals(clsInterface.getName())) {
-				try {
-					Method methodSynchMenu = clsInterface.getDeclaredMethod(
-							"synchMenuPresenters", new Class<?>[] {JComponent[].class});
-					methodSynchMenu.invoke(menu, new Object[] {null});
-				} catch (Exception e) {
-					Logger.getLogger(SwingGlobalMenuWindow.class.getName())
-							.log(Level.SEVERE, e.getMessage(), e);
-				}
-				break;
+		if (isInstanceRelection(menu.getClass(), "org.openide.awt.DynamicMenuContent")) {
+			try {
+				Method methodSynchMenu = menu.getClass().getDeclaredMethod(
+						"synchMenuPresenters", new Class<?>[] {JComponent[].class});
+				methodSynchMenu.invoke(menu, new Object[] {null});
+			} catch (Exception e) {
+				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
+						.log(Level.WARNING, e.getMessage(), e);
 			}
 		}
 	}
@@ -263,15 +280,15 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 						// -----------------------
 						
 						for (Component comp : popupMenu.getComponents()) {
-							if (comp.isVisible()) {
-								if (comp instanceof JMenu) {
-									addMenu(menu, (JMenu)comp);
-									items++;
-								} else if (comp instanceof JMenuItem) {
-									addMenuItem(menu, (JMenuItem)comp);
-									items++;
-								} else if (comp instanceof JSeparator)
-									addSeparator(menu.hashCode());
+							if (comp instanceof JMenu) {
+								addMenu(menu, (JMenu)comp);
+								items++;
+							} else if (comp instanceof JMenuItem && comp.isVisible()) {
+								addMenuItem(menu, (JMenuItem)comp);
+								items++;
+							} else if (comp instanceof JSeparator && comp.isVisible()) {
+								addSeparator(menu.hashCode());
+								items++;
 							}
 						}
 					}
