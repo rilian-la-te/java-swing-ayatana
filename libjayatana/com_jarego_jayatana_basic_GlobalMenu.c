@@ -397,8 +397,9 @@ void jayatana_item_about_to_show(DbusmenuMenuitem *item) {
 			JNIEnv *env = NULL;
 			(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
 			jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-			jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
+			jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(II)V");
 			(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+					dbusmenu_menuitem_property_get_int(item, "jayatana-parent-menuid"),
 					dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
 			(*env)->DeleteLocalRef(env, thatclass);
 			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
@@ -427,8 +428,9 @@ void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 				JNIEnv *env = NULL;
 				(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
 				jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(I)V");
+				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAboutToShow", "(II)V");
 				(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+						dbusmenu_menuitem_property_get_int(item, "jayatana-parent-menuid"),
 						dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
 				(*env)->DeleteLocalRef(env, thatclass);
 				(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
@@ -439,8 +441,9 @@ void jayatana_item_events(DbusmenuMenuitem *item, const char *event) {
 				JNIEnv *env = NULL;
 				(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
 				jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAfterClose", "(I)V");
+				jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuAfterClose", "(II)V");
 				(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+						dbusmenu_menuitem_property_get_int(item, "jayatana-parent-menuid"),
 						dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
 				(*env)->DeleteLocalRef(env, thatclass);
 				(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
@@ -466,8 +469,9 @@ void jayatana_item_activated(DbusmenuMenuitem *item, guint timestamp, gpointer u
 			JNIEnv *env = NULL;
 			(*jayatana_jvm)->AttachCurrentThread(jayatana_jvm, (void**) &env, NULL);
 			jclass thatclass = (*env)->GetObjectClass(env, globalmenu_window->globalThat);
-			jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuActivated", "(I)V");
+			jmethodID mid = (*env)->GetMethodID(env, thatclass, "menuActivated", "(II)V");
 			(*env)->CallVoidMethod(env, globalmenu_window->globalThat, mid,
+					dbusmenu_menuitem_property_get_int(item, "jayatana-parent-menuid"),
 					dbusmenu_menuitem_property_get_int(item, "jayatana-menuid"));
 			(*env)->DeleteLocalRef(env, thatclass);
 			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
@@ -497,6 +501,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
 					dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY,
 						DBUSMENU_MENUITEM_CHILD_DISPLAY_SUBMENU);
+				dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
 				dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
 				dbusmenu_menuitem_property_set_bool(item, "jayatana-need-open", TRUE);
 				dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
@@ -541,6 +546,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
 			if (label != NULL)
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+			dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
 			dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
 						g_variant_new_int64(globalmenu_window->windowXID));
@@ -577,6 +583,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadi
 			if (label != NULL)
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+			dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
 			dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
 						g_variant_new_int64(globalmenu_window->windowXID));
@@ -617,6 +624,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemChec
 			if (label != NULL)
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
+			dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
 			dbusmenu_menuitem_property_set_variant(item, "jayatana-windowxid",
 						g_variant_new_int64(globalmenu_window->windowXID));
