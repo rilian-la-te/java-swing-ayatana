@@ -37,6 +37,7 @@ import javax.swing.JMenuBar;
 
 import com.jarego.jayatana.Feature;
 import com.jarego.jayatana.FeatureManager;
+import com.jarego.jayatana.basic.GlobalMenu;
 
 public class SwingGlobalMenu implements Feature, AWTEventListener {
 	@Override
@@ -84,7 +85,8 @@ public class SwingGlobalMenu implements Feature, AWTEventListener {
 	}
 	
 	protected void tryInstallGlobalMenu(Window window, JMenuBar menubar) {
-		FeatureManager.deployOnce(FeatureManager.FEATURE_GMAINLOOP);
+		if (FeatureManager.deployOnce(FeatureManager.FEATURE_GMAINLOOP))
+			GlobalMenu.nativeInitialize();
 		new SwingGlobalMenuWindow(window, menubar).tryInstall();
 	}
 }

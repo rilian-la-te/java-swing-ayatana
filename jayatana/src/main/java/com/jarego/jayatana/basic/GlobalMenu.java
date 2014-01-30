@@ -28,14 +28,16 @@ package com.jarego.jayatana.basic;
 import java.awt.Window;
 
 public abstract class GlobalMenu {
-	public static final Thread thread;
 	public static final int REGISTER_STATE_INITIAL = 0;
 	public static final int REGISTER_STATE_REFRESH = 1;
 	
-	static {
+	native private static void initialize();
+	native private static void uninitialize();
+	public static Thread thread = null;
+	
+	public static void nativeInitialize() {
 		Runtime.getRuntime().addShutdownHook(thread = new Thread() {
 			{
-				setDaemon(true);
 				setName("JAyatana GlobalMenu Shutdown");
 			}
 			@Override
@@ -45,9 +47,6 @@ public abstract class GlobalMenu {
 		});
 		GlobalMenu.initialize();
 	}
-	
-	native private static void initialize();
-	native private static void uninitialize();
 	
 	native public static long getWindowXID(Window window);
 	
