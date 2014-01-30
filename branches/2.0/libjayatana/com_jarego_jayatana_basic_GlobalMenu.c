@@ -130,7 +130,7 @@ gchar *jayatana_get_windowxid_path(long xid) {
  * Destruir todos los menus
  */
 void jayatana_destroy_menuitem(gpointer data) {
-	if (data != NULL) {
+	if (DBUSMENU_IS_MENUITEM(data)) {
 		g_list_free_full(dbusmenu_menuitem_take_children(
 				DBUSMENU_MENUITEM(data)), jayatana_destroy_menuitem);
 		g_object_unref(G_OBJECT(data));
@@ -141,7 +141,7 @@ void jayatana_destroy_menuitem(gpointer data) {
  * Encuentra un menu basado en el identificador
  */
 DbusmenuMenuitem *jayatana_find_menuid(DbusmenuMenuitem *parent, jint menuId) {
-	if (parent != NULL && DBUSMENU_IS_MENUITEM(parent)) {
+	if (DBUSMENU_IS_MENUITEM(parent)) {
 		if (menuId == -1) {
 			return parent;
 		}
@@ -306,7 +306,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_registerWatcher
 			"com.canonical.AppMenu.Registrar", G_BUS_NAME_WATCHER_FLAGS_NONE,
 			jayatana_on_registrar_available, jayatana_on_registrar_unavailable,
 			globalmenu_window, NULL);
-
 }
 
 /**
@@ -324,6 +323,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 				jclass thatclass = (*env)->GetObjectClass(env, that);
 				jmethodID mid = (*env)->GetMethodID(env, thatclass, "unregister", "()V");
 				(*env)->CallVoidMethod(env, that, mid);
+				(*env)->DeleteLocalRef(env, thatclass);
 				// liberar menus
 				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
 						jayatana_destroy_menuitem);
