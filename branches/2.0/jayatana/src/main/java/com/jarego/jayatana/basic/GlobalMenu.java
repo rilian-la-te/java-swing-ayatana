@@ -70,7 +70,7 @@ public abstract class GlobalMenu {
 	native public void updateMenu(long windowXID, int menuId, String label,
 			boolean enabled, boolean visible);
 	
-	abstract protected void menuActivated(int menuId);
-	abstract protected void menuAboutToShow(int menuId);
-	abstract protected void menuAfterClose(int menuId);
+	abstract protected void menuActivated(int parentMenuId, int menuId);
+	abstract protected void menuAboutToShow(int parentMenuId, int menuId);
+	abstract protected void menuAfterClose(int parentMenuId, int menuId);
 }

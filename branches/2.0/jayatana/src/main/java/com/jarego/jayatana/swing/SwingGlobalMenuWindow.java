@@ -180,7 +180,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	}
 	
 	@Override
-	protected synchronized void menuActivated(int menuId) {
+	protected synchronized void menuActivated(int parentMenuId, int menuId) {
 		final JMenuItem menuitem = getJMenuItem(menuId);
 		if (menuitem != null && menuitem.isEnabled() && menuitem.isVisible()) {
 			EventQueue.invokeLater(new Runnable() {
@@ -240,7 +240,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	// ----------------------
 	
 	@Override
-	protected synchronized void menuAboutToShow(final int menuId) {
+	protected synchronized void menuAboutToShow(int parentMenuId, final int menuId) {
 		if (approveRecreateMenuBarMenus != -1)
 			approveRecreateMenuBarMenus = System.currentTimeMillis() + 200;
 		try {
@@ -285,7 +285,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		}
 	}
 	@Override
-	protected synchronized void menuAfterClose(final int menuId) {
+	protected synchronized void menuAfterClose(int parentMenuId, final int menuId) {
 		if (approveRecreateMenuBarMenus != -1)
 			approveRecreateMenuBarMenus = System.currentTimeMillis() + 200;
 		try {
