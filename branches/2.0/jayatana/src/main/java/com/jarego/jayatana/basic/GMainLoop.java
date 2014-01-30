@@ -25,6 +25,9 @@
  */
 package com.jarego.jayatana.basic;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.jarego.jayatana.Feature;
 
 public class GMainLoop implements Feature {
@@ -40,6 +43,12 @@ public class GMainLoop implements Feature {
 			}
 			@Override
 			public void run() {
+				try {
+					GlobalMenu.thread.join();
+				} catch (InterruptedException e) {
+					Logger.getLogger(GMainLoop.class.getName())
+						.log(Level.WARNING, "can't wait Global Menu end", e);
+				}
 				uninstallGMainLoop();
 			}
 		});

@@ -45,8 +45,7 @@ GMainLoop *com_jarego_jayatana_gmainloop = NULL;
 gpointer com_jarego_jayatana_gmainloop_thread(gpointer data) {
 	// ejecutar GMainLoop
 	com_jarego_jayatana_gmainloop = g_main_loop_new(NULL, FALSE);
-	if (!g_main_loop_is_running(com_jarego_jayatana_gmainloop))
-		g_main_loop_run(com_jarego_jayatana_gmainloop);
+	g_main_loop_run(com_jarego_jayatana_gmainloop);
 	return NULL;
 }
 
@@ -66,6 +65,5 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GMainLoop_installGMainLoop
 JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GMainLoop_uninstallGMainLoop
   (JNIEnv *env, jclass jclass) {
 	// detiene el GMainLoop
-	if (g_main_loop_is_running(com_jarego_jayatana_gmainloop))
-		g_main_loop_quit(com_jarego_jayatana_gmainloop);
+	g_main_loop_quit(com_jarego_jayatana_gmainloop);
 }
