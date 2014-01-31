@@ -136,6 +136,10 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	private void addMenuItem(JMenu parent, JMenuItem menuitem) {
 		if (approveRecreateMenuBarMenus != -1)
 			approveRecreateMenuBarMenus = System.currentTimeMillis() + 200;
+		
+		if ("com.intellij.openapi.actionSystem.impl.StubItem".equals(menuitem.getClass().getName()))
+			return;
+		
 		int modifiers = -1;
 		int keycode = -1;
 		
