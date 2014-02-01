@@ -56,7 +56,12 @@ public class FeatureWrapper {
 		if (!deployed) {
 			Feature feature;
 			if ((feature = getInstance()) != null) {
-				feature.deploy();
+				try {
+					feature.deploy();
+				} catch (Exception e) {
+					Logger.getLogger(FeatureWrapper.class.getName())
+						.log(Level.WARNING, "can't deploy feature", e);
+				}
 				deployed = true;
 				return true;
 			}
