@@ -34,6 +34,8 @@ import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.plaf.synth.Region;
 
@@ -69,9 +71,10 @@ public class SwingGTKFixed implements Feature, PropertyChangeListener {
 	}
 	
 	private static void installGtkThikcness() throws Exception {
-		changeGtkYThikcness(GTKLookAndFeel.getStyle(null, Region.POPUP_MENU), 1);
-        changeGtkXThikcness(GTKLookAndFeel.getStyle(null, Region.POPUP_MENU), 1);
-        changeGtkYThikcness(GTKLookAndFeel.getStyle(null, Region.POPUP_MENU_SEPARATOR), 1);
+		JComponent comp = new JPanel();
+		changeGtkYThikcness(GTKLookAndFeel.getStyle(comp , Region.POPUP_MENU), 1);
+        changeGtkXThikcness(GTKLookAndFeel.getStyle(comp, Region.POPUP_MENU), 1);
+        changeGtkYThikcness(GTKLookAndFeel.getStyle(comp, Region.POPUP_MENU_SEPARATOR), 1);
 	}
 	private static void changeGtkYThikcness(Object style, int border)
 			throws Exception {

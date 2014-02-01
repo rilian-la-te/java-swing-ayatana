@@ -2,6 +2,7 @@ package com.jarego.jayatana.swing;
 
 import java.awt.AWTEvent;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -137,7 +138,8 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		if (approveRecreateMenuBarMenus != -1)
 			approveRecreateMenuBarMenus = System.currentTimeMillis() + 200;
 		
-		if ("com.intellij.openapi.actionSystem.impl.StubItem".equals(menuitem.getClass().getName()))
+		Dimension size = menuitem.getPreferredSize();
+		if (size.height < 2)
 			return;
 		
 		int modifiers = -1;
@@ -147,9 +149,6 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 			modifiers = menuitem.getAccelerator().getModifiers();
 			keycode = menuitem.getAccelerator().getKeyCode();
 		}
-		
-		if (netbeansPlatform)
-			menuitem.getPreferredSize();
 		
 		if (menuitem instanceof JRadioButtonMenuItem) {
 			addMenuItemRadio(parent.hashCode(), menuitem.hashCode(),
@@ -251,6 +250,8 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 			try {
 				Method methodSynchMenu = menu.getClass().getDeclaredMethod(
 						"synchMenuPresenters", new Class<?>[] {JComponent[].class});
+				if (!methodSynchMenu.isAccessible())
+					methodSynchMenu.setAccessible(true);
 				methodSynchMenu.invoke(menu, new Object[] {null});
 			} catch (Exception e) {
 				Logger.getLogger(SwingGlobalMenuWindow.class.getName())
