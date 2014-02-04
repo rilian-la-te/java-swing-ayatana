@@ -1,5 +1,5 @@
 #labels Featured,Phase-Implementation
-=Versiones previas a Ubuntu 13.10
+=Versiones previas a Ubuntu 13.10=
 
 =Instalar para Java OpenJDK 7=
 
