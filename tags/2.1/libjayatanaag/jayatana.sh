@@ -1,0 +1,2 @@
+JAVA_TOOL_OPTIONS=-agentlib:jayatanaag
+export JAVA_TOOL_OPTIONS
