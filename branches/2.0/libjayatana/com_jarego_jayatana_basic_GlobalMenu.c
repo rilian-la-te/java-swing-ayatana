@@ -131,8 +131,6 @@ gchar *jayatana_get_windowxid_path(long xid) {
  */
 void jayatana_destroy_menuitem(gpointer data) {
 	if (DBUSMENU_IS_MENUITEM(data)) {
-		g_list_free_full(dbusmenu_menuitem_take_children(
-				DBUSMENU_MENUITEM(data)), jayatana_destroy_menuitem);
 		g_object_unref(G_OBJECT(data));
 	}
 }
@@ -275,8 +273,6 @@ void jayatana_on_registrar_unavailable(
 			(*env)->DeleteLocalRef(env, thatclass);
 			(*jayatana_jvm)->DetachCurrentThread(jayatana_jvm);
 			// liberar menus
-			g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
-					jayatana_destroy_menuitem);
 			g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
 			g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
 			g_variant_unref(globalmenu_window->dbBusProxyCallSync);
@@ -325,8 +321,6 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_unregisterWatch
 				(*env)->CallVoidMethod(env, that, mid);
 				(*env)->DeleteLocalRef(env, thatclass);
 				// liberar menus
-				g_list_free_full(dbusmenu_menuitem_take_children(globalmenu_window->dbusMenuRoot),
-						jayatana_destroy_menuitem);
 				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuRoot));
 				g_object_unref(G_OBJECT(globalmenu_window->dbusMenuServer));
 				g_variant_unref(globalmenu_window->dbBusProxyCallSync);

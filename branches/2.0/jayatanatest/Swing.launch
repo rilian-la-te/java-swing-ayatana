@@ -7,10 +7,10 @@
 <listEntry value="1"/>
 </listAttribute>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
-<mapEntry key="JAVA_TOOL_OPTIONS" value="-agentlib:jayatanaag"/>
-<mapEntry key="JAYATANA_CLASSPATH" value="${workspace_loc:jayatana/target/classes}"/>
-<mapEntry key="JAYATANA_LIBPATH" value="${workspace_loc:libjayatana/libjayatana.so}"/>
-<mapEntry key="LD_LIBRARY_PATH" value="${workspace_loc:libjayatanaag}"/>
+<mapEntry key="JAVA_TOOL_OPTIONS" value="-javaagent:${workspace_loc:jayatanaag}/target/jayatanaag.jar"/>
+<mapEntry key="JAYATANA_CLASSPATH" value="${workspace_loc:jayatana}/target/jayatana.jar"/>
+<mapEntry key="JAYATANA_LIBAGPATH" value="${workspace_loc:libjayatanaag}/libjayatanaag.so"/>
+<mapEntry key="JAYATANA_LIBPATH" value="${workspace_loc:libjayatana}/libjayatana.so"/>
 <mapEntry key="UBUNTU_MENUPROXY" value="1"/>
 </mapAttribute>
 <stringAttribute key="org.eclipse.debug.core.source_locator_id" value="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"/>
