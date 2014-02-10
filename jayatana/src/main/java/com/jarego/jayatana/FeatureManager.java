@@ -56,10 +56,12 @@ public class FeatureManager {
 		// cargar librerias para soporte swing
 		System.loadLibrary("jawt");
 		// cargar libreria de JAyatana
-		if (System.getenv("JAYATANA_LIBPATH") != null) //opcion para desarrollo
+		if (System.getenv("JAYATANA_LIBPATH") != null) {//opcion para desarrollo
 			System.load(System.getenv("JAYATANA_LIBPATH"));
-		else
+			System.err.println("JAYATANA_LIBPATH="+System.getenv("JAYATANA_LIBPATH"));
+		} else {
 			System.load("/usr/lib/libjayatana.so");
+		}
 		// desplegar carcateristicas de integración
 		deployOnce(FEATURE_SWINGWMCLASS);
 		deployOnce(FEATURE_SWINGGTKFIX);

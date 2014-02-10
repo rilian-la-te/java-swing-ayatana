@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Jared González
+ * Copyright (c) 2014 Jared González
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -23,7 +23,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * File:   ayatana_Collections.c
+ * File:   com_jarego_jayatana_jni.h
  * Author: Jared González
  */
 #include <jni.h>
@@ -34,11 +34,9 @@
 JavaVM *jayatana_jvm;
 
 /**
- * Detenectar cuando la librería se carga a la maquina virtual de Java
+ * Obtener el putero JavaVM para permitr integración con Ubuntu/Linux
  */
 jint JNI_OnLoad(JavaVM *, void *);
-/**
- * Detenectar cuando la librería se librea de la maquina virtual de Java
- */
+
 
 #endif /* COM_JAREGO_JAYATANA_JNI_H_ */
