@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Jared González
+ * Copyright (c) 2014 Jared González
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -31,16 +31,16 @@
 
 #include <jni.h>
 
-/*
+/**
  * Cargar agente para integración con Ubuntu/Linux
  */
 JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
 
-/*
- * Descargar agente
+/**
+ * Carga libreria nativa desde agente Java para integración
+ * con Ubuntu/Linux
  */
-JNIEXPORT void JNICALL
-Agent_OnUnload(JavaVM *vm);
+jint JNI_OnLoad(JavaVM *vm, void *reserved);
 
 #endif /* COM_JAREGO_JAYATANA_AGENT_H_ */

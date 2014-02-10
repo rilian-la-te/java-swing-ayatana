@@ -3,6 +3,7 @@
 	<name>jayatana</name>
 	<comment></comment>
 	<projects>
+		<project>jayatanaag</project>
 		<project>libjayatana</project>
 		<project>libjayatanaag</project>
 	</projects>

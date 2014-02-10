@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jarego.software</groupId>
 	<artifactId>jayatana</artifactId>
-	<version>2.0</version>
+	<version>2.2</version>
 	<name>JAyatana</name>
 	
 	<developers>
@@ -54,6 +54,7 @@
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
+					<executable>/usr/lib/jvm/java-6-openjdk-${JAVA.ARCH}/bin/javac</executable>
 				</configuration>
 			</plugin>
 			<plugin>

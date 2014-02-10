@@ -1,17 +1,45 @@
 /*
- * com_jarego_jayatana_jkey2xkey.h
+ * Copyright (c) 2014 Jared González
  *
- *  Created on: 11/11/2013
- *      Author: jared
+ * Permission is hereby granted, free of charge, to any
+ * person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the
+ * Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice
+ * shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+ * KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+ * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * File:   com_jarego_jayatana_jkey2xkey.h
+ * Author: Jared González
  */
 
 #ifndef COM_JAREGO_JAYATANA_JKEY2XKEY_H_
 #define COM_JAREGO_JAYATANA_JKEY2XKEY_H_
 
+/**
+ * Tabla de valores de modificadores
+ */
 #define JK_SHIFT (1 << 0)
 #define JK_CTRL (1 << 1)
 #define JK_ALT (1 << 3)
 
+/**
+ * Tabla de valores de aceleradores
+ */
 #define JK_ENTER '\n'
 #define JK_BACK_SPACE '\b'
 #define JK_TAB '\t'
@@ -199,6 +227,9 @@
 #define JK_ALT_GRAPH 0xFF7E
 #define JK_BEGIN 0xFF58
 
+/**
+ * Convertir acelerador de menu Java aun acelerador X
+ */
 char *jkeycode_to_xkey(int);
 
 #endif /* COM_JAREGO_JAYATANA_JKEY2XKEY_H_ */

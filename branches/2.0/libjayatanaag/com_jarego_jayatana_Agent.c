@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Jared González
+ * Copyright (c) 2014 Jared González
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -23,7 +23,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * File:   ayatana_Collections.c
+ * File:   com_jarego_jayatana_Agent.c
  * Author: Jared González
  */
 #include <jvmti.h>
@@ -35,13 +35,21 @@
 
 #include "com_jarego_jayatana_Agent.h"
 
-/*
- * Encabezado para validar valor de variable de ambiente
+/**
+ * Inicializar observadores de componentes para prevenir la integración
+ * con Ubuntu/Linux.
+ */
+jvmtiError com_jarego_jayatana_Initialize(JavaVM *vm, int fromAgent);
+
+/**
+ * Validar el valor de una variable de ambiente para más opciones o
+ * variables de configuración.
  */
 int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval, const int def);
 
-/*
- * Cargar agente para integración con Ubuntu/Linux
+/**
+ * Iniciar observador de inicio de hilos para prevenir la integración
+ * con Ubuntu/Linux
  */
 static void JNICALL
 com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread) {
@@ -84,30 +92,28 @@ com_jarego_jayatana_Agent_threadStart(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthr
 	}
 }
 
-/* Pruebas para comptibilidad con SWT
-static void JNICALL
-com_jarego_jayatana_Agent_MethodExit(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread,
-		jmethodID method, jboolean was_popped_by_exception, jvalue return_value) {
-	jclass declaring_class;
-	char *methodName;
-	char *declaringClassName;
-	if ((*jvmti_env)->GetMethodDeclaringClass(jvmti_env, method, &declaring_class) == JVMTI_ERROR_NONE) {
-		(*jvmti_env)->GetClassSignature(jvmti_env, declaring_class, &declaringClassName, NULL);
-		(*jvmti_env)->GetMethodName(jvmti_env, method, &methodName, NULL, NULL);
-		if (strcmp(declaringClassName, "Lorg/eclipse/swt/widgets/Display;") == 0 &&
-				strcmp(methodName, "<init>") == 0) {
-			(*jvmti_env)->SetEventNotificationMode(jvmti_env,
-				JVMTI_DISABLE, JVMTI_EVENT_METHOD_EXIT, (jthread)NULL);
-		}
-	}
-}
-*/
-
-/*
- * Carga del agente de Java Ayatana
+/**
+ * Cargar agente para integración con Ubuntu/Linux
  */
 JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
+	return com_jarego_jayatana_Initialize(vm, 1);
+}
+
+/**
+ * Carga libreria nativa desde agente Java para integración
+ * con Ubuntu/Linux
+ */
+jint JNI_OnLoad(JavaVM *vm, void *reserved) {
+	com_jarego_jayatana_Initialize(vm, 0);
+	return JNI_VERSION_1_6;
+}
+
+/**
+ * Inicializar observadores de componentes para prevenir la integración
+ * con Ubuntu/Linux.
+ */
+jvmtiError com_jarego_jayatana_Initialize(JavaVM *vm, int fromAgent) {
 	// en caso de no exista una referencia a jayatana
 	if (getenv("JAYATANA_CLASSPATH") == NULL &&
 			access("/usr/share/java/jayatana.jar", R_OK) != 0)
@@ -119,15 +125,19 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1", True) :
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA_FORCE", "true", False) ||
 			com_jarego_jayatana_Agent_CheckEnv("JAYATANA", "1", False)) {
+
 		// inicializar entorno
 		jvmtiEnv *jvmti_env;
 		(*vm)->GetEnv(vm, (void**) &jvmti_env, JVMTI_VERSION);
+
 		// recuperar version
 		char *version = 0;
 		if ((*jvmti_env)->GetSystemProperty(
 				jvmti_env, "java.vm.version", &version) == JVMTI_ERROR_NONE) {
+
 			// ignorar para versiones 1.4 y 1.5
 			if (strncmp(version, "1.4", 3) != 0 && strncmp(version, "1.5", 3) != 0) {
+
 				// activar capacidades
 				jvmtiCapabilities capabilities;
 				memset(&capabilities, 0, sizeof(jvmtiCapabilities));
@@ -149,21 +159,26 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
 				//		JVMTI_ENABLE, JVMTI_EVENT_METHOD_EXIT, (jthread)NULL);
 
 				// cargar ruta de clases jayatana
-				if (getenv("JAYATANA_CLASSPATH") != NULL) // opción para desarrollo
+				if (getenv("JAYATANA_CLASSPATH") != NULL) {// opción para desarrollo
 					(*jvmti_env)->AddToSystemClassLoaderSearch(
 							jvmti_env, getenv("JAYATANA_CLASSPATH"));
-				else
+					fprintf(stderr, "JAYATANA_CLASSPATH=%s\n", getenv("JAYATANA_CLASSPATH"));
+				} else {
 					(*jvmti_env)->AddToSystemClassLoaderSearch(
 							jvmti_env, "/usr/share/java/jayatana.jar");
+				}
 			}
+
+			// liberar cadena de versión
 			(*jvmti_env)->Deallocate(jvmti_env, (unsigned char*)version);
 		}
 	}
 	return JVMTI_ERROR_NONE;
 }
 
-/*
- * Verificar valor de variable de ambiente.
+/**
+ * Validar el valor de una variable de ambiente para más opciones o
+ * variables de configuración.
  */
 int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval, const int def) {
 	if (getenv(envname) == NULL) return def;
@@ -171,10 +186,3 @@ int com_jarego_jayatana_Agent_CheckEnv(const char *envname, const char *envval, 
 	else return False;
 }
 
-/*
- * Descargar agente
- */
-JNIEXPORT void JNICALL
-Agent_OnUnload(JavaVM *vm) {
-
-}
