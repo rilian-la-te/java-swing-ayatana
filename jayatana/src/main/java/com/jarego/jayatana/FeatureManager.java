@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Jared González
+ * Copyright (c) 2014 Jared González
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -29,12 +29,36 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Esta clase declara cada una de las características y permite gestionarlas para
+ * controlar los desplieges de estas. Permite gestionar las características son
+ * instanciar las clases hasta que estas son requeridas.
+ * 
+ * @author Jared González
+ */
 public class FeatureManager {
+	/**
+	 * Característica de GMainLoop.
+	 */
 	public static final String FEATURE_GMAINLOOP = "gMainLoop";
+	/**
+	 * Característica de correción de bordes de menus para el LookAndFeel de
+	 * GTK.
+	 */
 	public static final String FEATURE_SWINGGTKFIX = "swingGtkFix";
+	/**
+	 * Característica de integración de menu global con Ubuntu.
+	 */
 	public static final String FEATURE_SWINGGMENU = "swingGMenu";
+	/**
+	 * Característica de cambio de Startup Window Manager Class usando
+	 * la varaible de ambiente JAYATAN_WMCLASS
+	 */
 	public static final String FEATURE_SWINGWMCLASS = "swingWMClass";
 	
+	/**
+	 * Tabla hash de características
+	 */
 	private static Map<String, FeatureWrapper> features = new HashMap<String, FeatureWrapper>();
 	
 	static {
@@ -49,6 +73,9 @@ public class FeatureManager {
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
 	}
 	
+	/**
+	 * Despliega todas características compatibles para Swing.
+	 */
 	public static void deployForSwing() {
 		// si la libreria no existe cancelar integración
 		if (!new File("/usr/lib/libjayatana.so").canRead())
@@ -68,9 +95,23 @@ public class FeatureManager {
 		deployOnce(FEATURE_SWINGGMENU);
 	}
 	
+	/**
+	 * Despliege una característica solo una vez.
+	 * 
+	 * @param featureId identificador de la característica.
+	 * @return Retrona <code>True</code> si la característica es
+	 * desplegada o <code>False</code> si ya estaba desplegada.
+	 */
 	public static boolean deployOnce(String featureId) {
 		return features.get(featureId).deployOnce();
 	}
+	/**
+	 * Verifica si una característica ya ha sido desplegada.
+	 * 
+	 * @param featureId identificador de la característica.
+	 * @return Retrona <code>True</code> si la característica es
+	 * desplegada o <code>False</code> si ya estaba desplegada.
+	 */
 	public static boolean isDeployed(String featureId) {
 		return features.get(featureId).isDeployed();
 	}
