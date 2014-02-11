@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Jared González
+ * Copyright (c) 2014 Jared González
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -38,8 +38,17 @@ import javax.swing.JComponent;
 import javax.swing.UIManager;
 import javax.swing.plaf.synth.Region;
 
+/**
+ * Esta clase es una característica para corregir el borde los menus en GTK los cuales no
+ * se muestran. Esta clase permite incorporar el dibujado de los bordes de estos menús.
+ * 
+ * @author Jared González
+ */
 @SuppressWarnings("restriction")
 public class SwingGTKFixed implements Feature, PropertyChangeListener {
+	/**
+	 * Se despliega la correción del borde de los menús en GTK.
+	 */
 	@Override
 	public void deploy() {
 		UIManager.addPropertyChangeListener(new SwingGTKFixed());
@@ -54,27 +63,42 @@ public class SwingGTKFixed implements Feature, PropertyChangeListener {
 		}
 	}
 	
+	/**
+	 * Identifica si el LookAndFeel cambia a GTK.
+	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if ("lookAndFeel".equals(evt.getPropertyName())) {
 			if (evt.getNewValue() != null ?
 					"com.sun.java.swing.plaf.gtk.GTKLookAndFeel".equals(
 							evt.getNewValue().getClass().getName()): false)
-			try {
-				installGtkThikcness();
-			} catch (Exception e) {
-				Logger.getLogger(SwingGTKFixed.class.getName())
-					.log(Level.WARNING, "can't install gtk border fixed", e);
-			}
+				try {
+					installGtkThikcness();
+				} catch (Exception e) {
+					Logger.getLogger(SwingGTKFixed.class.getName())
+						.log(Level.WARNING, "can't install gtk border fixed", e);
+				}
 		}
 	}
 	
+	/**
+	 * Establece un borde de 1.
+	 * 
+	 * @throws Exception
+	 */
 	private static void installGtkThikcness() throws Exception {
 		JComponent comp = new JComponent() {};
 		changeGtkYThikcness(GTKLookAndFeel.getStyle(comp , Region.POPUP_MENU), 1);
         changeGtkXThikcness(GTKLookAndFeel.getStyle(comp, Region.POPUP_MENU), 1);
         changeGtkYThikcness(GTKLookAndFeel.getStyle(comp, Region.POPUP_MENU_SEPARATOR), 1);
 	}
+	/**
+	 * Cambia el borde vertical de los menús en al menos 1 si es que el valor inicial es 0.
+	 * 
+	 * @param style controlador de estilo.
+	 * @param border tamaño del borde.
+	 * @throws Exception En caso de que falle al acceder al attributo.
+	 */
 	private static void changeGtkYThikcness(Object style, int border)
 			throws Exception {
 		Field field = style.getClass().getDeclaredField("yThickness");
@@ -82,6 +106,13 @@ public class SwingGTKFixed implements Feature, PropertyChangeListener {
 		field.setInt(style, Math.max(border, field.getInt(style)));
 		field.setAccessible(false);
 	}
+	/**
+	 * Cambia el borde horizontal de los menús en al menos 1 si es que el valor inicial es 0.
+	 * 
+	 * @param style controlador de estilo.
+	 * @param border tamaño del borde.
+	 * @throws Exception En caso de que falle al acceder al attributo.
+	 */
 	private static void changeGtkXThikcness(Object style, int border)
 			throws Exception {
 		Field field = style.getClass().getDeclaredField("xThickness");

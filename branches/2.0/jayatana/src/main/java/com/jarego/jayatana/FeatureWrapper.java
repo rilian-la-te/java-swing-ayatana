@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Jared González
+ * Copyright (c) 2014 Jared González
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -28,15 +28,32 @@ package com.jarego.jayatana;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Clase de envolutara de características para gestionar el numbero de desplieges y
+ * control de errores durante este despliege.
+ * 
+ * @author Jared González
+ */
 public class FeatureWrapper {
 	private String className;
 	private Feature featrue = null;
 	private boolean deployed = false;
 	
+	/**
+	 * Crea una envolutara de característica basado en el nombre de la clase implementada de la
+	 * interface <code>com.jarego.jayatana.Feature</code>.
+	 * 
+	 * @param className clase implementada de la interface <code>com.jarego.jayatana.Feature</code>
+	 */
 	public FeatureWrapper(String className) {
 		this.className = className;
 	}
 	
+	/**
+	 * Obtiene la instancia de característica, se instancia por primera vez al invocar el método.
+	 * 
+	 * @return retorna la interface de característica
+	 */
 	private Feature getInstance() {
 		if (featrue == null)
 			try {
@@ -48,10 +65,22 @@ public class FeatureWrapper {
 		return featrue;
 	}
 	
+	/**
+	 * Verifica si la característica ya ha sido desplegada.
+	 * 
+	 * @return Regresa <code>True</code> si ha sido deplegado de lo
+	 * contrario regresa <code>False</code>.
+	 */
 	public synchronized boolean isDeployed() {
 		return deployed;
 	}
 	
+	/**
+	 * Realiza el despliege de la característica una sola vez
+	 * 
+	 * @return Regresa <code>True</code> si es desplegada por primera vez
+	 * de lo contrario regresa <code>False</code>.
+	 */
 	public synchronized boolean deployOnce() {
 		if (!deployed) {
 			Feature feature;

@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Jared González
+# Copyright (c) 2014 Jared González
 #
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated
@@ -45,6 +45,8 @@ endif
 ifndef JAVA_HOME
 JAVA_HOME=/usr/lib/jvm/java-6-openjdk-${JAVA_ARCH}
 endif
+# Eliminar la variable de ambiente JAVA_TOOL_OPTIONS
+unexport JAVA_TOOL_OPTIONS
 
 # ESTABLECER VARIABLES DE COMPILACION DE JAYATANA
 # se definen banderas de compilacion
