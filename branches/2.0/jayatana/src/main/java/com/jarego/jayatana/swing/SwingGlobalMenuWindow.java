@@ -111,6 +111,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 						Toolkit.getDefaultToolkit().addAWTEventListener(
 								SwingGlobalMenuWindow.this, KeyEvent.KEY_EVENT_MASK);
 						((Window)getWindow()).addWindowListener(SwingGlobalMenuWindow.this);
+						((Window)getWindow()).addComponentListener(SwingGlobalMenuWindow.this);
 						// ocular barra de menús
 						menubar.setVisible(false);
 					}
@@ -129,6 +130,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	protected void unregister() {
 		// eliminar escuchadores de eventos
 		((Window)getWindow()).removeWindowListener(SwingGlobalMenuWindow.this);
+		((Window)getWindow()).addComponentListener(SwingGlobalMenuWindow.this);
 		Toolkit.getDefaultToolkit().removeAWTEventListener(SwingGlobalMenuWindow.this);
 		for (Component comp : menubar.getComponents()) {
 			if (comp instanceof JMenu) {
@@ -440,15 +442,15 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 
 	@Override
 	public void windowOpened(WindowEvent e) {}
+	@Override
+	public void windowClosing(WindowEvent e) {}
 	/**
 	 * La ventana es cerrada.
 	 */
 	@Override
-	public void windowClosing(WindowEvent e) {
+	public void windowClosed(WindowEvent e) {
 		unregisterWatcher();
 	}
-	@Override
-	public void windowClosed(WindowEvent e) {}
 	@Override
 	public void windowIconified(WindowEvent e) {}
 	@Override
@@ -567,6 +569,8 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		if (e.getSource() instanceof JMenu) {
 			JMenu menu = (JMenu)e.getSource();
 			updateMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+		} else if (e.getSource() instanceof Window) {
+			recreateMenuBarMenus();
 		}
 	}
 	@Override
