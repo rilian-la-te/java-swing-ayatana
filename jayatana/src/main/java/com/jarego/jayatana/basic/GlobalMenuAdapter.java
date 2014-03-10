@@ -89,7 +89,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 * @param visible estado de visibulidad del menú.
 	 */
 	protected void addMenu(int menuId, String label, boolean enabled, boolean visible) {
-		addMenu(windowXID, -1, menuId, label, enabled, visible);
+		addMenu(windowXID, -1, menuId, secureString(label), enabled, visible);
 	}
 	/**
 	 * Agrega un nuevo menú de folder nativo.
@@ -103,7 +103,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenu(int menuParentId, int menuId, String label, boolean enabled,
 			boolean visible) {
-		addMenu(windowXID, menuParentId, menuId, label, enabled, visible);
+		addMenu(windowXID, menuParentId, menuId, secureString(label), enabled, visible);
 	}
 	/**
 	 * Agrega un elemento de menú nativo.
@@ -117,7 +117,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenuItem(int menuParentId, int menuId, String label, boolean enabled,
 			int modifiers, int keycode) {
-		addMenuItem(windowXID, menuParentId, menuId, label, enabled, modifiers, keycode);
+		addMenuItem(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode);
 	}
 	/**
 	 * Agrega un elemento de menú check nativo.
@@ -132,7 +132,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenuItemCheck(int menuParentId, int menuId, String label, boolean enabled,
 			int modifiers, int keycode, boolean selected) {
-		addMenuItemCheck(windowXID, menuParentId, menuId, label, enabled,modifiers, keycode, selected);
+		addMenuItemCheck(windowXID, menuParentId, menuId, secureString(label), enabled,modifiers, keycode, selected);
 	}
 	/**
 	 * Agrega un elemento de menú radio nativo.
@@ -147,7 +147,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenuItemRadio(int menuParentId, int menuId, String label, boolean enabled,
 			int modifiers, int keycode, boolean selected) {
-		addMenuItemRadio(windowXID, menuParentId, menuId, label, enabled, modifiers, keycode, selected);
+		addMenuItemRadio(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode, selected);
 	}
 	/**
 	 * Agrega un elmemento de menú de separador nativo.
@@ -166,7 +166,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 * @param visible nuevo valor de estado de visibilidad del menú.
 	 */
 	protected void updateMenu(int menuId, String label, boolean enabled, boolean visible) {
-		updateMenu(windowXID, menuId, label, enabled, visible);
+		updateMenu(windowXID, menuId, secureString(label), enabled, visible);
 	}
 	
 	/**
@@ -184,5 +184,12 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected long getWindowXID() {
 		return windowXID;
+	}
+	
+	private static String secureString(String text) {
+		if (text == null)
+			return "";
+		else
+			return text;
 	}
 }
