@@ -130,9 +130,7 @@ gchar *jayatana_get_windowxid_path(long xid) {
  * Destruir todos los menus
  */
 void jayatana_destroy_menuitem(gpointer data) {
-	if (DBUSMENU_IS_MENUITEM(data)) {
-		g_object_unref(G_OBJECT(data));
-	}
+	g_object_unref(G_OBJECT(data));
 }
 
 /**
@@ -486,13 +484,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
 			DbusmenuMenuitem *parent = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuParentID);
 			if (parent != NULL) {
 				// obtener etiqueta del menu
-				const char *cclabel;
-				if (label != NULL)
-					cclabel = (*env)->GetStringUTFChars(env, label, 0);
+				const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 				// generar menu
 				DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-				if (label != NULL)
-					dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_CHILD_DISPLAY,
 						DBUSMENU_MENUITEM_CHILD_DISPLAY_SUBMENU);
 				dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
@@ -514,8 +509,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenu
 
 				dbusmenu_menuitem_child_append(parent, item);
 				// liberar etiqueta
-				if (label != NULL)
-					(*env)->ReleaseStringUTFChars(env, label, cclabel);
+				(*env)->ReleaseStringUTFChars(env, label, cclabel);
 			}
 		}
 	}
@@ -532,13 +526,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
 				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
 			// obtener etiqueta del menu
-			const char *cclabel;
-			if (label != NULL)
-				cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 			// generar menu
 			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-			if (label != NULL)
-				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
@@ -552,8 +543,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItem
 			if (parent != NULL)
 				dbusmenu_menuitem_child_append(parent, item);
 			// liberar etiqueta
-			if (label != NULL)
-				(*env)->ReleaseStringUTFChars(env, label, cclabel);
+			(*env)->ReleaseStringUTFChars(env, label, cclabel);
 		}
 	}
 }
@@ -569,13 +559,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadi
 				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
 			// obtener etiqueta del menu
-			const char *cclabel;
-			if (label != NULL)
-				cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 			// generar menu
 			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-			if (label != NULL)
-				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
@@ -593,8 +580,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemRadi
 			if (parent != NULL)
 				dbusmenu_menuitem_child_append(parent, item);
 			// liberar etiqueta
-			if (label != NULL)
-				(*env)->ReleaseStringUTFChars(env, label, cclabel);
+			(*env)->ReleaseStringUTFChars(env, label, cclabel);
 		}
 	}
 }
@@ -610,13 +596,10 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemChec
 				collection_list_index_get(jayatana_globalmenu_windows, windowXID);
 		if (globalmenu_window != NULL) {
 			// obtener etiqueta del menu
-			const char *cclabel;
-			if (label != NULL)
-				cclabel = (*env)->GetStringUTFChars(env, label, 0);
+			const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 			// generar menu
 			DbusmenuMenuitem *item = dbusmenu_menuitem_new();
-			if (label != NULL)
-				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
+			dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 			dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-parent-menuid", menuParentID);
 			dbusmenu_menuitem_property_set_int(item, "jayatana-menuid", menuID);
@@ -634,8 +617,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_addMenuItemChec
 			if (parent != NULL)
 				dbusmenu_menuitem_child_append(parent, item);
 			// liberar etiqueta
-			if (label != NULL)
-				(*env)->ReleaseStringUTFChars(env, label, cclabel);
+			(*env)->ReleaseStringUTFChars(env, label, cclabel);
 		}
 	}
 }
@@ -672,7 +654,7 @@ JNIEXPORT void JNICALL Java_com_jarego_jayatana_basic_GlobalMenu_updateMenu
 			DbusmenuMenuitem *item = jayatana_find_menuid(globalmenu_window->dbusMenuRoot, menuID);
 			if (item != NULL) {
 				// actualizar menu
-				const char *cclabel = (label == NULL ? "" : (*env)->GetStringUTFChars(env, label, 0));
+				const char *cclabel = (*env)->GetStringUTFChars(env, label, 0);
 				dbusmenu_menuitem_property_set(item, DBUSMENU_MENUITEM_PROP_LABEL, cclabel);
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_ENABLED, (gboolean)enabled);
 				dbusmenu_menuitem_property_set_bool(item, DBUSMENU_MENUITEM_PROP_VISIBLE, (gboolean)visible);

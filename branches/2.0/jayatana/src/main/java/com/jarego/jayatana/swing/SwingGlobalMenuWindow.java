@@ -402,7 +402,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 							}
 						}
 					}
-					if (items == 0)
+					if (items == 0 && menu != null)
 						addMenuItem(menu.hashCode(), -1, "(...)", false, -1, -1);
 				}
 			});
