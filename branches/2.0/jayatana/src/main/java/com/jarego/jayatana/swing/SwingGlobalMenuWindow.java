@@ -72,6 +72,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		AWTEventListener, ContainerListener, PropertyChangeListener, ComponentListener {
 	private JMenuBar menubar;
 	private boolean netbeansPlatform;
+	private boolean lockedMenus = false;
 	
 	/**
 	 * Instanciar clase de controlador de menús para ventanas java Swing.
@@ -112,6 +113,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 								SwingGlobalMenuWindow.this, KeyEvent.KEY_EVENT_MASK);
 						((Window)getWindow()).addWindowListener(SwingGlobalMenuWindow.this);
 						((Window)getWindow()).addComponentListener(SwingGlobalMenuWindow.this);
+						
 						// ocular barra de menús
 						menubar.setVisible(false);
 					}
@@ -195,7 +197,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		if (approveRecreateMenuBarMenus != -1)
 			approveRecreateMenuBarMenus = System.currentTimeMillis() + 200;
 		if (parent == null)
-			addMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+			addMenu(menu.hashCode(), menu.getText(), lockedMenus ? false : menu.isEnabled(), menu.isVisible());
 		else
 			addMenu(parent.hashCode(), menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
 	}
@@ -437,6 +439,20 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		} catch (Exception e) {
 			Logger.getLogger(SwingGlobalMenuWindow.class.getName())
 				.log(Level.WARNING, e.getMessage(), e);
+		}
+	}
+	
+	public synchronized void lockMenuBar() {
+		if (!lockedMenus) {
+			lockedMenus = true;
+			recreateMenuBarMenus();
+		}
+	}
+	
+	public synchronized void unlockMenuBar() {
+		if (lockedMenus) {
+			lockedMenus = false;
+			recreateMenuBarMenus();
 		}
 	}
 
