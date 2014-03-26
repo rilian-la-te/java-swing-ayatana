@@ -26,6 +26,10 @@
 package com.jarego.jayatana.basic;
 
 import java.awt.Window;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.jarego.jayatana.swing.SwingGlobalMenuWindow;
 
 /**
  * Clase de adatador de GlobalMenu que permite encapsular el controlador de ventana
@@ -34,7 +38,24 @@ import java.awt.Window;
  * @author Jared González
  */
 public abstract class GlobalMenuAdapter extends GlobalMenu {
+	private static final int SPINCOUNT = 150; 
+	/**
+	 * Variable de especificación de bloqueo de barra de menus
+	 */
+	private boolean lockedMenuBar = false;
+	
+	/**
+	 * Varaible de especificación de retardo por espera de contrucción
+	 * de menús.
+	 */
+	protected long approveRefreshWatcher = -1;
+	/**
+	 * Ventana asociada al menu global
+	 */
 	private Object window;
+	/**
+	 * Identificador de ventana
+	 */
 	private long windowXID;
 	
 	/**
@@ -89,7 +110,9 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 * @param visible estado de visibulidad del menú.
 	 */
 	protected void addMenu(int menuId, String label, boolean enabled, boolean visible) {
-		addMenu(windowXID, -1, menuId, secureString(label), enabled, visible);
+		if (approveRefreshWatcher != -1)
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
+		addMenu(windowXID, -1, menuId, secureString(label), lockedMenuBar ? false : enabled, visible);
 	}
 	/**
 	 * Agrega un nuevo menú de folder nativo.
@@ -103,6 +126,8 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenu(int menuParentId, int menuId, String label, boolean enabled,
 			boolean visible) {
+		if (approveRefreshWatcher != -1)
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 		addMenu(windowXID, menuParentId, menuId, secureString(label), enabled, visible);
 	}
 	/**
@@ -117,6 +142,8 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenuItem(int menuParentId, int menuId, String label, boolean enabled,
 			int modifiers, int keycode) {
+		if (approveRefreshWatcher != -1)
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 		addMenuItem(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode);
 	}
 	/**
@@ -132,6 +159,8 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenuItemCheck(int menuParentId, int menuId, String label, boolean enabled,
 			int modifiers, int keycode, boolean selected) {
+		if (approveRefreshWatcher != -1)
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 		addMenuItemCheck(windowXID, menuParentId, menuId, secureString(label), enabled,modifiers, keycode, selected);
 	}
 	/**
@@ -147,6 +176,8 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 */
 	protected void addMenuItemRadio(int menuParentId, int menuId, String label, boolean enabled,
 			int modifiers, int keycode, boolean selected) {
+		if (approveRefreshWatcher != -1)
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 		addMenuItemRadio(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode, selected);
 	}
 	/**
@@ -155,6 +186,8 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 * @param menuParentId identificador del menú padre.
 	 */
 	protected void addSeparator(int menuParentId) {
+		if (approveRefreshWatcher != -1)
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 		addSeparator(windowXID, menuParentId);
 	}
 	/**
@@ -166,6 +199,8 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 * @param visible nuevo valor de estado de visibilidad del menú.
 	 */
 	protected void updateMenu(int menuId, String label, boolean enabled, boolean visible) {
+		if (approveRefreshWatcher != -1)
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 		updateMenu(windowXID, menuId, secureString(label), enabled, visible);
 	}
 	
@@ -186,10 +221,61 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 		return windowXID;
 	}
 	
+	/**
+	 * Obtener una cadena en caso de NULL
+	 * @param text texto de etiqueta
+	 * @return texto
+	 */
 	private static String secureString(String text) {
 		if (text == null)
 			return "";
 		else
 			return text;
+	}
+	
+	/**
+	 * Regenera menús directamente en la barra de menús.
+	 */
+	protected void refreshWatcherSafe() {
+		if (approveRefreshWatcher == -1) {
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
+			new Thread() {
+				@Override
+				public void run() {
+					try {
+						while (System.currentTimeMillis() < approveRefreshWatcher)
+							Thread.sleep(100);
+					} catch (InterruptedException e) {
+						Logger.getLogger(SwingGlobalMenuWindow.class.getName()).log(
+								Level.WARNING, "Can't wait approve rebuild", e);
+					} finally {
+						approveRefreshWatcher = -1;
+						refreshWatcher();
+					}
+				}
+			}.start();
+		} else {
+			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
+		}
+	}
+	
+	/**
+	 * Bloquear la barra de menus.
+	 */
+	public synchronized void lockMenuBar() {
+		if (!lockedMenuBar) {
+			lockedMenuBar = true;
+			refreshWatcherSafe();
+		}
+	}
+	
+	/**
+	 * Desbloquar la barra de menus.
+	 */
+	public synchronized void unlockMenuBar() {
+		if (lockedMenuBar) {
+			lockedMenuBar = false;
+			refreshWatcherSafe();
+		}
 	}
 }
