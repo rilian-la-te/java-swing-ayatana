@@ -29,6 +29,7 @@ import java.awt.AWTEvent;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.AWTEventListener;
@@ -72,6 +73,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		AWTEventListener, ContainerListener, PropertyChangeListener, ComponentListener {
 	private JMenuBar menubar;
 	private boolean netbeansPlatform;
+	private boolean fullscreen = false;
 	
 	/**
 	 * Instanciar clase de controlador de menús para ventanas java Swing.
@@ -541,5 +543,33 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	@Override
 	public void componentMoved(ComponentEvent e) {}
 	@Override
-	public void componentResized(ComponentEvent e) {}
+	public void componentResized(ComponentEvent e) {
+		if (e.getSource() instanceof Window) {
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			Point rootPaneLoc = null;
+			Dimension rootPaneSize = null;
+			if (getWindow() instanceof JFrame) {
+				rootPaneLoc = ((JFrame)getWindow()).getRootPane().getLocationOnScreen();
+				rootPaneSize = ((JFrame)getWindow()).getRootPane().getSize();
+			} else if (getWindow() instanceof JDialog) {
+				rootPaneLoc = ((JDialog)getWindow()).getRootPane().getLocationOnScreen();
+				rootPaneSize = ((JDialog)getWindow()).getRootPane().getSize();
+			}
+			if (rootPaneLoc != null && rootPaneSize != null) {
+				if (rootPaneSize.height >= screenSize.height &&
+						rootPaneSize.width >= screenSize.width &&
+						rootPaneLoc.x == 0 && rootPaneLoc.y == 0 &&
+						!fullscreen) {
+					fullscreen = true;
+					unregisterWatcher();
+				} else if ((rootPaneSize.height < screenSize.height ||
+						rootPaneSize.width < screenSize.width) &&
+						rootPaneLoc.x >= 0 && rootPaneLoc.y >= 0 &&
+						fullscreen) {
+					fullscreen = false;
+					registerWatcher();
+				}
+			}
+		}
+	}
 }
