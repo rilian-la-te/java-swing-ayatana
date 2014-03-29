@@ -97,6 +97,9 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 				@Override
 				public void run() {
 					if (state == GlobalMenu.REGISTER_STATE_INITIAL) {
+						// ocular barra de menús
+						menubar.setVisible(false);
+						
 						// Correción para Netbeans
 						netbeansPlatform = "org.openide.awt.MenuBar".equals(
 								menubar.getClass().getName());
@@ -115,9 +118,6 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 								SwingGlobalMenuWindow.this, KeyEvent.KEY_EVENT_MASK);
 						((Window)getWindow()).addWindowListener(SwingGlobalMenuWindow.this);
 						((Window)getWindow()).addComponentListener(SwingGlobalMenuWindow.this);
-						
-						// ocular barra de menús
-						menubar.setVisible(false);
 					}
 					createMenuBarMenus();
 				}
@@ -140,6 +140,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 			if (comp instanceof JMenu) {
 				((JMenu)comp).removePropertyChangeListener(SwingGlobalMenuWindow.this);
 				((JMenu)comp).removeComponentListener(SwingGlobalMenuWindow.this);
+				((JMenu)comp).getModel().setSelected(false);
 			}
 		}
 		menubar.removeContainerListener(SwingGlobalMenuWindow.this);
@@ -336,8 +337,6 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	 */
 	@Override
 	protected synchronized void menuAboutToShow(int parentMenuId, final int menuId) {
-		//if (approveRefreshWatcher != -1)
-		//	approveRefreshWatcher = System.currentTimeMillis() + 200;
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
@@ -384,8 +383,6 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	 */
 	@Override
 	protected synchronized void menuAfterClose(int parentMenuId, final int menuId) {
-		//if (approveRefreshWatcher != -1)
-		//	approveRefreshWatcher = System.currentTimeMillis() + 200;
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
