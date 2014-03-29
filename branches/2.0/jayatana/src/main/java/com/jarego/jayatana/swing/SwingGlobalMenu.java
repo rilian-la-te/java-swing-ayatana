@@ -27,6 +27,7 @@ package com.jarego.jayatana.swing;
 
 import java.awt.AWTEvent;
 import java.awt.Dialog.ModalityType;
+import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.AWTEventListener;
@@ -148,22 +149,30 @@ public class SwingGlobalMenu implements Feature, AWTEventListener {
 	 * @param parent Ventana padre
 	 * @param child Ventana hijo
 	 */
-	private void installLockParentGlobalMenu(Window parent, Window child) {
+	private void installLockParentGlobalMenu(Window parent, final Window child) {
 		if (parent != null) {
 			if (parent == JOptionPane.getRootFrame()) {
 				for (Window w : Window.getOwnerlessWindows()) {
-					SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(w);
-					if (swingGlobalMenuWindow != null) {
-						swingGlobalMenuWindow.lockMenuBar();
-						child.addWindowListener(new ApplicationModalWindowListener());
-					}
+					final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(w);
+					if (swingGlobalMenuWindow != null)
+						EventQueue.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								swingGlobalMenuWindow.lockMenuBar();
+								child.addWindowListener(new ApplicationModalWindowListener());
+							}
+						});
 				}
 			} else {
-				SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(parent);
-				if (swingGlobalMenuWindow != null) {
-					swingGlobalMenuWindow.lockMenuBar();
-					child.addWindowListener(new ApplicationModalWindowListener());
-				}
+				final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(parent);
+				if (swingGlobalMenuWindow != null)
+					EventQueue.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							swingGlobalMenuWindow.lockMenuBar();
+							child.addWindowListener(new ApplicationModalWindowListener());
+						}
+					});
 			}
 		}
 	}
@@ -210,15 +219,25 @@ public class SwingGlobalMenu implements Feature, AWTEventListener {
 		public void windowClosed(WindowEvent e) {
 			if (e.getWindow().getOwner() == JOptionPane.getRootFrame()) {
 				for (Window w : Window.getOwnerlessWindows()) {
-					SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(w);
+					final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(w);
 					if (swingGlobalMenuWindow != null)
-						swingGlobalMenuWindow.unlockMenuBar();
+						EventQueue.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								swingGlobalMenuWindow.unlockMenuBar();
+							}
+						});
 				}
 			} else {
-				SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(
+				final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(
 						e.getWindow().getOwner());
 				if (swingGlobalMenuWindow != null)
-					swingGlobalMenuWindow.unlockMenuBar();
+					EventQueue.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							swingGlobalMenuWindow.unlockMenuBar();
+						}
+					});
 			}
 			e.getWindow().removeWindowListener(this);
 		}

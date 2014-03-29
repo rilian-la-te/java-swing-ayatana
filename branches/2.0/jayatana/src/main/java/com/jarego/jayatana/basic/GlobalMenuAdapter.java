@@ -301,10 +301,14 @@ public abstract class GlobalMenuAdapter {
 		}
 		@Override
 		protected void menuAboutToShow(int parentMenuId, int menuId) {
+			if (globalMenuAdapter.approveRefreshWatcher != -1)
+				globalMenuAdapter.approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 			globalMenuAdapter.menuAboutToShow(parentMenuId, menuId);
 		}
 		@Override
 		protected void menuAfterClose(int parentMenuId, int menuId) {
+			if (globalMenuAdapter.approveRefreshWatcher != -1)
+				globalMenuAdapter.approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
 			globalMenuAdapter.menuAfterClose(parentMenuId, menuId);
 		}
 	}
