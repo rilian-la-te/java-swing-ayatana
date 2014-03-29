@@ -62,6 +62,7 @@ import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
+import com.jarego.jayatana.basic.GlobalMenu;
 import com.jarego.jayatana.basic.GlobalMenuAdapter;
 
 /**
@@ -95,7 +96,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					if (state == REGISTER_STATE_INITIAL) {
+					if (state == GlobalMenu.REGISTER_STATE_INITIAL) {
 						// Correción para Netbeans
 						netbeansPlatform = "org.openide.awt.MenuBar".equals(
 								menubar.getClass().getName());
