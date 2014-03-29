@@ -139,7 +139,7 @@ public class SwingGlobalMenu implements Feature, AWTEventListener {
 		FeatureManager.deployOnce(FeatureManager.FEATURE_GMAINLOOP);
 		SwingGlobalMenuWindow swingGlobalMenuWindow = new SwingGlobalMenuWindow(window, menubar);
 		setSwingGlobalMenuWindowController(window, swingGlobalMenuWindow);
-		swingGlobalMenuWindow.tryInstall();
+		swingGlobalMenuWindow.registerWatcher();
 	}
 	
 	/**

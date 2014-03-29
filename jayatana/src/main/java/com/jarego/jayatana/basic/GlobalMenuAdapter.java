@@ -37,8 +37,9 @@ import com.jarego.jayatana.swing.SwingGlobalMenuWindow;
  * 
  * @author Jared González
  */
-public abstract class GlobalMenuAdapter extends GlobalMenu {
-	private static final int SPINCOUNT = 150; 
+public abstract class GlobalMenuAdapter {
+	private static final int SPINCOUNT = 150;
+	private final GlobalMenuImp globalMenuImp;
 	/**
 	 * Variable de especificación de bloqueo de barra de menus
 	 */
@@ -63,34 +64,29 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 * 
 	 * @param window ventana
 	 */
-	public GlobalMenuAdapter(Object window) {
-		if (window instanceof Window)
-			this.window = window;
-		else
-			throw new IllegalArgumentException();
+	public GlobalMenuAdapter(Window window) {
+		this(window, GlobalMenu.getWindowXID((Window)window));
 	}
 	
-	/**
-	 * Tratar de iniciar la integración, esto dependera si existe un bus o no.
-	 */
-	public void tryInstall() {
-		if (window instanceof Window)
-			registerWatcher(windowXID = getWindowXID((Window)window));
+	public GlobalMenuAdapter(Object window, long windowXID) {
+		this.window = window;
+		this.windowXID = windowXID;
+		this.globalMenuImp = new GlobalMenuImp(this);
 	}
 	
 	/**
 	 * Registra visualizador de bus de menu global. En caso de que el bus
 	 * exista se invocará el método <code>register</code>.
 	 */
-	protected void registerWatcher() {
-		registerWatcher(windowXID);
+	public void registerWatcher() {
+		globalMenuImp.registerWatcher(windowXID);
 	}
 	/**
 	 * Elimina el visualizador de bus de menu global. En cas de que el bus
 	 * exista se invocará el método <code>unregister</code>.
 	 */
 	protected void unregisterWatcher() {
-		unregisterWatcher(windowXID);
+		globalMenuImp.unregisterWatcher(windowXID);
 	}
 	/**
 	 * Este método regenera el visualizador de Bus, y debe ser usado si algun
@@ -98,7 +94,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	 * puesto que Ubuntu tiene problemas con los métodos de agregar o eliminar estos.
 	 */
 	protected void refreshWatcher() {
-		refreshWatcher(windowXID);
+		globalMenuImp.refreshWatcher(windowXID);
 	}
 	
 	/**
@@ -112,7 +108,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	protected void addMenu(int menuId, String label, boolean enabled, boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		addMenu(windowXID, -1, menuId, secureString(label), lockedMenuBar ? false : enabled, visible);
+		globalMenuImp.addMenu(windowXID, -1, menuId, secureString(label), lockedMenuBar ? false : enabled, visible);
 	}
 	/**
 	 * Agrega un nuevo menú de folder nativo.
@@ -128,7 +124,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 			boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		addMenu(windowXID, menuParentId, menuId, secureString(label), enabled, visible);
+		globalMenuImp.addMenu(windowXID, menuParentId, menuId, secureString(label), enabled, visible);
 	}
 	/**
 	 * Agrega un elemento de menú nativo.
@@ -144,7 +140,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 			int modifiers, int keycode) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		addMenuItem(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode);
+		globalMenuImp.addMenuItem(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode);
 	}
 	/**
 	 * Agrega un elemento de menú check nativo.
@@ -161,7 +157,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 			int modifiers, int keycode, boolean selected) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		addMenuItemCheck(windowXID, menuParentId, menuId, secureString(label), enabled,modifiers, keycode, selected);
+		globalMenuImp.addMenuItemCheck(windowXID, menuParentId, menuId, secureString(label), enabled,modifiers, keycode, selected);
 	}
 	/**
 	 * Agrega un elemento de menú radio nativo.
@@ -178,7 +174,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 			int modifiers, int keycode, boolean selected) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		addMenuItemRadio(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode, selected);
+		globalMenuImp.addMenuItemRadio(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode, selected);
 	}
 	/**
 	 * Agrega un elmemento de menú de separador nativo.
@@ -188,7 +184,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	protected void addSeparator(int menuParentId) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		addSeparator(windowXID, menuParentId);
+		globalMenuImp.addSeparator(windowXID, menuParentId);
 	}
 	/**
 	 * Actualización de estado del menú nativo.
@@ -201,7 +197,7 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 	protected void updateMenu(int menuId, String label, boolean enabled, boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		updateMenu(windowXID, menuId, secureString(label), enabled, visible);
+		globalMenuImp.updateMenu(windowXID, menuId, secureString(label), enabled, visible);
 	}
 	
 	/**
@@ -276,6 +272,40 @@ public abstract class GlobalMenuAdapter extends GlobalMenu {
 		if (lockedMenuBar) {
 			lockedMenuBar = false;
 			refreshWatcherSafe();
+		}
+	}
+	
+	abstract protected void register(int state);
+	abstract protected void unregister();
+	abstract protected void menuActivated(int parentMenuId, int menuId);
+	abstract protected void menuAboutToShow(int parentMenuId, int menuId);
+	abstract protected void menuAfterClose(int parentMenuId, int menuId);
+	
+	private static class GlobalMenuImp extends GlobalMenu {
+		private final GlobalMenuAdapter globalMenuAdapter;
+		
+		public GlobalMenuImp(GlobalMenuAdapter globalMenuAdapter) {
+			this.globalMenuAdapter = globalMenuAdapter;
+		}
+		@Override
+		protected void register(int state) {
+			globalMenuAdapter.register(state);
+		}
+		@Override
+		protected void unregister() {
+			globalMenuAdapter.unregister();
+		}
+		@Override
+		protected void menuActivated(int parentMenuId, int menuId) {
+			globalMenuAdapter.menuActivated(parentMenuId, menuId);
+		}
+		@Override
+		protected void menuAboutToShow(int parentMenuId, int menuId) {
+			globalMenuAdapter.menuAboutToShow(parentMenuId, menuId);
+		}
+		@Override
+		protected void menuAfterClose(int parentMenuId, int menuId) {
+			globalMenuAdapter.menuAfterClose(parentMenuId, menuId);
 		}
 	}
 }
