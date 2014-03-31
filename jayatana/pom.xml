@@ -3,47 +3,20 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jarego.software</groupId>
 	<artifactId>jayatana</artifactId>
-	<version>2.4</version>
+	<version>2.5</version>
 	<name>JAyatana</name>
-	
+
 	<developers>
 		<developer>
 			<name>Jared González</name>
 			<email>danjaredg@gmail.com</email>
 		</developer>
 	</developers>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
-	<profiles>
-		<profile>
-			<id>linux-amd64</id>
-			<activation>
-				<os>
-					<family>Linux</family>
-					<arch>amd64</arch>
-				</os>
-			</activation>
-			<properties>
-				<JAVA.ARCH>amd64</JAVA.ARCH>
-			</properties>
-		</profile>
-		<profile>
-			<id>linux-i386</id>
-			<activation>
-				<os>
-					<family>Linux</family>
-					<arch>i386</arch>
-				</os>
-			</activation>
-			<properties>
-				<JAVA.ARCH>i386</JAVA.ARCH>
-			</properties>
-		</profile>
-	</profiles>
-	
+
 	<build>
 		<finalName>${project.artifactId}</finalName>
 		<plugins>

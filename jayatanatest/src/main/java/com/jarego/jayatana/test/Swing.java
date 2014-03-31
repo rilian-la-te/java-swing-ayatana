@@ -53,6 +53,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -358,6 +359,12 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 		btnAdd.setFocusable(false);
 		btnAdd.setOpaque(false);
 		btnAdd.addActionListener(this);
+		
+		JToggleButton btnFull = new JToggleButton("Full screen");
+		btnFull.setActionCommand("full");
+		btnFull.setFocusable(false);
+		btnFull.setOpaque(false);
+		btnFull.addItemListener(this);
 
 		JToolBar toolbar = new JToolBar();
 		toolbar.add(btnnew);
@@ -365,7 +372,7 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 		toolbar.add(btnsave);
 		toolbar.add(btnRebuild);
 		toolbar.add(btnRemove);
-		toolbar.add(btnAdd);
+		toolbar.add(btnFull);
 
 		return toolbar;
 	}
@@ -450,6 +457,14 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 					SwingUtilities.updateComponentTreeUI(this);
 				} catch (Exception err) {
 					err.printStackTrace();
+				}
+			} else if (ab.getActionCommand() != null
+					&& ab.getActionCommand().startsWith("full")) {
+				JToggleButton tb = (JToggleButton)ab;
+				if (tb.isSelected()) {
+					
+				} else {
+					
 				}
 			}
 		}
