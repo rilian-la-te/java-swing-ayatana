@@ -71,24 +71,31 @@ public class FeatureManager {
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingGlobalMenu"));
 		features.put(FEATURE_SWINGWMCLASS,
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
+		features.put(FEATURE_SWINGWMCLASS,
+				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
+	}
+	
+	public static void loadLibJAyatana() {
+		// cargar libreria de JAyatana
+		if (System.getenv("JAYATANA_LIBPATH") != null) {//opcion para desarrollo
+			System.load(System.getenv("JAYATANA_LIBPATH"));
+			System.err.println("JAYATANA_LIBPATH="+System.getenv("JAYATANA_LIBPATH"));
+		} else {
+			// si la libreria no existe cancelar integración
+			if (!new File("/usr/lib/libjayatana.so").canRead())
+				return;
+			System.load("/usr/lib/libjayatana.so");
+		}
 	}
 	
 	/**
 	 * Despliega todas características compatibles para Swing.
 	 */
 	public static void deployForSwing() {
-		// si la libreria no existe cancelar integración
-		if (!new File("/usr/lib/libjayatana.so").canRead())
-			return;
 		// cargar librerias para soporte swing
 		System.loadLibrary("jawt");
 		// cargar libreria de JAyatana
-		if (System.getenv("JAYATANA_LIBPATH") != null) {//opcion para desarrollo
-			System.load(System.getenv("JAYATANA_LIBPATH"));
-			System.err.println("JAYATANA_LIBPATH="+System.getenv("JAYATANA_LIBPATH"));
-		} else {
-			System.load("/usr/lib/libjayatana.so");
-		}
+		loadLibJAyatana();
 		// desplegar carcateristicas de integración
 		deployOnce(FEATURE_SWINGWMCLASS);
 		deployOnce(FEATURE_SWINGGTKFIX);
