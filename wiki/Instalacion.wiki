@@ -1,4 +1,6 @@
 #labels Featured,Phase-Implementation
+Esta información esta desaprovada, y ya no es valida para versiones 13.10 o superiores, para esto puedes usar el PPA: ppa:danjaredg/jayatana
+ 
 =Versiones previas a Ubuntu 13.10=
 
 =Instalar para Java OpenJDK 7=
