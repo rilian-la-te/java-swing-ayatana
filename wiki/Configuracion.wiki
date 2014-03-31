@@ -1,4 +1,6 @@
 #labels Featured,Phase-Implementation
+Esta información esta desaprovada, y ya no es valida para versiones 13.10 o superiores, para esto puedes usar el PPA: ppa:danjaredg/jayatana
+
 =Configuración del menú global=
 
 No es necesario configurar el menú global puesto que se activa en automático, sin embargo, cuando es ejecutado en un entorno no Unity, por ejemplo el escritorio clásico Gnome, se requiere forzar la compatibilidad. Esto se hace agregando dentro de la aplicación
