@@ -38,7 +38,7 @@ import com.jarego.jayatana.swing.SwingGlobalMenuWindow;
  * @author Jared González
  */
 public abstract class GlobalMenuAdapter {
-	private static final int SPINCOUNT = 150;
+	private static final int SPINCOUNT = 200;
 	private final GlobalMenuImp globalMenuImp;
 	/**
 	 * Variable de especificación de bloqueo de barra de menus
@@ -108,7 +108,7 @@ public abstract class GlobalMenuAdapter {
 	protected void addMenu(int menuId, String label, boolean enabled, boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.addMenu(windowXID, -1, menuId, secureString(label), lockedMenuBar ? false : enabled, visible);
+		globalMenuImp.addMenu(windowXID, -1, menuId, secureString(label), enabled, visible);
 	}
 	/**
 	 * Agrega un nuevo menú de folder nativo.
@@ -261,7 +261,7 @@ public abstract class GlobalMenuAdapter {
 	public synchronized void lockMenuBar() {
 		if (!lockedMenuBar) {
 			lockedMenuBar = true;
-			refreshWatcherSafe();
+			// TODO: bloquear menus
 		}
 	}
 	
@@ -271,7 +271,7 @@ public abstract class GlobalMenuAdapter {
 	public synchronized void unlockMenuBar() {
 		if (lockedMenuBar) {
 			lockedMenuBar = false;
-			refreshWatcherSafe();
+			// TODO: debloquear menus
 		}
 	}
 	
@@ -301,15 +301,19 @@ public abstract class GlobalMenuAdapter {
 		}
 		@Override
 		protected void menuAboutToShow(int parentMenuId, int menuId) {
-			if (globalMenuAdapter.approveRefreshWatcher != -1)
-				globalMenuAdapter.approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-			globalMenuAdapter.menuAboutToShow(parentMenuId, menuId);
+			if (!globalMenuAdapter.lockedMenuBar) {
+				if (globalMenuAdapter.approveRefreshWatcher != -1)
+					globalMenuAdapter.approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
+				globalMenuAdapter.menuAboutToShow(parentMenuId, menuId);
+			}
 		}
 		@Override
 		protected void menuAfterClose(int parentMenuId, int menuId) {
-			if (globalMenuAdapter.approveRefreshWatcher != -1)
-				globalMenuAdapter.approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-			globalMenuAdapter.menuAfterClose(parentMenuId, menuId);
+			if (!globalMenuAdapter.lockedMenuBar) {
+				if (globalMenuAdapter.approveRefreshWatcher != -1)
+					globalMenuAdapter.approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
+				globalMenuAdapter.menuAfterClose(parentMenuId, menuId);
+			}
 		}
 	}
 }

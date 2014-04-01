@@ -140,7 +140,6 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 			if (comp instanceof JMenu) {
 				((JMenu)comp).removePropertyChangeListener(SwingGlobalMenuWindow.this);
 				((JMenu)comp).removeComponentListener(SwingGlobalMenuWindow.this);
-				((JMenu)comp).getModel().setSelected(false);
 			}
 		}
 		menubar.removeContainerListener(SwingGlobalMenuWindow.this);
@@ -560,6 +559,9 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 						!fullscreen) {
 					fullscreen = true;
 					unregisterWatcher();
+					for (Component comp : menubar.getComponents())
+						if (comp instanceof JMenu)
+							((JMenu)comp).getModel().setSelected(false);
 				} else if ((rootPaneSize.height < screenSize.height ||
 						rootPaneSize.width < screenSize.width) &&
 						rootPaneLoc.x >= 0 && rootPaneLoc.y >= 0 &&
