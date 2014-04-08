@@ -258,20 +258,20 @@ public abstract class GlobalMenuAdapter {
 	/**
 	 * Bloquear la barra de menus.
 	 */
-	public synchronized void lockMenuBar() {
+	public void lockMenuBar() {
 		if (!lockedMenuBar) {
 			lockedMenuBar = true;
-			// TODO: bloquear menus
+			refreshWatcherSafe();
 		}
 	}
 	
 	/**
 	 * Desbloquar la barra de menus.
 	 */
-	public synchronized void unlockMenuBar() {
+	public void unlockMenuBar() {
 		if (lockedMenuBar) {
 			lockedMenuBar = false;
-			// TODO: debloquear menus
+			refreshWatcherSafe();
 		}
 	}
 	
