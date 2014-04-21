@@ -245,7 +245,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	 * Activación de menú.
 	 */
 	@Override
-	protected synchronized void menuActivated(int parentMenuId, int menuId) {
+	protected void menuActivated(int parentMenuId, int menuId) {
 		final JMenuItem menuitem = getJMenuItem(menuId);
 		if (menuitem != null && menuitem.isEnabled() && menuitem.isVisible()) {
 			EventQueue.invokeLater(new Runnable() {
@@ -335,7 +335,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	 * Apertura de menu de folder.
 	 */
 	@Override
-	protected synchronized void menuAboutToShow(int parentMenuId, final int menuId) {
+	protected void menuAboutToShow(int parentMenuId, final int menuId) {
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
@@ -381,7 +381,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	 * Cierre de menu de folder.
 	 */
 	@Override
-	protected synchronized void menuAfterClose(int parentMenuId, final int menuId) {
+	protected void menuAfterClose(int parentMenuId, final int menuId) {
 		try {
 			EventQueue.invokeAndWait(new Runnable() {
 				@Override
