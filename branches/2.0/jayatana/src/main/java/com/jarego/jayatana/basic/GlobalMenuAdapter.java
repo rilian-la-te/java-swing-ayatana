@@ -108,7 +108,7 @@ public abstract class GlobalMenuAdapter {
 	protected void addMenu(int menuId, String label, boolean enabled, boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.addMenu(windowXID, -1, menuId, secureString(label), enabled, visible);
+		globalMenuImp.addMenu(windowXID, -1, menuId, secureString(label), lockedMenuBar ? false : enabled, visible);
 	}
 	/**
 	 * Agrega un nuevo menú de folder nativo.
