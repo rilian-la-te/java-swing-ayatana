@@ -25,6 +25,9 @@
  */
 package com.jarego.jayatana;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +38,15 @@ import java.util.logging.Logger;
  * @author Jared González
  */
 public class FeatureWrapper {
-	private String className;
+	private static List<FeatureWrapper> toFeatureWrapperArray(List<String> classNameList) {
+		List<FeatureWrapper> fwList = new ArrayList<FeatureWrapper>();
+		for (String cn : classNameList)
+			fwList.add(new FeatureWrapper(cn));
+		return fwList;
+	}
+	
+	private final List<FeatureWrapper> dependencies;
+	private final String className;
 	private Feature featrue = null;
 	private boolean deployed = false;
 	
@@ -46,22 +57,31 @@ public class FeatureWrapper {
 	 * @param className clase implementada de la interface <code>com.jarego.jayatana.Feature</code>
 	 */
 	public FeatureWrapper(String className) {
+		this(className, (List<FeatureWrapper>)null);
+	}
+	public FeatureWrapper(String className, String ...dependencies) {
+		this(className, toFeatureWrapperArray(Arrays.asList(dependencies)));
+	}
+	public FeatureWrapper(String className, FeatureWrapper ...dependencies) {
+		this(className, Arrays.asList(dependencies));
+	}
+	public FeatureWrapper(String className, List<FeatureWrapper> dependencies) {
 		this.className = className;
+		this.dependencies = dependencies;
 	}
 	
 	/**
 	 * Obtiene la instancia de característica, se instancia por primera vez al invocar el método.
 	 * 
 	 * @return retorna la interface de característica
+	 * @throws ClassNotFoundException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	private Feature getInstance() {
+	private Feature getInstance() throws InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
 		if (featrue == null)
-			try {
-				featrue = (Feature)Class.forName(className).newInstance();
-			} catch (Exception e) {
-				Logger.getLogger(FeatureWrapper.class.getName())
-					.log(Level.WARNING, "can't create feature", e);
-			}
+			featrue = (Feature)Class.forName(className).newInstance();
 		return featrue;
 	}
 	
@@ -83,16 +103,26 @@ public class FeatureWrapper {
 	 */
 	public synchronized boolean deployOnce() {
 		if (!deployed) {
-			Feature feature;
-			if ((feature = getInstance()) != null) {
-				try {
-					feature.deploy();
-				} catch (Exception e) {
-					Logger.getLogger(FeatureWrapper.class.getName())
-						.log(Level.WARNING, "can't deploy feature", e);
+			try {
+				boolean ok = true;
+				if (dependencies != null) {
+					for (FeatureWrapper fm : dependencies) {
+						if (!fm.isDeployed())
+							fm.deployOnce();
+						ok = ok && fm.isDeployed();
+						if (!ok)
+							throw new Exception("failed dependency: "+fm.className);
+					}
 				}
-				deployed = true;
-				return true;
+				Feature feature;
+				if ((feature = getInstance()) != null) {
+						feature.deploy();
+					deployed = true;
+					return true;
+				}
+			} catch (Exception e) {
+				Logger.getLogger(FeatureWrapper.class.getName())
+					.log(Level.WARNING, "can't deploy feature: "+className, e);
 			}
 		}
 		return false;

@@ -25,7 +25,6 @@
  */
 package com.jarego.jayatana;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,39 +62,27 @@ public class FeatureManager {
 	
 	static {
 		// registrar carcateristicas de integración
+		FeatureWrapper basicNativeLibraries = new FeatureWrapper(
+				"com.jarego.jayatana.basic.NativeLibraries");
+		
 		features.put(FEATURE_GMAINLOOP,
-				new FeatureWrapper("com.jarego.jayatana.basic.GMainLoop"));
+				new FeatureWrapper("com.jarego.jayatana.basic.GMainLoop",
+						basicNativeLibraries));
 		features.put(FEATURE_SWINGGTKFIX,
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingGTKFixed"));
 		features.put(FEATURE_SWINGGMENU,
-				new FeatureWrapper("com.jarego.jayatana.swing.SwingGlobalMenu"));
+				new FeatureWrapper("com.jarego.jayatana.swing.SwingGlobalMenu",
+						basicNativeLibraries));
 		features.put(FEATURE_SWINGWMCLASS,
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
 		features.put(FEATURE_SWINGWMCLASS,
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
-	}
-	
-	public static void loadLibJAyatana() {
-		// cargar libreria de JAyatana
-		if (System.getenv("JAYATANA_LIBPATH") != null) {//opcion para desarrollo
-			System.load(System.getenv("JAYATANA_LIBPATH"));
-			System.err.println("JAYATANA_LIBPATH="+System.getenv("JAYATANA_LIBPATH"));
-		} else {
-			// si la libreria no existe cancelar integración
-			if (!new File("/usr/lib/libjayatana.so").canRead())
-				return;
-			System.load("/usr/lib/libjayatana.so");
-		}
 	}
 	
 	/**
 	 * Despliega todas características compatibles para Swing.
 	 */
 	public static void deployForSwing() {
-		// cargar librerias para soporte swing
-		System.loadLibrary("jawt");
-		// cargar libreria de JAyatana
-		loadLibJAyatana();
 		// desplegar carcateristicas de integración
 		deployOnce(FEATURE_SWINGWMCLASS);
 		deployOnce(FEATURE_SWINGGTKFIX);
