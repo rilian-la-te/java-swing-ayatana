@@ -5,7 +5,8 @@
 		<javac executable="${JavaHome}/bin/javac"
 			source="1.6" target="1.6" encoding="utf8"
 			includeantruntime="false" fork="true"
-			srcdir="src/main/java" destdir="target/antclasses"/>
+			srcdir="src/main/java" destdir="target/antclasses"
+			debug="true"/>
 	</target>
     <target name="jar" depends="compile">
         <jar destfile="target/jayatana.jar" basedir="target/antclasses" encoding="utf8"/>
