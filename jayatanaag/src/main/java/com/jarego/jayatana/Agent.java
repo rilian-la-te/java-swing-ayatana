@@ -27,6 +27,8 @@ package com.jarego.jayatana;
 
 import java.io.FileInputStream;
 import java.lang.instrument.Instrumentation;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Este agente java permite evaluar si la arquitectura de las librerías nativas
@@ -45,37 +47,46 @@ public class Agent {
 	 * @param inst Control de la intrumentación de Java
 	 */
 	public static void premain(String agentArgs, Instrumentation inst) {
-		// excluir versiones 1.5 y 1.4 pues no esta soportadas
-		if (System.getProperty("java.version").startsWith("1.5") ||
-				System.getProperty("java.version").startsWith("1.4"))
-			return;
-		
-		// obtienen el archivo de la librería nativa de integración
-		String libjayatanaag;
-		if ((libjayatanaag = System.getenv("JAYATANA_LIBAGPATH")) == null) {
-			libjayatanaag = "/usr/lib/libjayatanaag.so";
-		} else {
-			System.err.println("JAYATANA_LIBAGPATH="+libjayatanaag);
-		}
-		
 		try {
-			// obtener arquitectura de la librería
-			String libjayatanaagarch = "--";
-			FileInputStream fis = new FileInputStream(libjayatanaag);
+			// excluir versiones 1.5 y 1.4 pues no esta soportadas
+			if (System.getProperty("java.version").startsWith("1.5") ||
+					System.getProperty("java.version").startsWith("1.4"))
+				return;
+			
+			// obtienen el archivo de la librería nativa de integración
+			String libjayatanaag;
 			try {
-				for (int i=0;i<4;i++)
-					fis.read();
-				if (fis.read() == 2)
-					libjayatanaagarch = "64";
-				else
-					libjayatanaagarch = "32";
-			} finally {
-				fis.close();
+				if ((libjayatanaag = System.getenv("JAYATANA_LIBAGPATH")) == null) {
+					libjayatanaag = "/usr/lib/libjayatanaag.so";
+				} else {
+					System.err.println("JAYATANA_LIBAGPATH="+libjayatanaag);
+				}
+			} catch (Exception e) {
+				libjayatanaag = "/usr/lib/libjayatanaag.so";
 			}
 			
-			// verificar si la arquitectura conicide con la máquina virtual
-			if (libjayatanaagarch.equals(System.getProperty("sun.arch.data.model")))
-				System.load(libjayatanaag);
-		} catch (Exception e) {}
+			try {
+				// obtener arquitectura de la librería
+				String libjayatanaagarch = "--";
+				FileInputStream fis = new FileInputStream(libjayatanaag);
+				try {
+					for (int i=0;i<4;i++)
+						fis.read();
+					if (fis.read() == 2)
+						libjayatanaagarch = "64";
+					else
+						libjayatanaagarch = "32";
+				} finally {
+					fis.close();
+				}
+				
+				// verificar si la arquitectura conicide con la máquina virtual
+				if (libjayatanaagarch.equals(System.getProperty("sun.arch.data.model")))
+					System.load(libjayatanaag);
+			} catch (Exception e) {}
+		} catch (Exception e) {
+			Logger.getLogger(Agent.class.getName())
+				.log(Level.WARNING, "can't load jayatana agent", e);
+		}
 	}
 }

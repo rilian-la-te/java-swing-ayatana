@@ -52,15 +52,6 @@ public class SwingGTKFixed implements Feature, PropertyChangeListener {
 	@Override
 	public void deploy() {
 		UIManager.addPropertyChangeListener(new SwingGTKFixed());
-		if ("com.sun.java.swing.plaf.gtk.GTKLookAndFeel".equals(
-			UIManager.getLookAndFeel().getClass().getName())) {
-			try {
-				installGtkThikcness();
-			} catch (Exception e) {
-				Logger.getLogger(SwingGTKFixed.class.getName())
-					.log(Level.WARNING, "can't install gtk border fixed", e);
-			}
-		}
 	}
 	
 	/**
@@ -70,8 +61,7 @@ public class SwingGTKFixed implements Feature, PropertyChangeListener {
 	public void propertyChange(PropertyChangeEvent evt) {
 		if ("lookAndFeel".equals(evt.getPropertyName())) {
 			if (evt.getNewValue() != null ?
-					"com.sun.java.swing.plaf.gtk.GTKLookAndFeel".equals(
-							evt.getNewValue().getClass().getName()): false)
+					evt.getNewValue().getClass().getName().contains("GTKLookAndFeel") : false)
 				try {
 					installGtkThikcness();
 				} catch (Exception e) {
