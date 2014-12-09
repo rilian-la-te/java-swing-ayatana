@@ -27,12 +27,15 @@ package com.jarego.jayatana.swing;
 
 import java.awt.AWTEvent;
 import java.awt.Dialog.ModalityType;
-import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.AWTEventListener;
-import java.awt.event.WindowAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -151,29 +154,26 @@ public class SwingGlobalMenu implements Feature, AWTEventListener {
 	 */
 	private void installLockParentGlobalMenu(Window parent, final Window child) {
 		if (parent != null) {
+			List<SwingGlobalMenuWindow> swingGlobalMenuWindowList = new ArrayList<SwingGlobalMenuWindow>();
 			if (parent == JOptionPane.getRootFrame()) {
 				for (Window w : Window.getOwnerlessWindows()) {
-					final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(w);
-					if (swingGlobalMenuWindow != null)
-						EventQueue.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								swingGlobalMenuWindow.lockMenuBar();
-								child.addWindowListener(new ApplicationModalWindowListener());
-							}
-						});
+					SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(w);
+					if (swingGlobalMenuWindow != null) {
+						swingGlobalMenuWindow.lockMenuBar();
+						swingGlobalMenuWindowList.add(swingGlobalMenuWindow);
+					}
 				}
 			} else {
-				final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(parent);
-				if (swingGlobalMenuWindow != null)
-					EventQueue.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							swingGlobalMenuWindow.lockMenuBar();
-							child.addWindowListener(new ApplicationModalWindowListener());
-						}
-					});
+				SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(parent);
+				if (swingGlobalMenuWindow != null) {
+					swingGlobalMenuWindow.lockMenuBar();
+					swingGlobalMenuWindowList.add(swingGlobalMenuWindow);
+				}
 			}
+			ApplicationModalWindowListener listener =
+					new ApplicationModalWindowListener(swingGlobalMenuWindowList);
+			child.addWindowListener(listener);
+			child.addComponentListener(listener);
 		}
 	}
 	
@@ -214,32 +214,56 @@ public class SwingGlobalMenu implements Feature, AWTEventListener {
 	 * 
 	 * @author Jared González
 	 */
-	private class ApplicationModalWindowListener extends WindowAdapter {
+	private class ApplicationModalWindowListener implements WindowListener, ComponentListener {
+		boolean locked;
+		private List<SwingGlobalMenuWindow> swingGlobalMenuWindowList;
+		
+		public ApplicationModalWindowListener(List<SwingGlobalMenuWindow> swingGlobalMenuWindowList) {
+			this.swingGlobalMenuWindowList = swingGlobalMenuWindowList;
+			locked = true;
+		}
+		@Override
+		public void componentHidden(ComponentEvent e) {
+			if (locked) {
+				for (SwingGlobalMenuWindow sgw : swingGlobalMenuWindowList)
+					sgw.unlockMenuBar();
+				locked = false;
+			}
+		}
+		@Override
+		public void componentShown(ComponentEvent e) {
+			if (!locked) {
+				for (SwingGlobalMenuWindow sgw : swingGlobalMenuWindowList)
+					sgw.lockMenuBar();
+				locked = true;
+			}
+		}
+		@Override
+		public void componentMoved(ComponentEvent e) {}
+		@Override
+		public void componentResized(ComponentEvent e) {}
+		
+		@Override
+		public void windowActivated(WindowEvent e) {}
+		@Override
+		public void windowClosing(WindowEvent e) {}
+		@Override
+		public void windowDeactivated(WindowEvent e) {}
+		@Override
+		public void windowDeiconified(WindowEvent e) {}
+		@Override
+		public void windowIconified(WindowEvent e) {}
+		@Override
+		public void windowOpened(WindowEvent e) {}
 		@Override
 		public void windowClosed(WindowEvent e) {
-			if (e.getWindow().getOwner() == JOptionPane.getRootFrame()) {
-				for (Window w : Window.getOwnerlessWindows()) {
-					final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(w);
-					if (swingGlobalMenuWindow != null)
-						EventQueue.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								swingGlobalMenuWindow.unlockMenuBar();
-							}
-						});
-				}
-			} else {
-				final SwingGlobalMenuWindow swingGlobalMenuWindow = getSwingGlobalMenuWindowController(
-						e.getWindow().getOwner());
-				if (swingGlobalMenuWindow != null)
-					EventQueue.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							swingGlobalMenuWindow.unlockMenuBar();
-						}
-					});
+			if (locked) {
+				for (SwingGlobalMenuWindow sgw : swingGlobalMenuWindowList)
+					sgw.unlockMenuBar();
+				locked = false;
 			}
 			e.getWindow().removeWindowListener(this);
+			e.getWindow().removeComponentListener(this);
 		}
 	}
 }

@@ -54,7 +54,7 @@
 				<configuration>
 					<source>1.4</source>
 					<target>1.4</target>
-					<executable>/usr/lib/jvm/java-6-openjdk-${JAVA.ARCH}/bin/javac</executable>
+					<executable>/usr/lib/jvm/java-7-openjdk-${JAVA.ARCH}/bin/javac</executable>
 				</configuration>
 			</plugin>
 			<plugin>
