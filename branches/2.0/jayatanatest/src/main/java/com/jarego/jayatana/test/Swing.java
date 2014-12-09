@@ -44,8 +44,10 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -56,6 +58,7 @@ import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
@@ -89,6 +92,7 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 	private JMenu menufile;
 	private JMenu menuedit;
 	private JMenu menuhelp;
+	private JDialog infoDialog;
 
 	/**
 	 * Crear un editor de texto básico
@@ -317,7 +321,7 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 			JMenuItem menuAbout = new JMenuItem(bundle.getString("menu_about"));
 			menuAbout.setAccelerator(KeyStroke.getKeyStroke(bundle
 					.getString("menu_about_ac")));
-			menuAbout.setActionCommand("about");
+			menuAbout.setActionCommand("info");
 			menuAbout.addActionListener(this);
 	
 			menuhelp = new JMenu(bundle.getString("menu_help"));
@@ -341,6 +345,10 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 		JButton btnsave = createToolBarButton("Save24.gif", null);
 		btnsave.setActionCommand("save");
 		btnsave.addActionListener(this);
+		JButton btninfo = createToolBarButton("info24.gif", null);
+		btninfo.setActionCommand("info");
+		btninfo.addActionListener(this);
+
 		
 		JButton btnRebuild = new JButton("Rebuild");
 		btnRebuild.setActionCommand("rebuild");
@@ -370,6 +378,7 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 		toolbar.add(btnnew);
 		toolbar.add(btnopen);
 		toolbar.add(btnsave);
+		toolbar.add(btninfo);
 		toolbar.add(btnRebuild);
 		toolbar.add(btnRemove);
 		toolbar.add(btnFull);
@@ -399,7 +408,9 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if ("new".equals(e.getActionCommand())) {
+		if ("info".equals(e.getActionCommand())) {
+			getInfo().setVisible(true);
+		} else if ("new".equals(e.getActionCommand())) {
 			Swing swingDemo = new Swing();
 			swingDemo.setVisible(true);
 		} else if ("open".equals(e.getActionCommand())) {
@@ -452,8 +463,7 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 			if (ab.getActionCommand() != null
 					&& ab.getActionCommand().startsWith("laf")) {
 				try {
-					UIManager
-							.setLookAndFeel(ab.getActionCommand().substring(3));
+					UIManager.setLookAndFeel(ab.getActionCommand().substring(3));
 					SwingUtilities.updateComponentTreeUI(this);
 				} catch (Exception err) {
 					err.printStackTrace();
@@ -468,5 +478,20 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 				}
 			}
 		}
+	}
+	
+	public JDialog getInfo() {
+		if (infoDialog == null) {
+			infoDialog = new JDialog(this);
+			infoDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+			infoDialog.setModal(true);
+			JPanel panel = new JPanel(new BorderLayout());
+			panel.add(new JLabel("Java Swing Ayatana for Jared González", SwingConstants.CENTER),
+					BorderLayout.CENTER);
+			infoDialog.setContentPane(panel);
+			infoDialog.setSize(350, 220);
+			infoDialog.setLocationRelativeTo(this);
+		}
+		return infoDialog;
 	}
 }
