@@ -1,1 +1,22 @@
-[Wiki que_hay_de_nuevo]
+#sidebar UserManualNavigationTool
+
+Manual de Usuario de la Herramienta de Navegacion Proyecto ITA.
+
+<wiki:toc />
+
+= Introducción =
+
+= Detalles =
+== Programa ==
+Todo el trabajo se realizó con:
+  *
+  *
+  *
+  *
+== Preparación y organización de los datos  ==
+  * *
+  * *
+  * *
+
+== Procesamiento ==
+
