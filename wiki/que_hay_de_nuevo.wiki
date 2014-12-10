@@ -1,8 +1,6 @@
 #summary ¿Que hay de nuevo?
 #sidebar Contenido
 
-<wiki:toc/>
-
 = ¿Que hay de nuevo? =
 
   * 2.7 Corrección de ventanas de dialog en modo "MODAL".
