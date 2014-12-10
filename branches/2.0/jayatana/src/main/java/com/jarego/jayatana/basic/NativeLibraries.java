@@ -15,9 +15,9 @@ public class NativeLibraries implements Feature {
 			System.err.println("JAYATANA_NATIVEPATH="+System.getenv("JAYATANA_NATIVEPATH"));
 		} else {
 			// si la libreria no existe cancelar integración
-			if (!new File("/usr/lib/libjayatana.so").canRead())
+			if (!new File("/usr/lib/jayatana/libjayatana.so").canRead())
 				return;
-			System.load("/usr/lib/libjayatana.so");
+			System.load("/usr/lib/jayatana/libjayatana.so");
 		}
 	}
 }
