@@ -1,4 +1,5 @@
 #summary ¿Que hay de nuevo?
+#sidebar Contenido
 
 = ¿Que hay de nuevo? =
 
