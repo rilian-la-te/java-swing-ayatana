@@ -1,3 +1,5 @@
+#summary ¿Que hay de nuevo
+
 = ¿Que hay de nuevo? =
 
   * 2.7 Corrección de ventanas de dialog en modo "MODAL".
