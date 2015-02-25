@@ -28,6 +28,7 @@ package com.jarego.jayatana.test;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -321,10 +322,12 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 			JMenuItem menuAbout = new JMenuItem(bundle.getString("menu_about"));
 			menuAbout.setAccelerator(KeyStroke.getKeyStroke(bundle
 					.getString("menu_about_ac")));
+			menuAbout.setMnemonic('A');
 			menuAbout.setActionCommand("info");
 			menuAbout.addActionListener(this);
 	
 			menuhelp = new JMenu(bundle.getString("menu_help"));
+			menuhelp.setMnemonic(bundle.getString("menu_help_mn").charAt(0));
 			menuhelp.add(menuAbout);
 		}
 		return menuhelp;
@@ -432,9 +435,8 @@ public class Swing extends JFrame implements ActionListener, ItemListener {
 		} else if ("close".equals(e.getActionCommand())) {
 			this.dispose();
 		} else if ("exit".equals(e.getActionCommand())) {
-			System.exit(0);
-			//for (Frame frame : Frame.getFrames())
-			//	frame.dispose();
+			for (Frame frame : Frame.getFrames())
+				frame.dispose();
 		} else if ("rebuild".equals(e.getActionCommand())) {
 			menubar.remove(getMenuFile());
 			menubar.remove(getMenuEdit());

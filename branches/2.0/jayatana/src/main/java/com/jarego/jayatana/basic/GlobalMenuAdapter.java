@@ -105,10 +105,10 @@ public abstract class GlobalMenuAdapter {
 	 * @param enabled estado de habilitación del menú.
 	 * @param visible estado de visibulidad del menú.
 	 */
-	protected void addMenu(int menuId, String label, boolean enabled, boolean visible) {
+	protected void addMenu(int menuId, String label, char mnemonic, boolean enabled, boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.addMenu(windowXID, -1, menuId, secureString(label), lockedMenuBar ? false : enabled, visible);
+		globalMenuImp.addMenu(windowXID, -1, menuId, formatLabelString(label, mnemonic), lockedMenuBar ? false : enabled, visible);
 	}
 	/**
 	 * Agrega un nuevo menú de folder nativo.
@@ -120,11 +120,11 @@ public abstract class GlobalMenuAdapter {
 	 * @param enabled estado de habilitación del menú.
 	 * @param visible estado de visibulidad del menú.
 	 */
-	protected void addMenu(int menuParentId, int menuId, String label, boolean enabled,
+	protected void addMenu(int menuParentId, int menuId, String label, char mnemonic, boolean enabled,
 			boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.addMenu(windowXID, menuParentId, menuId, secureString(label), enabled, visible);
+		globalMenuImp.addMenu(windowXID, menuParentId, menuId, formatLabelString(label, mnemonic), enabled, visible);
 	}
 	/**
 	 * Agrega un elemento de menú nativo.
@@ -136,11 +136,11 @@ public abstract class GlobalMenuAdapter {
 	 * @param modifiers modificador del acelerador del menú (CTRL, ALT o SHIFT).
 	 * @param keycode acelerador del menú.
 	 */
-	protected void addMenuItem(int menuParentId, int menuId, String label, boolean enabled,
+	protected void addMenuItem(int menuParentId, int menuId, String label, char mnemonic, boolean enabled,
 			int modifiers, int keycode) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.addMenuItem(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode);
+		globalMenuImp.addMenuItem(windowXID, menuParentId, menuId, formatLabelString(label, mnemonic), enabled, modifiers, keycode);
 	}
 	/**
 	 * Agrega un elemento de menú check nativo.
@@ -153,11 +153,11 @@ public abstract class GlobalMenuAdapter {
 	 * @param keycode acelerador del menú.
 	 * @param selected estado de selección del menú.
 	 */
-	protected void addMenuItemCheck(int menuParentId, int menuId, String label, boolean enabled,
+	protected void addMenuItemCheck(int menuParentId, int menuId, String label, char mnemonic, boolean enabled,
 			int modifiers, int keycode, boolean selected) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.addMenuItemCheck(windowXID, menuParentId, menuId, secureString(label), enabled,modifiers, keycode, selected);
+		globalMenuImp.addMenuItemCheck(windowXID, menuParentId, menuId, formatLabelString(label, mnemonic), enabled,modifiers, keycode, selected);
 	}
 	/**
 	 * Agrega un elemento de menú radio nativo.
@@ -170,11 +170,11 @@ public abstract class GlobalMenuAdapter {
 	 * @param keycode acelerador del menú.
 	 * @param selected estado de selección del menú.
 	 */
-	protected void addMenuItemRadio(int menuParentId, int menuId, String label, boolean enabled,
+	protected void addMenuItemRadio(int menuParentId, int menuId, String label, char mnemonic, boolean enabled,
 			int modifiers, int keycode, boolean selected) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.addMenuItemRadio(windowXID, menuParentId, menuId, secureString(label), enabled, modifiers, keycode, selected);
+		globalMenuImp.addMenuItemRadio(windowXID, menuParentId, menuId, formatLabelString(label, mnemonic), enabled, modifiers, keycode, selected);
 	}
 	/**
 	 * Agrega un elmemento de menú de separador nativo.
@@ -194,10 +194,10 @@ public abstract class GlobalMenuAdapter {
 	 * @param enabled nuevo valor de estado de habilitación del menú.
 	 * @param visible nuevo valor de estado de visibilidad del menú.
 	 */
-	protected void updateMenu(int menuId, String label, boolean enabled, boolean visible) {
+	protected void updateMenu(int menuId, String label, char mnemonics, boolean enabled, boolean visible) {
 		if (approveRefreshWatcher != -1)
 			approveRefreshWatcher = System.currentTimeMillis() + SPINCOUNT;
-		globalMenuImp.updateMenu(windowXID, menuId, secureString(label), enabled, visible);
+		globalMenuImp.updateMenu(windowXID, menuId, formatLabelString(label, mnemonics), enabled, visible);
 	}
 	
 	/**
@@ -218,15 +218,32 @@ public abstract class GlobalMenuAdapter {
 	}
 	
 	/**
-	 * Obtener una cadena en caso de NULL
+	 * Formatear la cadena de texto para prevenir errores por null e incluir mnemotécnicos de
+	 * aceleracion.
+	 * 
 	 * @param text texto de etiqueta
 	 * @return texto
 	 */
-	private static String secureString(String text) {
+	private static String formatLabelString(String text, char mnemonic) {
 		if (text == null)
 			return "";
-		else
-			return text;
+		else {
+			if (mnemonic > 0) {
+				String output = "";
+				boolean founded = false;
+				for (char chr : text.toCharArray()) {
+					if (!founded &&
+							Character.toUpperCase(mnemonic) == Character.toUpperCase(chr)) {
+						output += '_';
+						founded = true;
+					}
+					output += chr;
+				}
+				return output;
+			} else {
+				return text;
+			}
+		}
 	}
 	
 	/**
@@ -275,12 +292,45 @@ public abstract class GlobalMenuAdapter {
 		}
 	}
 	
+	/**
+	 * Registro de evento cuando se une al controlador de Menus de Ubuntu.
+	 * 
+	 * @param state <code>GlobalMenu.REGISTER_STATE_INITIAL</code> y
+	 * <code>GlobalMenu.REGISTER_STATE_REFRESH</code>
+	 */
 	abstract protected void register(int state);
+	/**
+	 * Registro de evento cuando termina la conexión al controlador de Menus de Ubuntu.
+	 */
 	abstract protected void unregister();
+	/**
+	 * Registro de evento cuando se selecciona un menú.
+	 * 
+	 * @param parentMenuId Identificador del padre del menú.
+	 * @param menuId Identificador del menú.
+	 */
 	abstract protected void menuActivated(int parentMenuId, int menuId);
+	/**
+	 * Registro de evento cuando un menu se esta seleccionando antes de
+	 * mostrarse.
+	 * 
+	 * @param parentMenuId Identificador del padre del menú.
+	 * @param menuId Identificador del menú.
+	 */
 	abstract protected void menuAboutToShow(int parentMenuId, int menuId);
+	/**
+	 * Registro de evento cuando un menú se cerro.
+	 * 
+	 * @param parentMenuId
+	 * @param menuId
+	 */
 	abstract protected void menuAfterClose(int parentMenuId, int menuId);
 	
+	/**
+	 * Contenedor de adaptador de menu para eviar el acceso a métodos internos
+	 * 
+	 * @author Jared González
+	 */
 	private static class GlobalMenuImp extends GlobalMenu {
 		private final GlobalMenuAdapter globalMenuAdapter;
 		

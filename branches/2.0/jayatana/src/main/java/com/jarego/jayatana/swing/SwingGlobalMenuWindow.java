@@ -166,9 +166,9 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	 */
 	private void addMenu(JMenu parent, JMenu menu) {
 		if (parent == null)
-			addMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+			addMenu(menu.hashCode(), menu.getText(), (char)menu.getMnemonic(), menu.isEnabled(), menu.isVisible());
 		else
-			addMenu(parent.hashCode(), menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+			addMenu(parent.hashCode(), menu.hashCode(), menu.getText(), (char)menu.getMnemonic(), menu.isEnabled(), menu.isVisible());
 	}
 	
 	/**
@@ -191,15 +191,15 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 		
 		if (menuitem instanceof JRadioButtonMenuItem) {
 			addMenuItemRadio(parent.hashCode(), menuitem.hashCode(),
-					menuitem.getText(), menuitem.isEnabled(), modifiers,
+					menuitem.getText(), (char)menuitem.getMnemonic(), menuitem.isEnabled(), modifiers,
 					keycode, menuitem.isSelected());
 		} else if (menuitem instanceof JCheckBoxMenuItem) {
 			addMenuItemCheck(parent.hashCode(), menuitem.hashCode(),
-					menuitem.getText(), menuitem.isEnabled(), modifiers,
+					menuitem.getText(), (char)menuitem.getMnemonic(), menuitem.isEnabled(), modifiers,
 					keycode, menuitem.isSelected());
 		} else {
 			addMenuItem(parent.hashCode(), menuitem.hashCode(), menuitem.getText(),
-					menuitem.isEnabled(), modifiers, keycode);
+					(char)menuitem.getMnemonic(), menuitem.isEnabled(), modifiers, keycode);
 		}
 	}
 	
@@ -369,7 +369,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 						}
 					}
 					if (items == 0 && menu != null)
-						addMenuItem(menu.hashCode(), -1, "(...)", false, -1, -1);
+						addMenuItem(menu.hashCode(), -1, "(...)", (char)0, false, -1, -1);
 				}
 			});
 		} catch (Exception e) {
@@ -512,7 +512,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	public void propertyChange(PropertyChangeEvent evt) {
 		if ("enabled".equals(evt.getPropertyName())) {
 			JMenu menu = (JMenu)evt.getSource();
-			updateMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+			updateMenu(menu.hashCode(), menu.getText(), (char)menu.getMnemonic(), menu.isEnabled(), menu.isVisible());
 		}
 	}
 	/**
@@ -522,7 +522,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	public void componentHidden(ComponentEvent e) {
 		if (e.getSource() instanceof JMenu) {
 			JMenu menu = (JMenu)e.getSource();
-			updateMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+			updateMenu(menu.hashCode(), menu.getText(), (char)menu.getMnemonic(), menu.isEnabled(), menu.isVisible());
 		}
 	}
 	/**
@@ -532,7 +532,7 @@ public class SwingGlobalMenuWindow extends GlobalMenuAdapter implements WindowLi
 	public void componentShown(ComponentEvent e) {
 		if (e.getSource() instanceof JMenu) {
 			JMenu menu = (JMenu)e.getSource();
-			updateMenu(menu.hashCode(), menu.getText(), menu.isEnabled(), menu.isVisible());
+			updateMenu(menu.hashCode(), menu.getText(), (char)menu.getMnemonic(), menu.isEnabled(), menu.isVisible());
 		} else if (e.getSource() instanceof Window) {
 			refreshWatcherSafe();
 		}
