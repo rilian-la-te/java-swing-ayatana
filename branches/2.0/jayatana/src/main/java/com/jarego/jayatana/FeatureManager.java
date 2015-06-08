@@ -37,6 +37,10 @@ import java.util.Map;
  */
 public class FeatureManager {
 	/**
+	 * Característica de obtención del Contexto de Aplicación.
+	 */
+	public static final String FEATURE_APPCONTEXT = "appContext";
+	/**
 	 * Característica de GMainLoop.
 	 */
 	public static final String FEATURE_GMAINLOOP = "gMainLoop";
@@ -65,6 +69,9 @@ public class FeatureManager {
 		FeatureWrapper basicNativeLibraries = new FeatureWrapper(
 				"com.jarego.jayatana.basic.NativeLibraries");
 		
+		features.put(FEATURE_APPCONTEXT,
+				new FeatureWrapper("com.jarego.jayatana.basic.GetAppContext"));
+		
 		features.put(FEATURE_GMAINLOOP,
 				new FeatureWrapper("com.jarego.jayatana.basic.GMainLoop",
 						basicNativeLibraries));
@@ -75,8 +82,14 @@ public class FeatureManager {
 						basicNativeLibraries));
 		features.put(FEATURE_SWINGWMCLASS,
 				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
-		features.put(FEATURE_SWINGWMCLASS,
-				new FeatureWrapper("com.jarego.jayatana.swing.SwingWMClass"));
+	}
+	
+	/**
+	 * Desplegar caracteristicas sobre el hilo principal
+	 */
+	public static void deplyForMain() {
+		// recuperar contexto de aplicación
+		deployOnce(FEATURE_APPCONTEXT);
 	}
 	
 	/**
