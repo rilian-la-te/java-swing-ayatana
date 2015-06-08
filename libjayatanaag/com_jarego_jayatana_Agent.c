@@ -172,6 +172,10 @@ jvmtiError com_jarego_jayatana_Initialize(JavaVM *vm, int fromAgent) {
 					(*jvmti_env)->AddToSystemClassLoaderSearch(
 							jvmti_env, getenv("JAYATANA_CLASSPATH"));
 					fprintf(stderr, "JAYATANA_CLASSPATH=%s\n", getenv("JAYATANA_CLASSPATH"));
+				} else if (getenv("JAYATANA_JAVAPATH") != NULL) {// opción para desarrollo
+					(*jvmti_env)->AddToSystemClassLoaderSearch(
+							jvmti_env, getenv("JAYATANA_JAVAPATH"));
+					fprintf(stderr, "JAYATANA_JAVAPATH=%s\n", getenv("JAYATANA_JAVAPATH"));
 				} else {
 					(*jvmti_env)->AddToSystemClassLoaderSearch(
 							jvmti_env, "/usr/share/java/jayatana.jar");
